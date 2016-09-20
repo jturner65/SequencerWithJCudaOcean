@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,7 +6,7 @@ import java.util.Arrays;
 import processing.core.PImage;
 
 public class myKeySig {
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public static int sigCnt = 0;
 	public int ID;
 	//there are 12 key signatures, each with a specific mapping of "allowed" notes
@@ -48,7 +48,7 @@ public class myKeySig {
 	public float[] drawDim;
 	public int keyIdx;
 	
-	public myKeySig(CAProject5 _p, keySigVals _key) {
+	public myKeySig(SeqVisFFTOcean _p, keySigVals _key) {
 		p=_p;
 		ID = sigCnt++;
 		key = _key;		
@@ -94,14 +94,14 @@ public class myKeySig {
 
 
 class myTimeSig{
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public static int tsigCnt = 0;
 	public final int ID;
 	public final int beatPerMeas, beatNote;
 	public final durType noteType;
 	public float[] drawDim;
 	
-	public myTimeSig(CAProject5 _p, int _bPerMeas, int _beatNote, durType _noteType){
+	public myTimeSig(SeqVisFFTOcean _p, int _bPerMeas, int _beatNote, durType _noteType){
 		p=_p;
 		ID = tsigCnt++;
 		beatPerMeas =_bPerMeas; 
@@ -149,7 +149,7 @@ class myTimeSig{
 }
 
 abstract class myClefBase{
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public static int clfCnt = 0;
 	public int ID;
 	protected clefVal clef;		//clef for this instrument - for staff representation
@@ -167,7 +167,7 @@ abstract class myClefBase{
 	
 	public float occsOffset;
 	
-	public myClefBase(CAProject5 _p, String _name, clefVal _clef, NoteData _mdNote,PImage _img, float[] _drawDim, float _ocf){
+	public myClefBase(SeqVisFFTOcean _p, String _name, clefVal _clef, NoteData _mdNote,PImage _img, float[] _drawDim, float _ocf){
 		p = _p;
 		name = _name;
 		clef = _clef;	
@@ -211,7 +211,7 @@ abstract class myClefBase{
 
 class myClef extends myClefBase{
 
-	public myClef(CAProject5 _p, String _name, clefVal _clef, NoteData _mdNote, PImage _img, float[] _drawDim, float _ocf) {
+	public myClef(SeqVisFFTOcean _p, String _name, clefVal _clef, NoteData _mdNote, PImage _img, float[] _drawDim, float _ocf) {
 		super(_p, _name, _clef, _mdNote, _img, _drawDim, _ocf);
 		lowNote = new NoteData(midNote);
 		int[] dispAmts = p.getNoteDisp(lowNote, -7);
@@ -256,7 +256,7 @@ class myClef extends myClefBase{
 class myGrandClef extends myClefBase{	
 	public myClef[] clefs;
 
-	public myGrandClef(CAProject5 _p, String _name, clefVal _clef, NoteData _mdNote, PImage _img, float[] _drawDim, float _ocf) {
+	public myGrandClef(SeqVisFFTOcean _p, String _name, clefVal _clef, NoteData _mdNote, PImage _img, float[] _drawDim, float _ocf) {
 		super(_p, _name, _clef, _mdNote, _img,_drawDim, _ocf);		
 		isGrandStaff = true;
 		clefs = new myClef[2];

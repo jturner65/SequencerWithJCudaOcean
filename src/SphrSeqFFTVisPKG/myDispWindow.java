@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +13,7 @@ import processing.core.PConstants;
 
 //abstract class to hold base code for a menu/display window (2D for gui, etc), to handle displaying and controlling the window, and calling the implementing class for the specifics
 public abstract class myDispWindow {
-	public CAProject5 pa;
+	public SeqVisFFTOcean pa;
 	public static int winCnt = 0;
 	public int ID;
 	
@@ -62,9 +62,10 @@ public abstract class myDispWindow {
 				fltrByKeySig 		= 13,
 				plays 				= 14,			//this window responds to playing
 				drawsPBERet 		= 15,
-				notesLoaded 		= 16;			//notes are all loaded into out for all staffs - wait to move pbe until this has happened.
+				notesLoaded 		= 16,			//notes are all loaded into out for all staffs - wait to move pbe until this has happened.
+				uiObjMod			= 17;			//a ui object in this window has been modified
 
-	public static final int numDispFlags = 17;
+	public static final int numDispFlags = 18;
 	
 	//private window-specific flags and UI components (buttons)
 	public boolean[] privFlags;
@@ -79,7 +80,7 @@ public abstract class myDispWindow {
 	
 	
 	//edit circle quantities for visual cues when grab and smoothen
-	public static final int[] editCrcFillClrs = new int[] {CAProject5.gui_FaintMagenta, CAProject5.gui_FaintGreen};			
+	public static final int[] editCrcFillClrs = new int[] {SeqVisFFTOcean.gui_FaintMagenta, SeqVisFFTOcean.gui_FaintGreen};			
 	public static final float[] editCrcRads = new float[] {20.0f,40.0f};			
 	public static final float[] editCrcMods = new float[] {1f,2f};			
 	public final myPoint[] editCrcCtrs = new myPoint[] {new myPoint(0,0,0),new myPoint(0,0,0)};			
@@ -137,7 +138,7 @@ public abstract class myDispWindow {
 	//public AudioOutput[] instrNoteOut;
 	public float tempoDurRatio = 1.0f;
 	
-	public myDispWindow(CAProject5 _p, String _n, int _flagIdx, int[] fc,  int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
+	public myDispWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc,  int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
 		pa=_p;
 		pbe = new myPlaybackEngine(pa, this, new int[]{255,0,255,255}, new int[]{0,255,255,255}, new float[]{0,pa.height});
 		ID = winCnt++;
@@ -147,8 +148,8 @@ public abstract class myDispWindow {
 		for(int i =0;i<4;++i){fillClr[i] = fc[i];strkClr[i]=sc[i];rectDim[i]=rd[i];rectDimClosed[i]=rdClosed[i];}		
 				
 		winText = _winTxt;
-		trajFillClrCnst = CAProject5.gui_Black;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = CAProject5.gui_Black;
+		trajFillClrCnst = SeqVisFFTOcean.gui_Black;		//override this in the ctor of the instancing window class
+		trajStrkClrCnst = SeqVisFFTOcean.gui_Black;
 		
 		msClkObj = -1;//	lastTrajIDX = -1; //lastPBEQueryPlayTime = 0;	
 		msOvrObj = -1;
@@ -205,27 +206,53 @@ public abstract class myDispWindow {
 		seqVisStTime = new int[] {0,0};
 	}
 	
+	//calculate button length
+	private static final float ltrLen = 6.2f;private static final int btnStep = 6;
+	private float calcBtnLength(String tStr, String fStr){return btnStep * ((int)((PApplet.max(tStr.length(),fStr.length()) + 4) * ltrLen)/btnStep);}
 	//set up child class button rectangles TODO
 	//yDisp is displacement for button to be drawn
 	protected void initPrivBtnRects(float yDisp, int numBtns){
 		//pa.outStr2Scr("initPrivBtnRects in :"+ name + "st value for uiClkCoords[3]");
 		privFlagBtns = new float[numBtns][];
 		this.uiClkCoords[3] += yOff;
-		float locX = 0;
+		float oldBtnLen = 0;
 		for(int i=0; i<numBtns; ++i){						//clickable button regions - as rect,so x,y,w,h - need to be in terms of sidebar menu 
-			float btnLen = pa.max(truePrivFlagNames[i].length(),falsePrivFlagNames[i].length()) * 7.2f;
-			privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff) + locX, (float) this.uiClkCoords[3], btnLen, yOff };
-			if(i % 2 == 0){//for next cycle odd				
-				locX = btnLen;
-			} else{
-				locX = 0;
-				this.uiClkCoords[3] += yOff;	
+			float btnLen = calcBtnLength(truePrivFlagNames[i].trim(),falsePrivFlagNames[i].trim());
+			if(i%2 == 0){//even btns always on a new line
+				privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };
+			} else {	//odd button
+				if ((btnLen + oldBtnLen) > .95f * pa.menuWidth){	//odd button, but too long -> new line		
+					this.uiClkCoords[3] += yOff;
+					oldBtnLen = 0;
+				}
+				privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff)+oldBtnLen, (float) uiClkCoords[3], btnLen, yOff };
+				this.uiClkCoords[3] += yOff;//always new line after odd button
 			}
-			
+			oldBtnLen = btnLen;
 		};
 		this.uiClkCoords[3] += yOff;
 		initPrivFlagColors();
-	}
+	}//initPrivBtnRects
+//	//pa.outStr2Scr("initPrivBtnRects in :"+ name + "st value for uiClkCoords[3]");
+//	privFlagBtns = new float[numBtns][];
+//	this.uiClkCoords[3] += yOff;
+//	float locX = 0, oldBtnLen = 0;
+//	for(int i=0; i<numBtns; ++i){						//clickable button regions - as rect,so x,y,w,h - need to be in terms of sidebar menu 
+//		float btnLen = calcBtnLength(truePrivFlagNames[i],falsePrivFlagNames[i]);
+//		if(i%2 == 0){//even btns always on a new line
+//			privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };
+//		} else {	//odd button
+//			if ((btnLen + oldBtnLen) > .95f * pa.menuWidth){	//odd button, but too long -> new line		
+//				this.uiClkCoords[3] += yOff;
+//			}
+//			privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };
+//			this.uiClkCoords[3] += yOff;//always new line after odd button
+//		}
+//		oldBtnLen = btnLen;
+//	};
+//	this.uiClkCoords[3] += yOff;
+//	initPrivFlagColors();
+
 	
 	public abstract void setPrivFlags(int idx, boolean val);
 	
@@ -469,7 +496,7 @@ public abstract class myDispWindow {
 	}
 	
 	//displays point with a name
-	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), CAProject5.gui_Cyan, dispFlags[trajPointsAreFlat]);	}	
+	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), SeqVisFFTOcean.gui_Cyan, dispFlags[trajPointsAreFlat]);	}	
 	//draw a series of strings in a column
 	protected void dispMenuTxtLat(String txt, int[] clrAra, boolean showSphere){
 		pa.setFill(clrAra, 255); 
@@ -494,10 +521,10 @@ public abstract class myDispWindow {
 	
 	//draw a series of strings in a row
 	protected void dispBttnAtLoc(String txt, float[] loc, int[] clrAra){
-		pa.setColorValFill(CAProject5.gui_White);
-		pa.setColorValStroke(CAProject5.gui_Black);
+		pa.setColorValFill(SeqVisFFTOcean.gui_White);
+		pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
 		pa.rect(loc);		
-		pa.setColorValFill(CAProject5.gui_Black);
+		pa.setColorValFill(SeqVisFFTOcean.gui_Black);
 		//pa.translate(-xOff*.5f,-yOff*.5f);
 		pa.text(""+txt,loc[0] + (txt.length() * .3f),loc[1]+loc[3]*.75f);
 		//pa.translate(width, 0);
@@ -540,7 +567,7 @@ public abstract class myDispWindow {
 	
 	//draw box to hide window
 	protected void drawMouseBox(){
-	    pa.setColorValFill(dispFlags[showIDX] ? CAProject5.gui_LightGreen : CAProject5.gui_DarkRed);
+	    pa.setColorValFill(dispFlags[showIDX] ? SeqVisFFTOcean.gui_LightGreen : SeqVisFFTOcean.gui_DarkRed);
 		pa.rect(closeBox);
 		pa.setFill(strkClr);
 		pa.text(dispFlags[showIDX] ? "Close" : "Open", closeBox[0]-35, closeBox[1]+10);
@@ -643,10 +670,10 @@ public abstract class myDispWindow {
 		//debug stuff
 		pa.pushMatrix();				pa.pushStyle();
 		pa.translate(rectDim[0]+20,rectDim[1]+rectDim[3]-70);
-		dispMenuTxtLat("Drawing curve", pa.getClr((dispFlags[myDispWindow.drawingTraj] ? CAProject5.gui_Green : CAProject5.gui_Red)), true);
+		dispMenuTxtLat("Drawing curve", pa.getClr((dispFlags[myDispWindow.drawingTraj] ? SeqVisFFTOcean.gui_Green : SeqVisFFTOcean.gui_Red)), true);
 		//pa.show(new myPoint(0,0,0),4, "Drawing curve",new myVector(10,15,0),(dispFlags[this.drawingTraj] ? pa.gui_Green : pa.gui_Red));
 		//pa.translate(0,-30);
-		dispMenuTxtLat("Editing curve", pa.getClr((dispFlags[myDispWindow.editingTraj] ? CAProject5.gui_Green : CAProject5.gui_Red)), true);
+		dispMenuTxtLat("Editing curve", pa.getClr((dispFlags[myDispWindow.editingTraj] ? SeqVisFFTOcean.gui_Green : SeqVisFFTOcean.gui_Red)), true);
 		//pa.show(new myPoint(0,0,0),4, "Editing curve",new myVector(10,15,0),(dispFlags[this.editingTraj] ? pa.gui_Green : pa.gui_Red));
 		pa.popStyle();pa.popMatrix();		
 	}
@@ -755,15 +782,26 @@ public abstract class myDispWindow {
 	
 	public boolean msePtInRect(int x, int y, float[] r){return ((x > r[0])&&(x <= r[0]+r[2])&&(y > r[1])&&(y <= r[1]+r[3]));}	
 	public boolean msePtInUIRect(int x, int y){return ((x > uiClkCoords[0])&&(x <= uiClkCoords[2])&&(y > uiClkCoords[1])&&(y <= uiClkCoords[3]));}	
-	public boolean handleMouseClick(int mouseX, int mouseY, myPoint mouseClickIn3D){
+	public boolean handleMouseClick(int mouseX, int mouseY, myPoint mouseClickIn3D, int mseBtn){
 		boolean mod = false;
 		if((dispFlags[showIDX])&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
-			for(int j=0; j<guiObjs.length; ++j){if(guiObjs[j].checkIn(mouseX, mouseY)){	msClkObj=j;return true;	}}
+			for(int j=0; j<guiObjs.length; ++j){
+				if(guiObjs[j].checkIn(mouseX, mouseY)){	
+					if(pa.flags[pa.shiftKeyPressed]){//allows for click-mod
+						int mult = mseBtn * -2 + 1;	//+1 for left, -1 for right btn						
+						guiObjs[j].modVal(mult * pa.clickValModMult());
+						dispFlags[uiObjMod] = true;
+					} else {										//has drag mod
+						msClkObj=j;
+					}
+					return true;	
+				}
+			}
 		}			
 		if(dispFlags[closeable]){mod = checkClsBox(mouseX, mouseY);}							//check if trying to close or open the window via click, if possible
 		if(!dispFlags[showIDX]){return mod;}
 		//pa.outStr2Scr("ID :" +ID +" before mouse click indiv mod "+ mod);
-		if(!mod){mod = hndlMouseClickIndiv(mouseX, mouseY,mouseClickIn3D);}			//if nothing triggered yet, then specific instancing window implementation stuff		
+		if(!mod){mod = hndlMouseClickIndiv(mouseX, mouseY,mouseClickIn3D, mseBtn);}			//if nothing triggered yet, then specific instancing window implementation stuff		
 		//pa.outStr2Scr("ID :" +ID +" after mouse click indiv mod "+ mod);
 		if((!mod) && (msePtInRect(mouseX, mouseY, this.rectDim)) && (dispFlags[canDrawTraj])){ 
 			myPoint pt =  getMsePoint(mouseX, mouseY);
@@ -776,7 +814,7 @@ public abstract class myDispWindow {
 		boolean mod = false;
 		if(!dispFlags[showIDX]){return mod;}
 		//any generic dragging stuff - need flag to determine if trajectory is being entered
-		if(msClkObj!=-1){	guiObjs[msClkObj].modVal((mouseX-pmouseX)+(mouseY-pmouseY)*-5.0f); return true;}		
+		if(msClkObj!=-1){	guiObjs[msClkObj].modVal((mouseX-pmouseX)+(mouseY-pmouseY)*-5.0f);dispFlags[uiObjMod] = true; return true;}		
 		if(dispFlags[drawingTraj]){ 		//if drawing trajectory has started, then process it
 			//pa.outStr2Scr("drawing traj");
 			myPoint pt =  getMsePoint(mouseX, mouseY);
@@ -793,14 +831,15 @@ public abstract class myDispWindow {
 		else {
 			if((!pa.ptInRange(mouseX, mouseY, rectDim[0], rectDim[1], rectDim[0]+rectDim[2], rectDim[1]+rectDim[3]))){return false;}	//if not drawing or editing a trajectory, force all dragging to be within window rectangle
 			//pa.outStr2Scr("before handle indiv drag traj");
-			mod = hndlMouseDragIndiv(mouseX, mouseY,pmouseX, pmouseY,mouseClickIn3D,mseDragInWorld);}		//handle specific, non-trajectory functionality for implementation of window
+			mod = hndlMouseDragIndiv(mouseX, mouseY,pmouseX, pmouseY,mouseClickIn3D,mseDragInWorld, mseBtn);}		//handle specific, non-trajectory functionality for implementation of window
 		return mod;
 	}//handleMouseClick	
 	
 	public void handleMouseRelease(){
 		if(!dispFlags[showIDX]){return;}
-		if(msClkObj != -1){
+		if(dispFlags[uiObjMod]){//dispFlags[uiObjMod] = true;
 			for(int i=0;i<guiObjs.length;++i){if(guiObjs[i].uiFlags[myGUIObj.usedByWinsIDX]){setUIWinVals(i);}}		
+			dispFlags[uiObjMod] = false;
 			msClkObj = -1;	
 		}//some object was clicked - pass the values out to all windows
 		if (dispFlags[editingTraj]){    this.tmpDrawnTraj.endEditObj();}    //this process assigns tmpDrawnTraj to owning window's traj array
@@ -1068,8 +1107,8 @@ public abstract class myDispWindow {
 	
 	//implementing class' necessary functions - implement for each individual window
 	protected abstract boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld);
-	protected abstract boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld);
-	protected abstract boolean hndlMouseDragIndiv(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld);
+	protected abstract boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn);
+	protected abstract boolean hndlMouseDragIndiv(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn);
 	protected abstract void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc);	
 	
 	protected abstract void hndlMouseRelIndiv();
@@ -1243,17 +1282,17 @@ class mySideBarMenu extends myDispWindow{
 	//row and column of currently clicked-on button (for display highlight as pressing)
 	public int[] curBtnClick = new int[]{-1,-1};
 
-	public mySideBarMenu(CAProject5 _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
+	public mySideBarMenu(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		guiBtnStFillClr = new int[]{		//button colors based on state
-				CAProject5.gui_White,								//disabled color for buttons
-				CAProject5.gui_LightGray,								//not clicked button color
-				CAProject5.gui_LightBlue,									//clicked button color
+				SeqVisFFTOcean.gui_White,								//disabled color for buttons
+				SeqVisFFTOcean.gui_LightGray,								//not clicked button color
+				SeqVisFFTOcean.gui_LightBlue,									//clicked button color
 			};
 		guiBtnStTxtClr = new int[]{			//text color for buttons
-				CAProject5.gui_LightGray,									//disabled color for buttons
-				CAProject5.gui_Black,									//not clicked button color
-				CAProject5.gui_Black,									//clicked button color
+				SeqVisFFTOcean.gui_LightGray,									//disabled color for buttons
+				SeqVisFFTOcean.gui_Black,									//not clicked button color
+				SeqVisFFTOcean.gui_Black,									//clicked button color
 			};			
 		super.initThisWin(_canDrawTraj, false);
 	}
@@ -1432,7 +1471,7 @@ class mySideBarMenu extends myDispWindow{
 		return false;
 	}
 	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld) {	
+	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
 		if((!pa.ptInRange(mouseX, mouseY, rectDim[0], rectDim[1], rectDim[0]+rectDim[2], rectDim[1]+rectDim[3]))){return false;}//not in this window's bounds, quit asap for speedz
 		int i = (int)((mouseY-(yOff + yOff + clkFlgsStY))/(yOff));					//TODO Awful - needs to be recalced, dependent on menu being on left
 		if((i>=0) && (i<pa.numFlagsToShow)){
@@ -1441,7 +1480,7 @@ class mySideBarMenu extends myDispWindow{
 		return false;
 	}
 	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld) {
+	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		return false;
 	}
 
@@ -1453,7 +1492,7 @@ class mySideBarMenu extends myDispWindow{
 	private void drawSideBarBooleans(){
 		//draw booleans and their state
 		pa.translate(10,yOff*2);
-		pa.setColorValFill(CAProject5.gui_Black);
+		pa.setColorValFill(SeqVisFFTOcean.gui_Black);
 		pa.text("Boolean Flags",0,yOff*.20f);
 		pa.translate(0,clkFlgsStY);
 		for(int idx =0; idx<pa.numFlagsToShow; ++idx){
@@ -1610,7 +1649,7 @@ class mySideBarMenu extends myDispWindow{
 
 //class holds trajctory and 4 macro cntl points, and handling for them
 class myDrawnNoteTraj {
-	public CAProject5 pa;
+	public SeqVisFFTOcean pa;
 	public myDispWindow win;
 	public static int trjCnt = 0;
 	public int ID;
@@ -1643,7 +1682,7 @@ class myDrawnNoteTraj {
 	
 	public int ctlRad;
 	
-	public myDrawnNoteTraj(CAProject5 _p, myDispWindow _win,float _topOffy, int _fillClrCnst, int _strkClrCnst, boolean _flat, boolean _smCntl){
+	public myDrawnNoteTraj(SeqVisFFTOcean _p, myDispWindow _win,float _topOffy, int _fillClrCnst, int _strkClrCnst, boolean _flat, boolean _smCntl){
 		pa = _p;
 		fillClrCnst = _fillClrCnst; 
 		strkClrCnst = _strkClrCnst;
@@ -1853,7 +1892,7 @@ class myDrawnNoteTraj {
 }//class myDrawnNoteTraj
 
 class myScrollBars{
-	public CAProject5 pa;
+	public SeqVisFFTOcean pa;
 	public myDispWindow win;
 	public static int scrBarCnt = 0;
 	public int ID;
@@ -1881,7 +1920,7 @@ class myScrollBars{
 	
 	public int[][] clrs;			//colors for thumb and up/down/left/right arrows
 	
-	public myScrollBars(CAProject5 _pa,myDispWindow _win){
+	public myScrollBars(SeqVisFFTOcean _pa,myDispWindow _win){
 		pa = _pa;
 		win = _win;
 		ID = scrBarCnt++;

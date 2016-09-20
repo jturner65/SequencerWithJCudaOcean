@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +12,7 @@ import processing.core.PApplet;
 
 //fundamental container holding measures of notes and chords for a single instrument
 public class myStaff {
-	public static CAProject5 p;
+	public static SeqVisFFTOcean p;
 	public static int sCnt = 0;
 	public int ID;
 	public String name;
@@ -49,7 +49,7 @@ public class myStaff {
 	
 	public String hdrDispString;		//display string for header over staff
 		
-	public myStaff(CAProject5 _p,myScore _song, myInstr _instr, String _nm) {
+	public myStaff(SeqVisFFTOcean _p,myScore _song, myInstr _instr, String _nm) {
 		p=_p;
 		ID = sCnt++;
 		song = _song;
@@ -370,9 +370,9 @@ public class myStaff {
 	}
 	private void drawStfSelBox(int idx){
 		p.pushMatrix();p.pushStyle();
-		p.setColorValFill(CAProject5.gui_Black);
+		p.setColorValFill(SeqVisFFTOcean.gui_Black);
 		p.text(stfBtnLbls[idx], stfSelBoxRect[idx][0]+ 1.5f*lOff, 0);
-		p.setColorValFill(stfFlags[idx] ? CAProject5.gui_LightGreen : CAProject5.gui_LightRed);
+		p.setColorValFill(stfFlags[idx] ? SeqVisFFTOcean.gui_LightGreen : SeqVisFFTOcean.gui_LightRed);
 	    p.rect(stfSelBoxRect[idx]);
 		p.popStyle();p.popMatrix();	
 	}	
@@ -427,8 +427,8 @@ public class myStaff {
 	//draw staff here
 	public void drawStaff(){
 		p.pushMatrix();p.pushStyle();
-			p.setColorValFill(CAProject5.gui_Black);
-			p.setColorValStroke(CAProject5.gui_Black);
+			p.setColorValFill(SeqVisFFTOcean.gui_Black);
+			p.setColorValStroke(SeqVisFFTOcean.gui_Black);
 			p.strokeWeight(1);
 			p.translate(0, lOff);
 			drawHeader();
@@ -466,7 +466,7 @@ public class myStaff {
 
 //class to hold a measure of notes for a single instrument - collected into a staff
 class myMeasure {
-	public static CAProject5 p;
+	public static SeqVisFFTOcean p;
 	public static int mCnt = 0;
 	public int ID;		
 	
@@ -481,7 +481,7 @@ class myMeasure {
 	
 	public float noteStartX,		//x location from beginning of measure bar where first note should start - might be moved if measure has different clef,key,timesig, etc.
 				dispWidth;		//display width of measure
-	public myMeasure(CAProject5 _p, int _seqNum, int _stTime, myStaff _staff) {
+	public myMeasure(SeqVisFFTOcean _p, int _seqNum, int _stTime, myStaff _staff) {
 		p=_p;
 		ID = mCnt++;
 		staff = _staff;
@@ -532,8 +532,8 @@ class myMeasure {
 	//draw all the notes in this measure - return whether a new key,timesig or clef has been specified from previous values : 1 if clef, 2 if timesig, 4 if key sig, bitwise combo of all if multiples otherwise none
 	public void drawMe(float xOffset){
 		p.pushMatrix();p.pushStyle();		//draw sequence # of measure
-			p.setColorValFill(CAProject5.gui_Black);
-			p.setColorValStroke(CAProject5.gui_Black);
+			p.setColorValFill(SeqVisFFTOcean.gui_Black);
+			p.setColorValStroke(SeqVisFFTOcean.gui_Black);
 			p.strokeWeight(1);
 			p.scale(.75f);
 			p.text(m.seqNum, 0, -staff.getlOff());
@@ -552,8 +552,8 @@ class myMeasure {
 			p.popStyle();p.popMatrix();
 			p.pushMatrix();p.pushStyle();
 				p.translate(dispWidth, 0);				//drawn end line
-				p.setColorValFill(CAProject5.gui_Black);
-				p.setColorValStroke(CAProject5.gui_Black);
+				p.setColorValFill(SeqVisFFTOcean.gui_Black);
+				p.setColorValStroke(SeqVisFFTOcean.gui_Black);
 				p.strokeWeight(2);
 				p.line(0,0,0,4*staff.getlOff());
 			p.popStyle();p.popMatrix();
@@ -712,7 +712,7 @@ class myMeasure {
 
 //fundamental class to hold and process a single note played by a single instrument
 class myNote {
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public static int nCnt = 0;
 	public int ID;		
 	public float noteC4DispLoc;		//displacement for this note from C4 for display purposes, governed by owning staff
@@ -751,7 +751,7 @@ class myNote {
 	
 	
 	//build note then set duration
-	public myNote(CAProject5 _p, nValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
+	public myNote(SeqVisFFTOcean _p, nValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
 		p=_p;
 		ID = nCnt++;	
 		meas = _measure;
@@ -774,7 +774,7 @@ class myNote {
 		flags[isInStaff] = (owningStaff.getClefsAtTime(n.stTime).isOnStaff(n) == 0);
 	}	
 	//ctor for note data for notes in spherical UI
-	public myNote(CAProject5 _p, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
+	public myNote(SeqVisFFTOcean _p, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
 		p=_p;
 		ID = nCnt++;	
 		meas = null;	
@@ -1033,12 +1033,12 @@ class myChord extends myNote{
 	public TreeMap<String, myNote> cnotes;	//keyed by frequency
 		
 	//note passed is root of chord
-	public myChord(CAProject5 _p, nValType _name, int _octave, myMeasure _measure, myStaff _stf) {
+	public myChord(SeqVisFFTOcean _p, nValType _name, int _octave, myMeasure _measure, myStaff _stf) {
 		super(_p,_name,_octave,_measure,_stf);
 		initChord();
 	} 
 	//turn a note into a chord
-	public myChord(CAProject5 _p, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
+	public myChord(SeqVisFFTOcean _p, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
 		super(_p, _alphaSt, _alphaEnd, _ring, _sphrOwn);
 		initChord();
 	}
@@ -1187,7 +1187,7 @@ class myChord extends myNote{
 
 //convenience class to hold the important info for a measure (time sig, key sig, clef, c4 disp location, etc.
 class MeasureData implements Comparable<MeasureData>{//comparison by measure seq #
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public int seqNum,
 				stTime, 
 				endTime;		//start time of measure from beginning of sequence in millis; end time in millis - notes after this need to go in new measure	
@@ -1198,7 +1198,7 @@ class MeasureData implements Comparable<MeasureData>{//comparison by measure seq
 	public myClefBase clef;
 	public float c4DispLoc;	
 	
-	public MeasureData(CAProject5 _p,int _seqNum, int _stTime, myMeasure _meas, myTimeSig _ts, myKeySig _ks, myClefBase _clef, float _c4DispLoc){
+	public MeasureData(SeqVisFFTOcean _p,int _seqNum, int _stTime, myMeasure _meas, myTimeSig _ts, myKeySig _ks, myClefBase _clef, float _c4DispLoc){
 		p = _p;
 		seqNum = _seqNum;		
 		c4DispLoc = _c4DispLoc;			//may be overridden based on notes in this measure
@@ -1244,7 +1244,7 @@ class MeasureData implements Comparable<MeasureData>{//comparison by measure seq
 
 //convenience class to hold the important values for a note
 class NoteData implements Comparable<NoteData> {//only compares start time
-	public static CAProject5 p;
+	public static SeqVisFFTOcean p;
 	public static final float C0 = 16.352f;		//baseline for note frequency
 	//note value
 	public nValType name;
@@ -1264,7 +1264,7 @@ class NoteData implements Comparable<NoteData> {//only compares start time
 	
 	public boolean isSharp;		//this note is a black key (always a sharp)
 		
-	public NoteData(CAProject5 _p,nValType _name, int _octave){
+	public NoteData(SeqVisFFTOcean _p,nValType _name, int _octave){
 		p=_p;
 		setNoteVals(_name,_octave, 1.0f);
 		setDur(0);
@@ -1279,7 +1279,7 @@ class NoteData implements Comparable<NoteData> {//only compares start time
 		stTime = _n.stTime;
 	}
 	
-	public NoteData(CAProject5 _p,int d, int s, nValType _name, int _octave){
+	public NoteData(SeqVisFFTOcean _p,int d, int s, nValType _name, int _octave){
 		this(_p,  _name, _octave);
 		setDur(d);
 		stTime = s;

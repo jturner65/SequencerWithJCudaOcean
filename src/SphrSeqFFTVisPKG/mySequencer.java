@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -49,7 +49,7 @@ public class mySequencer extends myDispWindow {
 	
 	public durType defaultNoteLength;			//default note length for each square in piano roll
 	
-	public mySequencer(CAProject5 _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
+	public mySequencer(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		updateGridXandY(false);
 		dispPianoRect = new float[]{0, topOffY, whiteKeyWidth, 52 * gridY};
@@ -247,7 +247,7 @@ public class mySequencer extends myDispWindow {
 	}
 	
 	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld) {
+	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {
 		boolean mod = false;
 		if(privFlags[prlShowPianoIDX]){
 			mod = hndlPianoMseClkDrg(new int[] {mouseX, mouseY},true);// hndlPianoMseClick(mouseX, mouseY);
@@ -261,7 +261,7 @@ public class mySequencer extends myDispWindow {
 		return checkUIButtons(mouseX, mouseY);
 	}//hndlMouseClickIndiv
 	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld) {
+	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		boolean mod = false;
 		if(privFlags[prlShowPianoIDX]){
 			mod = hndlPianoMseClkDrg(new int[] {mouseX, mouseY, pmouseX, pmouseY},false);//  hndlPianoMseDrag(mouseX, mouseY, pmouseX, pmouseY);
@@ -574,7 +574,7 @@ public class mySequencer extends myDispWindow {
 	private void drawPRLStuff(){
 		dispPiano.drawMe();
 		pa.pushMatrix();pa.pushStyle();	
-		if((playClickNote) && (pa.mousePressed)){pa.show(clickNoteLoc, 4, ""+clickNote.n.nameOct, new myVector(5,5,0), CAProject5.gui_Magenta, dispFlags[trajPointsAreFlat]);}//clicking on piano
+		if((playClickNote) && (pa.mousePressed)){pa.show(clickNoteLoc, 4, ""+clickNote.n.nameOct, new myVector(5,5,0), SeqVisFFTOcean.gui_Magenta, dispFlags[trajPointsAreFlat]);}//clicking on piano
 		//draw vertical grid partition lines - done in piano
 		//draw squares corresponding to trajectory
 		for(int i =0; i<pa.score.staffs.size(); ++i){//			pa.setColorValFill((i==curDrnTrajStaffIDX ? pa.gui_Red : );
@@ -641,7 +641,7 @@ public class mySequencer extends myDispWindow {
 }//mySequencer class
 
 class myPianoObj{
-	public static CAProject5 pa;
+	public static SeqVisFFTOcean pa;
 	public static mySequencer win;
 	//dimensions of piano keys, for display and mouse-checking
 	public float[][] pianoWKeyDims, pianoBKeyDims;	
@@ -659,7 +659,7 @@ class myPianoObj{
 	public int numWhiteKeys;										//# of white keys on piano - should be 52, maybe resize if smaller?
 	public static  final int numKeys = 88;
 	public int numNotesWide;										//# of notes to show as grid squares
-	public myPianoObj(CAProject5 _p, mySequencer _win, float kx, float ky, float[] _pianoDim, int[] _winFillClr, float[] _winDim){
+	public myPianoObj(SeqVisFFTOcean _p, mySequencer _win, float kx, float ky, float[] _pianoDim, int[] _winFillClr, float[] _winDim){
 		pa = _p;
 		win = _win;
 		pianoDim = new float[_pianoDim.length];
@@ -800,14 +800,14 @@ class myPianoObj{
 		
 	public void drawMe(){
 		pa.pushMatrix();pa.pushStyle();
-		pa.setColorValFill(CAProject5.gui_Red);	pa.setColorValStroke(CAProject5.gui_Black);
+		pa.setColorValFill(SeqVisFFTOcean.gui_Red);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
 		pa.strokeWeight(1.0f);
 		pa.rect(pianoDim);		//piano box
 		//white keys		
 		float[] lineYdim = new float[2];
 		for(int i =0; i<pianoWKeyDims.length;++i){
 			pa.pushMatrix();pa.pushStyle();
-			pa.setColorValFill(CAProject5.gui_OffWhite);	pa.setColorValStroke(CAProject5.gui_Black);
+			pa.setColorValFill(SeqVisFFTOcean.gui_OffWhite);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
 			pa.strokeWeight(.5f);
 			pa.rect(pianoWKeyDims[i]);
 			lineYdim[0] = pianoWKeyDims[i][1]; lineYdim[1] = pianoWKeyDims[i][3];
@@ -817,22 +817,22 @@ class myPianoObj{
 			}
 			pa.rect(win.whiteKeyWidth,lineYdim[0],winDim[2],lineYdim[1]);	
 
-			pa.setColorValFill(CAProject5.gui_Gray);			
+			pa.setColorValFill(SeqVisFFTOcean.gui_Gray);			
 			pa.text(""+pianoWNotes[i].nameOct, (wkOff_X+.05f)*win.whiteKeyWidth, pianoWKeyDims[i][1]+.85f*keyY);			
 			pa.popStyle();pa.popMatrix();		
 		}
 		//black keys
 		for(int i =0; i<pianoBKeyDims.length;++i){
 			pa.pushMatrix();pa.pushStyle();
-			pa.setColorValFill(CAProject5.gui_Black);	pa.setColorValStroke(CAProject5.gui_Black);
+			pa.setColorValFill(SeqVisFFTOcean.gui_Black);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
 			pa.rect(pianoBKeyDims[i]);
-			pa.setColorValFill(CAProject5.gui_LightGray,512);
+			pa.setColorValFill(SeqVisFFTOcean.gui_LightGray,512);
 			pa.noStroke();
 			pa.rect(win.whiteKeyWidth,pianoBKeyDims[i][1]+.1f*keyY,winDim[2],pianoBKeyDims[i][3]-.2f*keyY);			
 			pa.popStyle();pa.popMatrix();		
 		}
 		//vertical bars
-		pa.setColorValStroke(CAProject5.gui_Black);
+		pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
 		pa.strokeWeight(1.0f);
 		float startX = pianoDim[2] + pianoDim[0];
 		for(int i=0;i<numNotesWide;++i){
@@ -850,7 +850,7 @@ class myPianoObj{
 
 
 class myScore {
-	public static CAProject5 pa;
+	public static SeqVisFFTOcean pa;
 	public myDispWindow w;
 	public static int sngCnt = 0;
 	public int ID;
@@ -874,7 +874,7 @@ class myScore {
 	//distance between staffs
 	public static final float stOff = 90, boxStX = 0, boxStY = 10;
 	
-	public myScore(CAProject5 _p, myDispWindow _w,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstr> _inst) {
+	public myScore(SeqVisFFTOcean _p, myDispWindow _w,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstr> _inst) {
 		pa=_p;
 		w=_w;
 		ID = sngCnt++;
@@ -891,7 +891,7 @@ class myScore {
 		initScrFlags();
 	}	
 
-	public myScore(CAProject5 _p,myDispWindow _w, String _name, float[] _scoreDim) {
+	public myScore(SeqVisFFTOcean _p,myDispWindow _w, String _name, float[] _scoreDim) {
 		this(_p,_w,_name,_scoreDim,new ArrayList<String>(),new ArrayList<myInstr>());
 	}		
 	public void initScrFlags(){		scrFlags = new boolean[numScrFlags];for(int i=0;i<numScrFlags;++i){scrFlags[i]=false;}	}

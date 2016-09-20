@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -9,7 +9,7 @@ import processing.opengl.PGL;
 import processing.opengl.PGraphics3D;
 
 public class my3DCanvas {
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	
 	public myPoint drawEyeLoc,													//rx,ry,dz coords where eye was when drawing - set when first drawing and return eye to this location whenever trying to draw again - rx,ry,dz
 		scrCtrInWorld,mseLoc, eyeInWorld, oldMseLoc, distMsePt;//mseIn3DBox;
@@ -27,7 +27,7 @@ public class my3DCanvas {
 	public int viewDimW, viewDimH;
 	public float curDepth;
 	public final float TQTR_PI;
-	public my3DCanvas(CAProject5 _p) {
+	public my3DCanvas(SeqVisFFTOcean _p) {
 		p = _p;
 		viewDimW = p.width; viewDimH = p.height;
 		curDepth = -1;
@@ -206,10 +206,10 @@ public class my3DCanvas {
 }
 //line bounded by verts - from a to b new myPoint(x,y,z); 
 class edge{ 
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public myPoint a, b;
-	public edge (CAProject5 _p){this(_p,new myPoint(0,0,0),new myPoint(0,0,0));}
-	public edge (CAProject5 _p, myPoint _a, myPoint _b){p = _p;a=new myPoint(_a); b=new myPoint(_b);}
+	public edge (SeqVisFFTOcean _p){this(_p,new myPoint(0,0,0),new myPoint(0,0,0));}
+	public edge (SeqVisFFTOcean _p, myPoint _a, myPoint _b){p = _p;a=new myPoint(_a); b=new myPoint(_b);}
 	public void set(float d, myVector dir, myPoint _p){	set( myPoint._add(_p,-d,new myVector(dir)), myPoint._add(_p,d,new myVector(dir)));} 
 	public void set(myPoint _a, myPoint _b){a=new myPoint(_a); b=new myPoint(_b);}
 	public myVector v(){return new myVector(b.x-a.x, b.y-a.y, b.z-a.z);}			//vector from a to b

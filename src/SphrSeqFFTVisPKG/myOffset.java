@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 
@@ -12,20 +12,20 @@ import processing.core.PConstants;
 //line.
 
 public abstract class myOffset {
-	public static CAProject5 pa;
+	public static SeqVisFFTOcean pa;
 	public int ID;
 	public static int IDcnt = 0;
 	public String name;
 	public int capSize = 20;
 	public boolean endCaps;
 
-	public myOffset(CAProject5 _pa, boolean _ec){
+	public myOffset(SeqVisFFTOcean _pa, boolean _ec){
 		pa = _pa;
 		ID = IDcnt++;
 		endCaps = _ec;
 	}	
 	
-	public myOffset(CAProject5 _pa){this(_pa, true);}
+	public myOffset(SeqVisFFTOcean _pa){this(_pa, true);}
 	
 	/**
 	 * calculate the offset points for the drawn stroke line contained in _obj
@@ -63,7 +63,7 @@ public abstract class myOffset {
  */
 //make other classes to use different offset mechanism
 class myNormOffset extends myOffset{
-	myNormOffset(CAProject5 _pa){super(_pa); name = "Normal offset";}
+	myNormOffset(SeqVisFFTOcean _pa){super(_pa); name = "Normal offset";}
 
 	@Override
 	public  ArrayList<myPoint> calcOffset(cntlPt[] cntlPts, myVector[] nAra, myVector[] tAra) {

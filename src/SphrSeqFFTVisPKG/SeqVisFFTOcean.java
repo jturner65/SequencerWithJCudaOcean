@@ -1,13 +1,7 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.awt.event.KeyEvent;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ExecutorService;			//used for threading
 
 import processing.core.PApplet;
@@ -96,9 +90,9 @@ enum clefVal{
  * John Turner
  * 
  */
- public class CAProject5 extends PApplet {
+ public class SeqVisFFTOcean extends PApplet {
 		//project-specific variables
-		public String prjNmLong = "CA_Project 5 Interactive Sequencer/Visualization", prjNmShrt = "CAPrj5";
+		public String prjNmLong = "Interactive Sequencer/Visualization with FFT Ocean", prjNmShrt = "SeqVisFFTOcean";
 		PImage jtFace; 
 		
 		public final int drawnTrajEditWidth = 10; //TODO make ui component			//width in cntl points of the amount of the drawn trajectory deformed by dragging
@@ -187,6 +181,16 @@ enum clefVal{
 		public final float sphereRad = 50.0f;
 			
 		//CODE STARTS
+		public static void main(String[] passedArgs) {		
+			String[] appletArgs = new String[] { "SphrSeqFFTVisPKG.SeqVisFFTOcean" };
+			    if (passedArgs != null) {
+			    	PApplet.main(PApplet.concat(appletArgs, passedArgs));
+			    } else {
+			    	PApplet.main(appletArgs);
+			    }
+		}//main
+		
+		
 		public void settings(){			
 			size((int)(displayWidth*.95f), (int)(displayHeight*.9f),P3D);	
 		}
@@ -497,19 +501,23 @@ enum clefVal{
 		}		
 		public void endShiftKey(){
 			clearFlags(new int []{shiftKeyPressed, modView});
-			for(int i =0; i<CAProject5.numDispWins; ++i){dispWinFrames[i].endShiftKey();}
+			for(int i =0; i<SeqVisFFTOcean.numDispWins; ++i){dispWinFrames[i].endShiftKey();}
 		}
 		public void endAltKey(){
 			clearFlags(new int []{altKeyPressed});
-			for(int i =0; i<CAProject5.numDispWins; ++i){dispWinFrames[i].endAltKey();}			
+			for(int i =0; i<SeqVisFFTOcean.numDispWins; ++i){dispWinFrames[i].endAltKey();}			
 		}
 		public void endCntlKey(){
 			clearFlags(new int []{cntlKeyPressed});
-			for(int i =0; i<CAProject5.numDispWins; ++i){dispWinFrames[i].endCntlKey();}			
+			for(int i =0; i<SeqVisFFTOcean.numDispWins; ++i){dispWinFrames[i].endCntlKey();}			
 		}
 
 		//2d range checking of point
 		public boolean ptInRange(double x, double y, double minX, double minY, double maxX, double maxY){return ((x > minX)&&(x <= maxX)&&(y > minY)&&(y <= maxY));}	
+		//gives multiplier based on whether shift, alt or cntl (or any combo) is pressed
+		public double clickValModMult(){
+			return ((flags[altKeyPressed] ? .1 : 1.0) * (flags[cntlKeyPressed] ? 10.0 : 1.0));			
+		}
 		
 		public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){return;}}}
 		public void mousePressed() {
@@ -520,8 +528,8 @@ enum clefVal{
 			//for(int i =0; i<numDispWins; ++i){	if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){	return;}}
 		}// mousepressed	
 		
-		private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){return;}}}		
-		private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){return;}}}		
+		private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),0)){return;}}}		
+		private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),1)){return;}}}		
 		public void mouseDragged(){//pmouseX is previous mouse x
 			if((flags[shiftKeyPressed]) && (canMoveView[curFocusWin])){		//modifying view - always bypass HUD windows if doing this
 				flags[modView]=true;

@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 //Lots of stuff in here that is unnecessary for this project (i(JT) built this class for final project for 6491
 import java.util.ArrayList;
@@ -8,7 +8,7 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 
 public abstract class myDrawnObject {
-	public static CAProject5 pa;
+	public static SeqVisFFTOcean pa;
 
 	public int fillClr, strkClr;
 	public float len;								//length of object
@@ -79,7 +79,7 @@ public abstract class myDrawnObject {
 			_b = 3;									//idx2 for myPoint in ara for rotational axis
 	protected final int nAxisVals = 4;
 	
-	public myDrawnObject(CAProject5 _pa, myVector _canvNorm) {
+	public myDrawnObject(SeqVisFFTOcean _pa, myVector _canvNorm) {
 		pa = _pa;
 		canvasNorm = _canvNorm;		//c.drawSNorm  draw surface normal
 		initFlags();
@@ -519,7 +519,7 @@ class myVariStroke extends myDrawnObject {
 	public float[] d_interpPts;					//distance between interpolated points
 	public float interpLen;						//len of interp pts
 	
-	public myVariStroke(CAProject5 _pa, myVector _canvNorm, int fillClrCnst, int strkClrCnst) {
+	public myVariStroke(SeqVisFFTOcean _pa, myVector _canvNorm, int fillClrCnst, int strkClrCnst) {
 		super(_pa, _canvNorm);
 		flags[isClosed] = false;	
 		fillClr = fillClrCnst;
@@ -958,7 +958,7 @@ class myVariStroke extends myDrawnObject {
 }//myVariStroke
 //use to denote control points for drawn strokes
 class cntlPt extends myPoint {
-		public static CAProject5 pa;
+		public static SeqVisFFTOcean pa;
 		public int ID;
 		public static int IDincr = 0;
 		public static final float maxR = 75, 
@@ -967,10 +967,10 @@ class cntlPt extends myPoint {
 		public float r, w;				//weight is calculated based on the distance to neighboring cntl myPoints when cntl myPoints are drawn
 		public static int[][] clr = new int[][]{{0,0,255,255}, {111,111,111,255}};
 		
-		public cntlPt(CAProject5 _pa, myPoint _p, float _r, float _w){ super(_p.x,_p.y, _p.z); pa=_pa; ID=IDincr++;r=_r; w=_w; }
-		public cntlPt(CAProject5 _pa, myPoint _p, float _w){this(_pa, _p, baseRad, _w);}
-		public cntlPt(CAProject5 _pa, myPoint _p){this(_pa, _p, baseRad, baseRad);}
-		public cntlPt(CAProject5 _pa){this(_pa, _pa.P(),1);}
+		public cntlPt(SeqVisFFTOcean _pa, myPoint _p, float _r, float _w){ super(_p.x,_p.y, _p.z); pa=_pa; ID=IDincr++;r=_r; w=_w; }
+		public cntlPt(SeqVisFFTOcean _pa, myPoint _p, float _w){this(_pa, _p, baseRad, _w);}
+		public cntlPt(SeqVisFFTOcean _pa, myPoint _p){this(_pa, _p, baseRad, baseRad);}
+		public cntlPt(SeqVisFFTOcean _pa){this(_pa, _pa.P(),1);}
 		public cntlPt(cntlPt _p){this(cntlPt.pa, cntlPt.pa.P(_p),_p.w); r = _p.r; w = _p.w;ID = _p.ID;}		
 		public static cntlPt L(cntlPt A, float s, cntlPt B){	return new cntlPt(cntlPt.pa, cntlPt.pa.L((myPoint)A, s, (myPoint)B), capInterpR(A.r, s, B.r), (1-s)*A.w + (s)*B.w);}//(1-s)*A.r + (s)*B.r,
 		public static cntlPt P(cntlPt A, cntlPt B){	float s = .5f;return L(A, s, B);}

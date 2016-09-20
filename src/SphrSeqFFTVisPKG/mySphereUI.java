@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -43,13 +43,13 @@ public class mySphereUI extends myDispWindow {
 	//focus location of sphere UI 
 	public static final myPoint fcsCtr = new myPoint(396,396,1190);
 	
-	public mySphereUI(CAProject5 _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
+	public mySphereUI(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
 		//initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
 		curSelSphere = "";	
-		trajFillClrCnst = CAProject5.gui_DarkCyan;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = CAProject5.gui_Cyan;
+		trajFillClrCnst = SeqVisFFTOcean.gui_DarkCyan;		//override this in the ctor of the instancing window class
+		trajStrkClrCnst = SeqVisFFTOcean.gui_Cyan;
 		super.initThisWin(_canDrawTraj, true);
 	}
 	
@@ -392,7 +392,7 @@ public class mySphereUI extends myDispWindow {
 	//alt key pressed handles trajectory
 	//cntl key pressed handles unfocus of spherey
 	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld) {
+	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {
 		boolean res = checkUIButtons(mouseX, mouseY);
 		if(res) {return res;}
 		//pa.outStr2Scr("sphere ui click in world : " + mseClckInWorld.toStrBrf());
@@ -412,7 +412,7 @@ public class mySphereUI extends myDispWindow {
 	}//hndlMouseClickIndiv
 
 	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld) {
+	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		boolean res = false;
 		//pa.outStr2Scr("hndlMouseDragIndiv sphere ui drag in world mouseClickIn3D : " + mouseClickIn3D.toStrBrf() + " mseDragInWorld : " + mseDragInWorld.toStrBrf());
 		if((privFlags[sphereSelIDX]) && (curSelSphere!="")){//pass drag through to selected sphere
@@ -471,7 +471,7 @@ public class mySphereUI extends myDispWindow {
 
 //object representing the spherical UI control
 class mySphereCntl {
-	public CAProject5 pa;
+	public SeqVisFFTOcean pa;
 	public static int sphCntl = 0;
 	public int ID;
 	
@@ -544,7 +544,7 @@ class mySphereCntl {
 	
 	//private boolean resendNotes;
 	
-	public mySphereCntl(CAProject5 _pa, mySphereUI _win, myInstr _instr, String _name, float _rad, /**myPoint _ctr,**/ float _orbitRad, float _initAngle, int _UIRingIDX, PImage _txtr, int[][] _clrs){
+	public mySphereCntl(SeqVisFFTOcean _pa, mySphereUI _win, myInstr _instr, String _name, float _rad, /**myPoint _ctr,**/ float _orbitRad, float _initAngle, int _UIRingIDX, PImage _txtr, int[][] _clrs){
 		pa = _pa;
 		ID = sphCntl++;
 		win = _win;
@@ -1054,17 +1054,17 @@ class mySphereCntl {
 		pa.translate(pa.P(radarBarEndPt)._mult(1.1));
 		pa.rotate(-lastPlayAlpha, cntlRotAxis);
 		//pa.rotate(-curSwpRotAmt, cntlRotAxis);
-		pa.setColorValFill(CAProject5.gui_Black);
+		pa.setColorValFill(SeqVisFFTOcean.gui_Black);
 		
 		//pa.text(""+curSwpRotAmt, 0, -0);
 		pa.popStyle();pa.popMatrix();			
 	}	
 		
 	private void drawName(){
-		pa.setColorValFill(CAProject5.gui_DarkGray);
+		pa.setColorValFill(SeqVisFFTOcean.gui_DarkGray);
 		pa.translate(-2*name.length(),0,0);
 		pa.rect(-10,-11,name.length()*8 + 10,15);
-		pa.setColorValFill(CAProject5.gui_White);
+		pa.setColorValFill(SeqVisFFTOcean.gui_White);
 		pa.text(name, 0, 0);	
 	}
 	
@@ -1114,7 +1114,7 @@ class mySphereCntl {
 }//class mySphereCntl
 
 class myMiniSphrCntl{
-	public CAProject5 pa;
+	public SeqVisFFTOcean pa;
 	public static int sphMiniCntl = 0;
 	public int ID;	
 	public mySphereCntl own;
@@ -1153,7 +1153,7 @@ class myMiniSphrCntl{
 	public static final int numBFlags = 3;
 	
 	
-	public myMiniSphrCntl(CAProject5 _pa, mySphereCntl _o, int _instCntlIDX, myVector[] _cntlAxis,
+	public myMiniSphrCntl(SeqVisFFTOcean _pa, mySphereCntl _o, int _instCntlIDX, myVector[] _cntlAxis,
 			String _name,PImage _txtr, float _shn, float[] _vals, boolean[] _flags,
 			int[] specClr, int[] ambClr, int[] emissiveClr, int[] _txtFl, float _radius){
 		pa = _pa;

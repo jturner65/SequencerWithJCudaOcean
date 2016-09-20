@@ -1,18 +1,17 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 
 //object on menu that can be modified via mouse input
 public class myGUIObj {
 	public int ID;
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public myDispWindow  win;			//mySideBarMenu owning window
 	public int winID;					//id in owning window
 	public myVector start, end;				//x,y coords of start corner, end corner (z==0) for clickable region
 	public String name, dispText;
 
-	public double val;
-	public final double minVal, maxVal;
+	private double val, minVal, maxVal;
 	//public boolean treatAsInt;
 	
 	public boolean[] uiFlags;
@@ -31,7 +30,7 @@ public class myGUIObj {
 	public float[] initDrawTrans, boxDrawTrans;
 	public int[] bxclr;
 	
-	public myGUIObj(CAProject5 _p, myDispWindow _win, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off) {
+	public myGUIObj(SeqVisFFTOcean _p, myDispWindow _win, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off) {
 		p=_p;
 		win = _win;
 		winID = _winID;
@@ -51,16 +50,18 @@ public class myGUIObj {
 		initDrawTrans= new float[]{(float)(start.x + xOff), (float)(start.y + yOff)};
 		boxDrawTrans = new float[]{(float)(-xOff * .5f), (float)(-yOff*.25f)};		
 	}	
-	public myGUIObj(CAProject5 _p, myDispWindow _win, int _winID, String _name,double _xst, double _yst, double _xend, double _yend, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _Off) {this(_p,_win, _winID,_name,new myVector(_xst,_yst,0), new myVector(_xend,_yend,0), _minMaxMod, _initVal, _flags, _Off);	}
+	public myGUIObj(SeqVisFFTOcean _p, myDispWindow _win, int _winID, String _name,double _xst, double _yst, double _xend, double _yend, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _Off) {this(_p,_win, _winID,_name,new myVector(_xst,_yst,0), new myVector(_xend,_yend,0), _minMaxMod, _initVal, _flags, _Off);	}
 	public void initFlags(){
 		uiFlags = new boolean[numFlags];
 		for(int i =0;i<numFlags;++i){uiFlags[i] = false;}
 	}
 	
 	public double getVal(){return val;}	
+	public void setNewMax(double _newval){	maxVal = _newval;val = ((val >= minVal)&&(val<=maxVal)) ? val : (val < minVal) ? minVal : maxVal;		}
+	public void setNewMin(double _newval){	minVal = _newval;val = ((val >= minVal)&&(val<=maxVal)) ? val : (val < minVal) ? minVal : maxVal;		}
 	
 	public double setVal(double _newVal){
-		val = ((_newVal > minVal)&&(_newVal<maxVal)) ? _newVal : (_newVal < minVal) ? minVal : maxVal;		
+		val = ((_newVal >= minVal)&&(_newVal<=maxVal)) ? _newVal : (_newVal < minVal) ? minVal : maxVal;		
 		return val;
 	}	
 	

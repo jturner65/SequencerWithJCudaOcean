@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 import static jcuda.driver.CUgraphicsMapResourceFlags.CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD;
 import static jcuda.driver.JCudaDriver.*;
@@ -64,7 +64,7 @@ public class mySimWindow extends myDispWindow {
 		songSelIDX			= 7;
 	public final int numGUIObjs = 8;												//# of gui objects for ui
 	
-	public mySimWindow(CAProject5 _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,
+	public mySimWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,
 			String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;	
@@ -367,9 +367,9 @@ public class mySimWindow extends myDispWindow {
 	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){	return false;}
 	@Override
-	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld) {		return checkUIButtons(mouseX, mouseY);}//hndlMouseClickIndiv
+	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {		return checkUIButtons(mouseX, mouseY);}//hndlMouseClickIndiv
 	@Override
-	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld) {return false;}
+	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {return false;}
 	@Override
 	protected SortedMap<Integer, myNote> getNotesNow() {return null;}
 	@Override
@@ -430,7 +430,7 @@ public class mySimWindow extends myDispWindow {
 
 //class implementing external window for fft ocean surface, based on cuda example.
 class myOcean implements GLEventListener{
-	public CAProject5 pa;
+	public SeqVisFFTOcean pa;
 	public mySimWindow win;
 	public JFrame frame;
 	public Animator animator;
@@ -533,7 +533,7 @@ class myOcean implements GLEventListener{
 	
 	private final int gl2BufArg = GL2.GL_ARRAY_BUFFER;
 		
-	public myOcean(CAProject5 _p,mySimWindow _win, GLCapabilities capabilities) {
+	public myOcean(SeqVisFFTOcean _p,mySimWindow _win, GLCapabilities capabilities) {
 		pa=_p;
 		win = _win;
 		

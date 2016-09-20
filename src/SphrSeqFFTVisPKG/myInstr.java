@@ -1,4 +1,4 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 import ddf.minim.ugens.*;
 import processing.core.PApplet;
 import processing.core.PConstants;
@@ -22,7 +22,7 @@ import ddf.minim.Minim;
 //the duration is based on how long the arc is around the sphere
 //the speed/tempo is determined by the speed setting, which governs how long a single revolution around the circular profile of the sphere takes.
 public class myInstr {
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public static int instCnt = 0;
 	public int ID;
 	public String instrName;
@@ -65,7 +65,7 @@ public class myInstr {
 //	public AudioOutput out;
 	public Wavetable wTbl;					//waveform for this instrument
 	//TODO build instruments using minim
-	public myInstr(CAProject5 _p, String _nm, myClefBase _clef, float[] _waveAmpMult, Wavetable _wTbl, boolean isDrums) {
+	public myInstr(SeqVisFFTOcean _p, String _nm, myClefBase _clef, float[] _waveAmpMult, Wavetable _wTbl, boolean isDrums) {
 		p = _p;
 		ID = instCnt++;
 		instrName = _nm;
@@ -337,7 +337,7 @@ public class myInstr {
 
 ////a set of oscil components, to represent 1 note channel at a time - # of these represents size of polyphony for instrument
 class myNoteChannel {
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public static int iNCCnt = 0;
 	public int ID;
 		
@@ -356,7 +356,7 @@ class myNoteChannel {
 	public float volAmt;
 	public Summer sum;
 	public  Wavetable wTbl;
-	public myNoteChannel(CAProject5 _p, myInstr _own, float[] _waveAmpMult, Wavetable _wTbl){
+	public myNoteChannel(SeqVisFFTOcean _p, myInstr _own, float[] _waveAmpMult, Wavetable _wTbl){
 		p=_p;
 		ID = iNCCnt++;
 		own=_own;
@@ -440,7 +440,7 @@ class myNoteChannel {
 
 //oscilitory component of an instrument - 1 per harmonic series component - sum together via summer
 class myInstrCmp {
-	public CAProject5 p;
+	public SeqVisFFTOcean p;
 	public static int iCmpCnt = 0;
 	public int ID;
 	//public myInstr own;				//owning instrument
@@ -449,7 +449,7 @@ class myInstrCmp {
 	public float harmFract=1.0f, volExp, vol, freq, baseFreq, origVol, origFreq;				//multiplier for this oscillator, exponent to describe volume inv multiplicative (mult) decrease for each harmonic
 	public Wavetable wTbl;
 	
-	public myInstrCmp(CAProject5 _p, myNoteChannel _own, float _harmFract, Wavetable _wTbl){
+	public myInstrCmp(SeqVisFFTOcean _p, myNoteChannel _own, float _harmFract, Wavetable _wTbl){
 		p=_p;
 		ID = iCmpCnt++;
 		harmFract=_harmFract; own = _own; 

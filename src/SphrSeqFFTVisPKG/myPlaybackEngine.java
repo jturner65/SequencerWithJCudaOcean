@@ -1,10 +1,10 @@
-package Project5Pkg;
+package SphrSeqFFTVisPKG;
 
 //handles all transport control - accessible by all classes who need it.
 //provides a measure of current playback location from start of song.  window needs to manage this - this should provide time in ticks from beginning of song, window should translate to 
 //pixels per update displacement
 public class myPlaybackEngine {
-	public CAProject5 pa;
+	public SeqVisFFTOcean pa;
 	public static int pbCnt = 0;
 	public int ID;
 	
@@ -40,7 +40,7 @@ public class myPlaybackEngine {
 	
 	public static final int numPFlags = 4;
 
-	public myPlaybackEngine(CAProject5 _p, myDispWindow _win, int[] fc, int[] sc, float[] _dims){
+	public myPlaybackEngine(SeqVisFFTOcean _p, myDispWindow _win, int[] fc, int[] sc, float[] _dims){
 		pa = _p;
 		win = _win;
 		ID = pbCnt++;
