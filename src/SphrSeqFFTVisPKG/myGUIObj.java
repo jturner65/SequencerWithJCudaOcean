@@ -14,7 +14,7 @@ public class myGUIObj {
 	private double val, minVal, maxVal;
 	//public boolean treatAsInt;
 	
-	public boolean[] uiFlags;
+	public int[] uiFlags;
 	public static final int 
 			debugIDX 		= 0,
 			showIDX			= 1,				//show this component
@@ -43,7 +43,7 @@ public class myGUIObj {
 		start = new myVector(_start); end = new myVector(_end);
 		minVal=_minMaxMod[0]; maxVal = _minMaxMod[1]; val = _initVal;modMult = _minMaxMod[2];
 		initFlags();
-		for(int i =0; i<_flags.length;++i){ 	uiFlags[i+2]=_flags[i];	}
+		for(int i =0; i<_flags.length;++i){ 	setFlags(i+2,_flags[i]);	}
 		_cVal = p.gui_Black;
 		bxclr = p.getRndClr();
 		
@@ -51,10 +51,19 @@ public class myGUIObj {
 		boxDrawTrans = new float[]{(float)(-xOff * .5f), (float)(-yOff*.25f)};		
 	}	
 	public myGUIObj(SeqVisFFTOcean _p, myDispWindow _win, int _winID, String _name,double _xst, double _yst, double _xend, double _yend, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _Off) {this(_p,_win, _winID,_name,new myVector(_xst,_yst,0), new myVector(_xend,_yend,0), _minMaxMod, _initVal, _flags, _Off);	}
-	public void initFlags(){
-		uiFlags = new boolean[numFlags];
-		for(int i =0;i<numFlags;++i){uiFlags[i] = false;}
-	}
+	public void initFlags(){			uiFlags = new int[1 + numFlags/32]; for(int i = 0; i<numFlags; ++i){setFlags(i,false);}	}
+	public boolean getFlags(int idx){	int bitLoc = 1<<(idx%32);return (uiFlags[idx/32] & bitLoc) == bitLoc;}	
+	public void setFlags(int idx, boolean val){
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		uiFlags[flIDX] = (val ?  uiFlags[flIDX] | mask : uiFlags[flIDX] & ~mask);
+		switch (idx) {//special actions for each flag
+		case debugIDX 		:{break;}
+		case showIDX		:{break;}	//show this component
+		case treatAsIntIDX	:{break;}
+		case hasListValsIDX	:{break;}
+		case usedByWinsIDX	:{break;}
+		}
+	}//setFlag	
 	
 	public double getVal(){return val;}	
 	public void setNewMax(double _newval){	maxVal = _newval;val = ((val >= minVal)&&(val<=maxVal)) ? val : (val < minVal) ? minVal : maxVal;		}
@@ -67,7 +76,7 @@ public class myGUIObj {
 	
 	public double modVal(double mod){
 		val += (mod*modMult);
-		if(uiFlags[treatAsIntIDX]){val = Math.round(val);}
+		if(getFlags(treatAsIntIDX)){val = Math.round(val);}
 		if(val<minVal){val = minVal;}
 		else if(val>maxVal){val = maxVal;}
 		return val;		
@@ -87,10 +96,10 @@ public class myGUIObj {
 				p.translate(boxDrawTrans[0],boxDrawTrans[1]);
 				p.box(5);
 			p.popStyle();p.popMatrix();
-			if(!uiFlags[treatAsIntIDX]){		p.text(dispText + String.format("%.5f",val), 0,0);}
+			if(!getFlags(treatAsIntIDX)){		p.text(dispText + String.format("%.5f",val), 0,0);}
 			else{
 				String resStr = String.format("%.0f",val);
-				if(uiFlags[hasListValsIDX]){	
+				if(getFlags(hasListValsIDX)){					
 					resStr = win.getUIListValStr(winID, (int)val);
 				}
 				p.text(dispText + resStr, 0,0);
