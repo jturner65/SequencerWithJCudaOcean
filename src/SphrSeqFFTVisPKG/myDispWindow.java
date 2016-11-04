@@ -203,29 +203,51 @@ public abstract class myDispWindow {
 	}
 	
 	//calculate button length
-	private static final float ltrLen = 6.2f;private static final int btnStep = 6;
-	private float calcBtnLength(String tStr, String fStr){return btnStep * ((int)((PApplet.max(tStr.length(),fStr.length()) + 4) * ltrLen)/btnStep);}
+	private static final float ltrLen = 5.0f;private static final int btnStep = 5;
+	private float calcBtnLength(String tStr, String fStr){return btnStep * (int)(((PApplet.max(tStr.length(),fStr.length())+4) * ltrLen)/btnStep);}
 	//set up child class button rectangles TODO
 	//yDisp is displacement for button to be drawn
 	protected void initPrivBtnRects(float yDisp, int numBtns){
 		//pa.outStr2Scr("initPrivBtnRects in :"+ name + "st value for uiClkCoords[3]");
+		float maxBtnLen = .95f * pa.menuWidth, halfBtnLen = .5f*maxBtnLen;
+		//pa.pr("maxBtnLen : " + maxBtnLen);
 		privFlagBtns = new float[numBtns][];
 		this.uiClkCoords[3] += yOff;
 		float oldBtnLen = 0;
+		boolean lastBtnHalfStLine = false, startNewLine = true;
 		for(int i=0; i<numBtns; ++i){						//clickable button regions - as rect,so x,y,w,h - need to be in terms of sidebar menu 
 			float btnLen = calcBtnLength(truePrivFlagNames[i].trim(),falsePrivFlagNames[i].trim());
-			if(i%2 == 0){//even btns always on a new line
-				privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };
-			} else {	//odd button
-				if ((btnLen + oldBtnLen) > .95f * pa.menuWidth){	//odd button, but too long -> new line		
+			//either button of half length or full length.  if half length, might be changed to full length in next iteration.
+			//pa.pr("initPrivBtnRects: i "+i+" len : " +btnLen+" cap 1: " + truePrivFlagNames[i].trim()+"|"+falsePrivFlagNames[i].trim());
+			if(btnLen > halfBtnLen){//this button is bigger than halfsize - it needs to be made full size, and if last button was half size and start of line, make it full size as well
+				btnLen = maxBtnLen;
+				if(lastBtnHalfStLine){//make last button full size, and make button this button on another line
+					privFlagBtns[i-1][2] = maxBtnLen;
 					this.uiClkCoords[3] += yOff;
-					oldBtnLen = 0;
 				}
-				privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff)+oldBtnLen, (float) uiClkCoords[3], btnLen, yOff };
-				this.uiClkCoords[3] += yOff;//always new line after odd button
+				privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };				
+				this.uiClkCoords[3] += yOff;
+				startNewLine = true;
+				lastBtnHalfStLine = false;
+			} else {//button len should be half width unless this button started a new line
+				btnLen = halfBtnLen;
+				if(startNewLine){//button is starting new line
+					lastBtnHalfStLine = true;
+					privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };
+					startNewLine = false;
+				} else {//should only get here if 2nd of two <1/2 width buttons in a row
+					lastBtnHalfStLine = false;
+					privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff)+oldBtnLen, (float) uiClkCoords[3], btnLen, yOff };
+					this.uiClkCoords[3] += yOff;
+					startNewLine = true;					
+				}
 			}
+			
 			oldBtnLen = btnLen;
-		};
+		}
+		if(lastBtnHalfStLine){//set last button full length if starting new line
+			privFlagBtns[numBtns-1][2] = maxBtnLen;			
+		}
 		this.uiClkCoords[3] += yOff;
 		initPrivFlagColors();
 	}//initPrivBtnRects
