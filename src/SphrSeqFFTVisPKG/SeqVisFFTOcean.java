@@ -2,7 +2,6 @@ package SphrSeqFFTVisPKG;
 
 import java.awt.event.KeyEvent;
 import java.util.*;
-import java.util.concurrent.ExecutorService;			//used for threading
 
 import processing.core.PApplet;
 import processing.core.PConstants;
@@ -342,7 +341,7 @@ enum clefVal{
 		//if should show problem # i
 		public boolean isShowingWindow(int i){return flags[(i+this.showUIMenu)];}//showUIMenu is first flag of window showing flags
 		public void drawUI(){					
-			for(int i =1; i<numDispWins; ++i){if ( !(dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
+			for(int i =1; i<numDispWins; ++i){if ((isShowingWindow(i)) && !(dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
 			//dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
 			for(int i =1; i<numDispWins; ++i){dispWinFrames[i].drawHeader();}
 			//menu
@@ -784,6 +783,9 @@ enum clefVal{
 //////////////////////////////////////////
 /// graphics and base functionality utilities and variables
 //////////////////////////////////////////
+		
+		//size of printed text (default is 12)
+		public static final int txtSz = 12;
 		//constant path strings for different file types
 		public static final String fileDelim = "\\";	
 		//display-related size variables
@@ -1021,6 +1023,7 @@ enum clefVal{
 			initBoolFlags();
 			camVals = new float[]{width/2.0f, height/2.0f, (height/2.0f) / tan(PI/6.0f), width/2.0f, height/2.0f, 0, 0, 1, 0};
 			showInfo = true;
+			textSize(txtSz);
 			outStr2Scr("Current sketchPath " + sketchPath());
 			textureMode(NORMAL);			
 			rectMode(CORNER);	

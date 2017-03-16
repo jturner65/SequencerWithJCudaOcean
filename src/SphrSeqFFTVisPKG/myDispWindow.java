@@ -29,7 +29,8 @@ public abstract class myDispWindow {
 	public int trajFillClrCnst, trajStrkClrCnst;
 	public float[] rectDim, closeBox, rectDimClosed, mseClickCrnr;	
 	public static final float gridYMult = 1.0f/67.0f, gridXMult = .5625f * gridYMult;
-	public static final float xOff = 20 , yOff = 20, btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
+	//public static final float xOff = 20 , yOff = 20, btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
+	public static final float xOff = 20 , yOff = 20.0f * (SeqVisFFTOcean.txtSz/12.0f), btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
 	public static final int topOffY = 40;			//offset values to render boolean menu on side of screen - offset at top before drawing
 	public static final float clkBxDim = 10;//size of interaction/close window box in pxls
 
