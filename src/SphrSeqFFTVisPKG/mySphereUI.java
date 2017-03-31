@@ -1,13 +1,11 @@
 package SphrSeqFFTVisPKG;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
 import ddf.minim.AudioOutput;
-import ddf.minim.Minim;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
@@ -70,11 +68,10 @@ public class mySphereUI extends myDispWindow {
 	
 	@Override
 	protected void initMe() {	
-		initUIBox();				//set up ui click region to be in sidebar menu below menu's entries		
 		dispFlags[plays] = true;								//this window responds to travelling reticle/playing
 		vsblStLoc = new float[]{0,0};
 		dispFlags[trajDecays] = true;								//this window responds to travelling reticle/playing
-		curTrajAraIDX = 0;
+		//curTrajAraIDX = 0;
 		
 		initPrivFlags(numPrivFlags);
 	}

@@ -3,17 +3,18 @@ package SphrSeqFFTVisPKG;
 import static jcuda.driver.CUgraphicsMapResourceFlags.CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD;
 import static jcuda.driver.JCudaDriver.*;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
-import java.util.stream.Stream;
 
 import javax.swing.*;
 
 import com.jogamp.opengl.*;
-import com.jogamp.opengl.awt.*;
+import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 
@@ -88,7 +89,6 @@ public class mySimWindow extends myDispWindow {
 
 	@Override
 	protected void initMe() {
-		initUIBox();				//set up ui click region to be in sidebar menu below menu's entries		
 //		dispFlags[uiObjsAreVert] = true;
 		//init specific sim flags
 		initPrivFlags(numPrivFlags);

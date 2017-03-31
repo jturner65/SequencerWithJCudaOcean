@@ -3,9 +3,6 @@ package SphrSeqFFTVisPKG;
 import java.util.*;
 import java.util.Map.Entry;
 
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
 import ddf.minim.ugens.Waves;
@@ -76,7 +73,6 @@ public class mySequencer extends myDispWindow {
 
 	@Override
 	protected void initMe() {//init/reinit this window
-		initUIBox();				//set up ui click region to be in sidebar menu below menu's entries		
 	//	dispFlags[uiObjsAreVert] = true;
 		dispFlags[drawsPBERet] = true;
 		dispFlags[plays] = true;						//this window responds to travelling reticle
@@ -86,7 +82,7 @@ public class mySequencer extends myDispWindow {
 		seqVisStTime = new int[] {0,0};
 		//initNoteOutIndiv();
 
-		curTrajAraIDX = 0;
+		//curTrajAraIDX = 0;
 		defaultNoteLength = durType.Quarter;		
 		
 		playClickNote = false;

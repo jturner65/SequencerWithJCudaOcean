@@ -275,7 +275,8 @@ public abstract class myDispWindow {
 	
 	public abstract void setPrivFlags(int idx, boolean val);
 	
-	public void initThisWin(boolean _canDrawTraj, boolean _trajIsFlat){
+	public void initThisWin(boolean _canDrawTraj, boolean _trajIsFlat){initThisWin(_canDrawTraj, _trajIsFlat, false);}
+	public void initThisWin(boolean _canDrawTraj, boolean _trajIsFlat, boolean _isMenu){
 //		float stY = rectDim[1]+ .85f*rectDim[3];
 //		initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);		//only for first window (sidebar menu) - all subsequent get over-written in iniUIBox
 		initTmpTrajStuff(_trajIsFlat);	
@@ -284,6 +285,10 @@ public abstract class myDispWindow {
 		dispFlags[trajPointsAreFlat] = _trajIsFlat;
 		dispFlags[closeable] = true;
 		setGlobalTimeSigVal(4,4, pa.getDurTypeForNote(4));	
+		if(!_isMenu){
+			initUIBox();				//set up ui click region to be in sidebar menu below menu's entries - do not do here for sidebar
+		}
+		curTrajAraIDX = 0;
 		initMe();
 		setupGUIObjsAras();
 		//record final y value for UI Objects
@@ -1313,7 +1318,7 @@ class mySideBarMenu extends myDispWindow{
 				SeqVisFFTOcean.gui_Black,									//not clicked button color
 				SeqVisFFTOcean.gui_Black,									//clicked button color
 			};			
-		super.initThisWin(_canDrawTraj, false);
+		super.initThisWin(_canDrawTraj, false, true);
 	}
 	
 	//set up initial colors for papplet's flags for display

@@ -1,7 +1,5 @@
 package SphrSeqFFTVisPKG;
-import java.util.ArrayList;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import ddf.minim.*;
 import ddf.minim.analysis.*;
@@ -40,9 +38,7 @@ public class myInstEditWindow extends myDispWindow {
 		initPrivBtnRects(0,numClickBools);
 	}
 
-	protected void initMe() {
-		initUIBox();				//set up ui click region to be in sidebar menu below menu's entries		
-		
+	protected void initMe() {		
 		dispFlags[canDrawTraj] = true;			//to edit instrument qualities need to use drawn trajectories		
 //		dispFlags[uiObjsAreVert] = true;
 		//init specific sim flags
