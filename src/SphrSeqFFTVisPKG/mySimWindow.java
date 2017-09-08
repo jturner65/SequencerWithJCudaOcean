@@ -3,13 +3,12 @@ package SphrSeqFFTVisPKG;
 import static jcuda.driver.CUgraphicsMapResourceFlags.CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD;
 import static jcuda.driver.JCudaDriver.*;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.swing.*;
 
@@ -26,11 +25,16 @@ import ddf.minim.analysis.*;
 import ddf.minim.*;
 
 public class mySimWindow extends myDispWindow {
-	
-	FFT fftMP3Log, fftSeqLog;
+	FFT[] fftMP3Log;
+	FFT fftSeqLog;
+	float[] blankRes1 = new float[1024];
+	float[] blankRes2 = new float[1024];
 	AudioPlayer[] songs;
 	String[] songTitles = new String[]{"sati.mp3","PurpleHaze.mp3","karelia.mp3","choir.mp3"};
 	String[] songList = new String[]{"sati","PurpleHaze","karelia","choir"};
+
+	int[] perSongBuildKFuncs = new int[] {myOcean.bldFreqIDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX};
+	int[] perSongGenKFuncs = new int[] {myOcean.genSpec2IDX,myOcean.genSpec2IDX,myOcean.genSpec2IDX,myOcean.genSpec2IDX};
 	
 	public int songIDX;
 	
@@ -38,7 +42,7 @@ public class mySimWindow extends myDispWindow {
 	
 	public int songBufSize = 1024;
 	
-	public final int fftBands = 24;
+	public final int fftMinBandwidth = 22, fftBandsPerOctave = 24;
 	
 	public myOcean fftOcean;
 	//public boolean[] privFlags;
@@ -48,8 +52,9 @@ public class mySimWindow extends myDispWindow {
 			forceCudaRecompIDX		= 2,					//force the recompile of the cuda .ptx even if one exists
 			audioLoadedIDX 			= 3,
 			seqLoadedIDX 			= 4,
-			playVisIDX				= 5;
-	public static final int numPrivFlags = 6;
+			playVisIDX				= 5,
+			showFreqDomainIDX		= 6;
+	public static final int numPrivFlags = 7;
 
 //	//GUI Objects	
 	//idx's of objects in gui objs array - relate to modifications of oceanFFT sim code
@@ -60,10 +65,10 @@ public class mySimWindow extends myDispWindow {
 		dirDependIDX  		= 3,             //			dirDepend 	: Phillips eq : 
 		heightScaleIDX  	= 4,             //			heightScale	:
 		freqMixIDX  		= 5,			 //			freqMix		: Mixture amount of pure phillips wave noise to song frequencies - 100 is all song, 0 is all phillips
-//		threshIDX			= 6,
 		chopinessIDX  		= 6,			 //			chopiness	: 	
-		songSelIDX			= 7;
-	public final int numGUIObjs = 8;												//# of gui objects for ui
+		threshIDX			= 7,			//noise threshold - if less power in signal than this then force to 0
+		songSelIDX			= 8;
+	public final int numGUIObjs = 9;												//# of gui objects for ui
 	
 	public mySimWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,
 			String _winTxt, boolean _canDrawTraj) {
@@ -78,10 +83,10 @@ public class mySimWindow extends myDispWindow {
 	//initialize all private-flag based UI buttons here - called by base class
 	public void initAllPrivBtns(){
 		truePrivFlagNames = new String[]{								//needs to be in order of flags
-				"Vis : MP3->Seq","Turn Off PTX Comp "};
+				"Vis : MP3->Seq","Turn Off PTX Comp ", "Showing Freq Domain"};
 		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Vis : Seq->MP3","Turn On PTX Comp "};
-		privModFlgIdxs = new int[]{useAudioForOceanIDX, forceCudaRecompIDX};
+				"Vis : Seq->MP3","Turn On PTX Comp ", "Showing Time Domain"};
+		privModFlgIdxs = new int[]{useAudioForOceanIDX, forceCudaRecompIDX,showFreqDomainIDX};
 		numClickBools = privModFlgIdxs.length;
 		//maybe have call for 		initPrivBtnRects(0);	
 		initPrivBtnRects(0,numClickBools);
@@ -94,11 +99,20 @@ public class mySimWindow extends myDispWindow {
 		initPrivFlags(numPrivFlags);
 		setPrivFlags(useAudioForOceanIDX, true);				//for testing, need to start with sequence data shown
 		songs = new AudioPlayer[songTitles.length];		
+		fftMP3Log = new FFT[songTitles.length];	
+		loadSongList();
+	}
+	
+	protected void loadSongList() {
 		for(int i=0;i<songTitles.length;++i){
 			songs[i] = pa.minim.loadFile(songTitles[i], songBufSize);
+			fftMP3Log[i] = new FFT( songs[i].bufferSize(), songs[i].sampleRate() );
+			fftMP3Log[i].window(FFT.BLACKMAN);
+			fftMP3Log[i].logAverages( fftMinBandwidth, fftBandsPerOctave );  	
 			//songs[i].setVolume(1.0f);
-		}
-	}
+		}		
+	}//loadSongList() 
+
 
 	//set flag values and execute special functionality for this sequencer
 	@Override
@@ -111,6 +125,9 @@ public class mySimWindow extends myDispWindow {
 			else {	killOceanVis(privFlags[useAudioForOceanIDX]);	}
 			break;
 		}
+		case showFreqDomainIDX 		: {
+			fftOcean.cudaFlags[fftOcean.performInvFFT] = !val;
+			break;}
 		case useAudioForOceanIDX 	: {
 			if(privFlags[playVisIDX]){
 				killOceanVis(!val);launchOceanVis(val);	//stop old vis, start new vis if playing
@@ -133,26 +150,16 @@ public class mySimWindow extends myDispWindow {
 		if(!privFlags[audioLoadedIDX]){
 			setPrivFlags(audioLoadedIDX,true);
 			songs[songIDX] = pa.minim.loadFile(songTitles[songIDX], songBufSize);
-			//songs[songIDX].setVolume(1.0f);
-			//song = pa.minim.loadFile("sati.mp3", songBufSize);
-			//song = pa.minim.loadFile("PurpleHaze.mp3", songBufSize);
-			//song = pa.minim.loadFile("karelia.mp3", songBufSize);
-			//song = pa.minim.loadFile("choir.mp3", songBufSize);
 			pa.outStr2Scr("Song in buffer : " + songTitles[songIDX] + " size: " +  songs[songIDX].bufferSize() + " Sample rate : "+ songs[songIDX].sampleRate());
-			fftMP3Log = new FFT( songs[songIDX].bufferSize(), songs[songIDX].sampleRate() );		
-			fftMP3Log.logAverages( 22, fftBands );  	
 			songs[songIDX].play();
 			if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[fftOcean.doneInit])){return;}
-			fftOcean.setFreqVals(new float[1024], new float[1024]);
+			fftOcean.setFreqVals(blankRes1, blankRes2);
 		}
 	}
 	public void killAudioOcean(){
 		if(privFlags[audioLoadedIDX]){
-			fftMP3Log = null;
 			songs[songIDX].pause();
-			songs[songIDX].close();
-			
-			//songs[songIDX].rewind();
+			songs[songIDX].rewind();
 			//song = null;
 			setPrivFlags(audioLoadedIDX,false);
 		}		
@@ -163,10 +170,11 @@ public class mySimWindow extends myDispWindow {
 			notesIn = pa.glblOut;
 			pa.outStr2Scr("Notes in buf size : " + notesIn.bufferSize() + " sample rate : " + notesIn.sampleRate());
 			//sum all outputs before using
-			fftSeqLog = new FFT(notesIn.bufferSize(), notesIn.sampleRate()); 
-			fftSeqLog.logAverages(22, fftBands);
+//			fftSeqLog = new FFT(notesIn.bufferSize(), notesIn.sampleRate()); 
+//			fftSeqLog.logAverages(fftMinBandwidth, fftBandsPerOctave);
 			if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[fftOcean.doneInit])){return;}
-			fftOcean.setFreqVals(new float[1024], new float[1024]);
+			//fftOcean.setFreqVals(new float[1024], new float[1024]);
+			fftOcean.setFreqVals(blankRes1, blankRes2);
 		}
 	}
 	public void killSeqOcean(){
@@ -187,6 +195,9 @@ public class mySimWindow extends myDispWindow {
 		setPrivFlags(playVisIDX, true);
 		//launchOceanVis(this.privFlags[this.useAudioForOceanIDX]);
 	}
+
+	public int getFreqKFunc() {		return perSongBuildKFuncs[songIDX];	}
+	public int getGenKFunc() {		return perSongGenKFuncs[songIDX];	}
 	
 	public void setOceanFreqVals(){
 		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[fftOcean.doneInit])){return;}
@@ -215,14 +226,21 @@ public class mySimWindow extends myDispWindow {
 		fftOcean.freqsInLen = res1.length;
 		//pa.outStr2Scr("minim fft spectrum extremals : res1 len : "+res1.length+" | res2 len : "+res2.length);
 		fftOcean.setFreqVals(res1, res2);
-
 	}
 		
 	//send notes from audio to ocean - let ocean govern audio - called from draw
 	public void setOceanAudio(){
-		fftMP3Log.forward( songs[songIDX].mix );
-		float[] res1 = fftMP3Log.getSpectrumReal();
-		float[] res2 = fftMP3Log.getSpectrumImaginary();
+//		fftMP3Log.forward( songs[songIDX].mix );
+//		float[] res1 = fftMP3Log.getSpectrumReal();
+//		float[] res2 = fftMP3Log.getSpectrumImaginary();
+		fftMP3Log[songIDX].forward( songs[songIDX].mix );
+		int specSize = fftMP3Log[songIDX].specSize();
+		float[] bandRes = new float[specSize];
+		for(int i=0;i<specSize;++i) {
+			bandRes[i] = fftMP3Log[songIDX].getBand(i);			
+		}
+		float[] res1 = fftMP3Log[songIDX].getSpectrumReal();
+		float[] res2 = fftMP3Log[songIDX].getSpectrumImaginary();
 		fftOcean.isNoteData = 0;
 		fftOcean.freqsInLen = res1.length;
 //		pa.outStr2Scr("minim fft spectrum extremals : 1 "+minr1+" | "+maxr1+" |2 "+minr2+" | "+maxr2);
@@ -251,20 +269,23 @@ public class mySimWindow extends myDispWindow {
 			{0.0, 100.0, 0.1},			//windSpeedIDX 
 			{0.0, pa.TWO_PI, 0.01},		//windDirIDX  	
 			{0.01, 0.25, 0.0001},		//dirDependIDX  
-			{0.01, 1.0, 0.01},       	//heightScaleIDX
-			{0.0, 100.0,0.1},       	//freqMixIDX  	
-//			{0.0, 0.01,.000001},		//noise threshold thresh
-			{0.0, 2.0, 0.01},       		//chopinessIDX  
-			{0.0, songTitles.length-1, 0.1}	//song selected
+			{0.01, 10.0, 0.01},       	//heightScaleIDX
+			{0.0, 1.0,0.01},       	//freqMixIDX  	
+			{0.0, 2.0, 0.01},       		//chopinessIDX 
+			{0.0, 10.0, 0.01},//threshIDX
+			{0.0, songTitles.length-1, 1.0}	//song selected
 		};					
-		guiStVals = new double[]{75.0, 50.0, (Math.PI / 3.0f),0.07, 0.5, 0, 
-				//0.00001, 
-				1.0, 0.0};								//starting value
+		guiStVals = new double[]{75.0, 50.0, (Math.PI / 3.0f),0.07, 
+				0.5, 
+				0.45, 
+				1.0, 
+				0.0,//threshIDX
+				0.0};								//starting value
 		guiObjNames = new String[]{"Patch Size","Wind Speed","Wind Direction","Wind Dir Strictness (fltr)",
 				"Height Map Scale",
 				"Mix of Noise and Audio",
-			//	"Noise Threshold in Audio",
 				"Chopiness",
+				"Power Threshold",
 				"MP3 Song"};	//name/label of component	
 					
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
@@ -275,8 +296,8 @@ public class mySimWindow extends myDispWindow {
 			{false, false, true},      //dirDependIDX  
 			{false, false, true},      //heightScaleIDX
 			{false, false, true},      //freqMixIDX  	
-		//	{false, false, true},      //noise threshold thresh
 			{false, false, true},      //chopinessIDX  	
+			{false, false, true},      //threshIDX  	
 			{true, true, true}
 		};						//per-object  list of boolean flags
 		
@@ -322,27 +343,27 @@ public class mySimWindow extends myDispWindow {
 	
 	public void changeCurrentSong(int newSongIDX){
 		songs[songIDX].pause();
-		songs[songIDX].rewind();
+		//songs[songIDX].rewind();
 		songIDX = newSongIDX;
 		if(privFlags[useAudioForOceanIDX]){
 			songs[songIDX].play();
 		}
 	}
 	
-	protected void setOceanFFTVal(int UIidx, float value, float oceanVal){if((oceanVal != value) && (fftOcean.tmpSimVals[UIidx] != value)){fftOcean.setNewSimVal(UIidx, value);}}//setOceanFFTVal		
+	protected void setOceanFFTVal(String UIidx, float value, float oceanVal){if((oceanVal != value) && (fftOcean.tmpSimVals.get(UIidx) != value)){	fftOcean.setNewSimVal(UIidx, value);}}//setOceanFFTVal		
 	//set appropriate values from UI
 	@Override
 	protected void setUIWinVals(int UIidx) {
 		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[fftOcean.doneInit])){return;}
 		switch(UIidx){
-			case patchSizeIDX 	: {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()), fftOcean.patchSize);break;}//			patchSize 	: Phillips eq : 
-			case windSpeedIDX 	: {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()), fftOcean.windSpeed);break;}//			windSpeed 	: Phillips eq : 
-			case windDirIDX  	: {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()), fftOcean.windDir);break;}	//			windDir   	: Phillips eq : 
-			case dirDependIDX  	: {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()), fftOcean.dirDepend);break;}//			dirDepend 	: Phillips eq : 
-			case heightScaleIDX : {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()), fftOcean.heightScale);break;}//			heightScale	:
-			case freqMixIDX  	: {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()/100.0), fftOcean.freqMix);break;}	 	//			freqMix		: Mixture amount of pure phillips wave noise to song frequencies - 100 is all song, 0 is all phillips
-		//	case threshIDX		: {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()), fftOcean.thresh);break;}
-			case chopinessIDX  	: {setOceanFFTVal(UIidx, (float)(guiObjs[UIidx].getVal()), fftOcean.chopiness);break;}//			chopiness	: 	
+			case patchSizeIDX 	: {setOceanFFTVal("patchSizeIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.patchSize);break;}//			patchSize 	: Phillips eq : 
+			case windSpeedIDX 	: {setOceanFFTVal("windSpeedIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.windSpeed);break;}//			windSpeed 	: Phillips eq : 
+			case windDirIDX  	: {setOceanFFTVal("windDirIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.windDir);break;}	//			windDir   	: Phillips eq : 
+			case dirDependIDX  	: {setOceanFFTVal("dirDependIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.dirDepend);break;}//			dirDepend 	: Phillips eq : 
+			case heightScaleIDX : {setOceanFFTVal("heightScaleIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.heightScale);break;}//			heightScale	:
+			case freqMixIDX  	: {setOceanFFTVal("freqMixIDX", (float)(guiObjs[UIidx].getVal()/100.0), fftOcean.freqMix);break;}	 	//			freqMix		: Mixture amount of pure phillips wave noise to song frequencies - 100 is all song, 0 is all phillips
+			case chopinessIDX  	: {setOceanFFTVal("chopinessIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.chopiness);break;}//			chopiness	: 	
+			case threshIDX		: {setOceanFFTVal("threshIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.thresh);break;}//			threshold	: 	
 			case songSelIDX 	: {changeCurrentSong((int)(guiObjs[UIidx].getVal()));break;}
 		default : {break;}
 		}
@@ -355,8 +376,8 @@ public class mySimWindow extends myDispWindow {
 	protected void stopMe() {
 		for(int i=0;i<songTitles.length;++i){
 			songs[i].close();
-			songs[i] = pa.minim.loadFile(songTitles[i], songBufSize);
 		}
+		loadSongList();
 	}
 	@Override
 	protected void setScoreInstrValsIndiv(){}
@@ -495,11 +516,13 @@ class myOcean implements GLEventListener{
 			dirDepend = 0.07f,
 			heightScale = 0.5f,
 			freqMix = 0,						//amount of frequency data to mix into simulation
-			thresh = .00001f,						//noise threshold in processing of freq data
+			thresh = 0.0f,						//noise threshold in processing of freq data
 			chopiness = 1.0f
 			;
-	public float[] tmpSimVals;
-	public int numSimUIVals = 8;
+	
+	public ConcurrentSkipListMap<String, Float> tmpSimVals;
+//	public float[] tmpSimVals;
+//	public int numSimUIVals = 7;
 	//OpenGL variables
 	public int shaderProgramID;
 
@@ -510,13 +533,13 @@ class myOcean implements GLEventListener{
 	// FFT data
 	public cufftHandle fftPlan;
 	public CUdeviceptr d_h0Ptr, d_htPtr, d_slopePtr, d_freqInRPtr,d_freqInCPtr, d_freqPtr;
-	public float[] h_h0, freqRes1, freqRes2;	
+	public float[] h_h0, audFreqRealRes, audFreqImagRes;	
 	
 	//JCUDA
 	public CUdevice device;
 	public CUcontext glContext;
-	public static final int bldFreqIDX = 0, genSpecIDX = 1, updHMapIDX = 2, calcSlopeIDX = 3;
-	public String[] kFuncNames = new String[]{"buildFrequencyDataKernel","generateSpectrumKernel","updateHeightmapKernel","calculateSlopeKernel"};
+	public static final int bldFreqIDX = 0, bldFreq2IDX = 1, genSpecIDX = 2, genSpec2IDX = 3, updHMapIDX = 4, calcSlopeIDX = 5;
+	public String[] kFuncNames = new String[]{"buildFrequencyDataKernel","buildFrequencyDataKernel2","generateSpectrumKernel","generateSpectrumKernel2","updateHeightmapKernel","calculateSlopeKernel"};
 	public CUfunction[] kFuncs;// generateSpectrumKernel, updateHeightmapKernel, calculateSlopeKernel;
 	public CUmodule module;
 		
@@ -526,8 +549,9 @@ class myOcean implements GLEventListener{
 			newFreqVals		= 1, 
 			newSimVals		= 2, 
 			freqValsSet		= 3,
-			forceRecomp		= 4;
-	public static final int numCudaFlags = 5;
+			forceRecomp		= 4,
+			performInvFFT	= 5;
+	public static final int numCudaFlags = 6;
 	//colors
 	public float[] deepColor, shallowColor, skyColor, lightDir;
 	
@@ -546,9 +570,12 @@ class myOcean implements GLEventListener{
 		glComponent.addMouseMotionListener(mouseControl);
 		glComponent.addMouseWheelListener(mouseControl);
 		
+		tmpSimVals = new ConcurrentSkipListMap<String,Float>();
+		setTmpSimVals();
 		initFlags();
 		cudaFlags[forceRecomp] = win.privFlags[win.forceCudaRecompIDX];			//whether or not 
-
+		cudaFlags[performInvFFT] = !win.privFlags[win.showFreqDomainIDX];
+		cudaFlags[newSimVals] = false;
 		frame = new JFrame("WaterSurface");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -565,7 +592,7 @@ class myOcean implements GLEventListener{
 		frame.setVisible(true);
 		bringToFront();
 		glComponent.requestFocus();
-
+		
 		// Create and start the animator
 		animator = new Animator(glComponent);
 		animator.start();
@@ -580,14 +607,15 @@ class myOcean implements GLEventListener{
 	}
 
 	public void setFreqVals(float[] res1, float[] res2){
-		freqRes1 = res1;
-		freqRes2 = res2;	
+		audFreqRealRes = res1;
+		audFreqImagRes = res2;	
 		cudaFlags[newFreqVals] = true;
 	}
 	
 	//if parent UI changes any sim values
-	public void setNewSimVal(int idx, float val){
-		tmpSimVals[idx] = val;
+	public void setNewSimVal(String key, float val){
+		tmpSimVals.put(key, val);
+		//tmpSimVals[idx] = val;
 		cudaFlags[newSimVals] = true;
 		//need to refresh window?
 	}
@@ -668,8 +696,8 @@ class myOcean implements GLEventListener{
 		h_h0 = new float[spectrumSize];
 		h_h0 = generate_h0(h_h0);
 		d_h0Ptr = new CUdeviceptr();
-		cuMemAlloc(d_h0Ptr, h_h0.length*Sizeof.FLOAT);
-		cuMemcpyHtoD(d_h0Ptr, Pointer.to(h_h0), h_h0.length*Sizeof.FLOAT);
+		cuMemAlloc(d_h0Ptr, spectrumSize*Sizeof.FLOAT);
+		cuMemcpyHtoD(d_h0Ptr, Pointer.to(h_h0), spectrumSize*Sizeof.FLOAT);
 		
 		int outputSize = meshSzSq*Sizeof.FLOAT*2;
 		d_htPtr = new CUdeviceptr();
@@ -678,8 +706,9 @@ class myOcean implements GLEventListener{
 		cuMemAlloc(d_htPtr, outputSize);
 		cuMemAlloc(d_slopePtr, outputSize);
 
-		d_freqPtr = new CUdeviceptr();
-		cuMemAlloc(d_freqPtr, outputSize);
+		d_freqPtr = new CUdeviceptr();		//2x as bg as either d_freqInRPtr or d_freqInCPtr
+		//cuMemAlloc(d_freqPtr, outputSize);
+		cuMemAlloc(d_freqPtr, spectrumSize*Sizeof.FLOAT);
 		//support up to 1024 simultaneous frequencies
 		//make these not device ptrs? only 1 d //TODO
 		d_freqInRPtr = new CUdeviceptr();
@@ -688,11 +717,7 @@ class myOcean implements GLEventListener{
 		cuMemAlloc(d_freqInCPtr, meshSize*Sizeof.FLOAT);
 		cudaFlags[newFreqVals] = false;
 		cudaFlags[freqValsSet] = false;	//legit values have been set
-		
-		tmpSimVals = new float[numSimUIVals];
 		cudaFlags[newSimVals] = false;
-		
-		pa.outStr2Scr("Done Init fftOcean");
 	}//initJCuda
 
 	private void initVBO(GL2 gl) {		
@@ -728,15 +753,15 @@ class myOcean implements GLEventListener{
 		if (byteBuffer != null){
 			FloatBuffer put = byteBuffer.asFloatBuffer();
 			int index = 0;
+			float denom = (float) (meshSize - 1);
 			for (int y = 0; y < meshSize; y++) {
+				float v = y / denom;
 				for (int x = 0; x < meshSize; x++) {
-					float u = x / (float) (meshSize - 1);
-					float v = y / (float) (meshSize - 1);
-					put.put(index, u * 2.0f - 1.0f);
-					put.put(index+1, 0.0f);
-					put.put(index + 2, v * 2.0f - 1.0f);
-					put.put(index+3, 1.0f);
-					index += 4;
+					float u = x / denom;
+					put.put(index++, u * 2.0f - 1.0f);
+					put.put(index++, 0.0f);
+					put.put(index++, v * 2.0f - 1.0f);
+					put.put(index++, 1.0f);
 				}
 			}
 		}
@@ -771,7 +796,7 @@ class myOcean implements GLEventListener{
 
 	private void setUnisInShdr(){
 		int uniHeightScale = gl.glGetUniformLocation(shaderProgramID, "heightScale");
-		gl.glUniform1f(uniHeightScale, heightScale);
+		gl.glUniform1f(uniHeightScale, heightScale * (cudaFlags[performInvFFT] ? 1.0f : 20.0f));
 
 		int uniChopiness = gl.glGetUniformLocation(shaderProgramID, "chopiness");
 		gl.glUniform1f(uniChopiness, chopiness);
@@ -843,7 +868,6 @@ class myOcean implements GLEventListener{
 		
 		delta = System.nanoTime() - delta;
 		animTime +=  delta/1000000000;
-
 	}
 
 	@Override
@@ -860,25 +884,36 @@ class myOcean implements GLEventListener{
 		glu.gluPerspective(60.0, (double) width / (double) height, 0.1, 10.0);
 	}
 
-	
+	//move changed values to local variables
 	private void updateSimVals(){
-		patchSize 		= tmpSimVals[0];
-		windSpeed	 	= tmpSimVals[1];
-		windDir 		= tmpSimVals[2];
-		dirDepend 		= tmpSimVals[3];
-		heightScale 	= tmpSimVals[4];
-		freqMix 		= tmpSimVals[5];					//amount of frequency data to mix into simulation
-		thresh			= tmpSimVals[6];
-		chopiness 		= tmpSimVals[7];			
+		patchSize 		= tmpSimVals.get("patchSizeIDX");
+		windSpeed	 	= tmpSimVals.get("windSpeedIDX");
+		windDir 		= tmpSimVals.get("windDirIDX");
+		dirDepend 		= tmpSimVals.get("dirDependIDX");
+		heightScale 	= tmpSimVals.get("heightScaleIDX");
+		freqMix 		= tmpSimVals.get("freqMixIDX");
+		chopiness 		= tmpSimVals.get("chopinessIDX");
+		thresh	 		= tmpSimVals.get("threshIDX");
 		cudaFlags[newSimVals] = false;
+	}
+	
+	private void setTmpSimVals(){
+		tmpSimVals.put("patchSizeIDX",patchSize );
+		tmpSimVals.put("windSpeedIDX",windSpeed);
+		tmpSimVals.put("windDirIDX",windDir);
+		tmpSimVals.put("dirDependIDX",dirDepend);
+		tmpSimVals.put("heightScaleIDX",heightScale);
+		tmpSimVals.put("freqMixIDX",freqMix );
+		tmpSimVals.put("chopinessIDX",chopiness );
+		tmpSimVals.put("threshIDX",thresh );
 	}
 	
 	private void runCuda() {
 		Pointer kernelParameters = null;
 		//pa.outStr2Scr("run cuda : freqres1 : " + freqRes1.length);
 		if(cudaFlags[newFreqVals]){
-			cuMemcpyHtoD(d_freqInRPtr, Pointer.to(freqRes1), freqRes1.length*Sizeof.FLOAT);
-			cuMemcpyHtoD(d_freqInCPtr, Pointer.to(freqRes2), freqRes2.length*Sizeof.FLOAT);
+			cuMemcpyHtoD(d_freqInRPtr, Pointer.to(audFreqRealRes), audFreqRealRes.length*Sizeof.FLOAT);
+			cuMemcpyHtoD(d_freqInCPtr, Pointer.to(audFreqImagRes), audFreqImagRes.length*Sizeof.FLOAT);
 			cudaFlags[newFreqVals] = false;
 			cudaFlags[freqValsSet] = true;
 		}
@@ -895,22 +930,21 @@ class myOcean implements GLEventListener{
 					Pointer.to(d_freqInRPtr),
 					Pointer.to(d_freqInCPtr),
 					Pointer.to(new int[] { freqsInLen }),
-					Pointer.to(new int[] { meshSize }),
-					Pointer.to(new int[] { meshSize }),
+					Pointer.to(new int[] { spectrumW }),//meshSize }), 
+					Pointer.to(new int[] { spectrumH }),//meshSize }),
 					Pointer.to(new int[] { isNoteData }),
 					Pointer.to(new float[] { thresh }),
 					Pointer.to(new float[] { animTime })					
 					);
 		
-			cuLaunchKernel(kFuncs[bldFreqIDX], 				//recalc phillips spectrum value for each time step
+			cuLaunchKernel(kFuncs[win.getFreqKFunc()],//kFuncs[bldFreqIDX], 				//recalc phillips spectrum value for each time step
 					tgridX, tgridY, 1, // Grid dimension
 					tblockX, tblockY, 1, // Block dimension
 					0, null, // Shared memory size and stream
 					kernelParameters, null // Kernel- and extra parameters
 			);
 			cuCtxSynchronize();
-			//convert forward into frequency domain
-			//JCufft.cufftExecC2C(fftPlan, d_freqPtr, d_freqPtr, JCufft.CUFFT_FORWARD);		
+	
 			cudaFlags[freqValsSet] = false;
 		}
 		
@@ -931,7 +965,7 @@ class myOcean implements GLEventListener{
 				Pointer.to(new float[] { freqMix }),   
 				Pointer.to(new float[] { patchSize }));
 	
-		cuLaunchKernel(kFuncs[genSpecIDX], 				//recalc phillips spectrum value for each time step
+		cuLaunchKernel(kFuncs[win.getGenKFunc()],//kFuncs[genSpecIDX], 				//recalc phillips spectrum value for each time step
 				gridX, gridY, 1, // Grid dimension
 				blockX, blockY, 1, // Block dimension
 				0, null, // Shared memory size and stream
@@ -940,7 +974,9 @@ class myOcean implements GLEventListener{
 		cuCtxSynchronize();
 		
 		//convert back from frequency domain to spatial domain
-		JCufft.cufftExecC2C(fftPlan, d_htPtr, d_htPtr, JCufft.CUFFT_INVERSE);		
+		if(cudaFlags[performInvFFT]) {
+			JCufft.cufftExecC2C(fftPlan, d_htPtr, d_htPtr, JCufft.CUFFT_INVERSE);
+		}
 		
 		CUdeviceptr g_hptr = new CUdeviceptr();
 		cuGraphicsMapResources(1, new CUgraphicsResource[]{cuda_heightVB_resource}, null);
@@ -1008,9 +1044,9 @@ class myOcean implements GLEventListener{
 	// V - wind speed
 	// A - constant
 	public double phillips(float Kx, float Ky, float Vdir, float V, float A, float dir_depend, float Lsq) {
-		double k_squared = Kx*Kx + Ky*Ky, kSqrt = Math.sqrt(k_squared);
+		double k_squared = Kx*Kx + Ky*Ky;
 		if (k_squared == 0.0f){	return 0.0f;}
-		double
+		double kSqrt = Math.sqrt(k_squared),
 		//normalized dot prod
 		k_x = (Kx / kSqrt),
 		k_y = (Ky / kSqrt),
@@ -1022,16 +1058,18 @@ class myOcean implements GLEventListener{
 		if (w_dot_k < 0.0f){	res *= dir_depend;	}
 		return res;
 	}
-
+	
+	//initial setup of ocean
 	public float[] generate_h0(float[] h0) {
 		float kMult = (2*pa.PI / patchSize);
 		int nMshHalf = -meshSize/2; 
 		float kx,ky,P,Er,Ei,h0_re,h0_im, L = (windSpeed*windSpeed/g), lsq = (L*L);
+		//Min kx : -42.89321Max kx : 42.89321Min ky : -42.89321Max ky : 42.89321
 		Random rnd = new Random();
 		for (int y = 0; y <= meshSize; y++) {
+			ky = (nMshHalf + y) * kMult;
 			for (int x = 0; x <= meshSize; x++) {
 				kx = (nMshHalf + x) * kMult;
-				ky = (nMshHalf + y) * kMult;
 				if (kx == 0.0f && ky == 0.0f){	P = 0.0f;}
 				else {P = (float) (Math.sqrt(phillips(kx, ky, windDir, windSpeed, A, dirDepend,lsq)));	}
 				Er = (float) rnd.nextGaussian();
@@ -1044,7 +1082,6 @@ class myOcean implements GLEventListener{
 				h0[2*i + 1] = h0_im;
 			}
 		}
-		
 		return h0;
 	}
 	
@@ -1073,7 +1110,7 @@ class myOcean implements GLEventListener{
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			translateZ += e.getWheelRotation() * 0.25f;
+			translateZ -= e.getWheelRotation() * 0.25f;
 			previousMousePosition = e.getPoint();
 		}
 	}
