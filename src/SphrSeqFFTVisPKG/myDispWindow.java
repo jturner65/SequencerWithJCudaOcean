@@ -1031,7 +1031,6 @@ public abstract class myDispWindow {
 //			instrNoteOut[i].pauseNotes();
 //			instrNoteOut[i].close();
 //			instrNoteOut[i] = pa.getAudioOut();
-		
 		if(this.ID != 2){
 			pa.glblOut.close();
 			pa.resetAudioOut();			//TODO

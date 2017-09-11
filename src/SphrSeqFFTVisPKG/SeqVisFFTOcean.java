@@ -529,8 +529,8 @@ enum clefVal{
 
 	private void mouseClicked(int mseBtn){ for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),mseBtn)){return;}}}		
 	
-	private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),0)){return;}}}		
-	private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),1)){return;}}}		
+//	private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),0)){return;}}}		
+//	private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),1)){return;}}}		
 	public void mouseDragged(){//pmouseX is previous mouse x
 		if((flags[shiftKeyPressed]) && (canMoveView[curFocusWin])){		//modifying view - always bypass HUD windows if doing this
 			flags[modView]=true;
@@ -567,10 +567,11 @@ enum clefVal{
 	//these tie using the UI buttons to modify the window in with using the boolean tags - PITA but currently necessary
 	public void handleShowWin(int btn, int val){handleShowWin(btn, val, true);}					//display specific windows - multi-select/ always on if sel
 	public void handleShowWin(int btn, int val, boolean callFlags){//{"Score","Curve","InstEdit"},					//display specific windows - multi-select/ always on if sel
+		//System.out.println((callFlags ? "|":"|!callFlags ") + " : btn : " + btn + " bVal : " + val);		
 		if(!callFlags){//called from setflags - only sets button state in UI
 			((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiBtnSt[mySideBarMenu.btnShowWinIdx][btn] = val;
 		} else {//called from clicking on buttons in UI
-			boolean bVal = (val == 1?  false : true);
+			boolean bVal = (val == 1?  false : true);//boolean version of button state
 			switch(btn){
 				case 0 : {setFlags(showSequence, bVal);break;}
 				case 1 : {setFlags(showSphereUI, bVal);break;}
@@ -579,7 +580,8 @@ enum clefVal{
 			}
 		}
 	}//handleShowWin
-	
+
+
 //		//process request to add a  new component
 //		public void handleAddNewCmp(int btn, int val){handleAddNewCmp(btn, val, true);}					//display specific windows - multi-select/ always on if sel
 //		public void handleAddNewCmp(int btn, int val, boolean callFlags){//{"Score","Staff","Measure","Note"},			//add - momentary
@@ -648,7 +650,7 @@ enum clefVal{
 			switch(btn){
 				case 0 : {modCurPBETimeAllWins(-pbeModAmt);break;}//rewind
 				case 1 : {setFlags(playMusic, false); stopMusic();break;}//stop - always turn play button off
-				case 2 : {setFlags(playMusic, !flags[playMusic]); if(flags[playMusic]) {playMusic();} else {stopMusic();} break;}//play
+				case 2 : {setFlags(playMusic, !flags[playMusic]); if(flags[playMusic]) {playMusic();} else {stopMusic();} break;}//play / pause
 				case 3 : {modCurPBETimeAllWins(pbeModAmt);break;}//fastfwd
 			}			
 		}
@@ -1058,10 +1060,10 @@ enum clefVal{
 			case flipDrawnTraj		: { for(int i =1; i<dispWinFrames.length;++i){dispWinFrames[i].rebuildAllDrawnTrajs();}break;}						//whether or not to flip the drawn melody trajectory, width-wise
 			case showUIMenu 	    : { dispWinFrames[dispMenuIDX].setShow(val);    break;}											//whether or not to show the main ui window (sidebar)
 			
-			case showSequence 		: {setWinFlagsXOR(dispPianoRollIDX, val); break;}//dispWinFrames[dispPianoRollIDX].setShow(val);handleShowWin(1 ,(val ? 1 : 0),false); break;}	//whether or not the user wishes to edit the drawn melody curve
+			case showSequence 		: {setWinFlagsXOR(dispPianoRollIDX, val); break;}
 			case showSphereUI		: {setWinFlagsXOR(dispSphereUIIDX, val); break;}
-			//case showSimWin			: {setWinFlagsXOR(dispSimIDX, val); break;}
-			case showSimWin			: {dispWinFrames[dispSimIDX].setShow(val);handleShowWin(dispSimIDX-1 ,(val ? 1 : 0),false);break;}
+			case showSimWin			: {setWinFlagsXOR(dispSimIDX, val); break;}			
+			//case showSimWin			: {dispWinFrames[dispSimIDX].setShow(val);handleShowWin(dispSimIDX-1 ,(val ? 1 : 0),false);break;}
 			case showInstEdit 		: {dispWinFrames[dispInstEditIDX].setShow(val);handleShowWin(dispInstEditIDX-1 ,(val ? 1 : 0),false); setWinsHeight(); break;}	//show InstEdit window
 
 			//case useDrawnVels 		: {for(int i =1; i<dispWinFrames.length;++i){dispWinFrames[i].rebuildAllDrawnTrajs();}break;}
@@ -1078,27 +1080,47 @@ enum clefVal{
 			dispWinFrames[winDispIdxXOR[i]].setRectDimsY( dispWinFrames[dispInstEditIDX].getRectDim(1));
 		}						
 	}		
-
-	public int[] winFlagsXOR = new int[]{showSequence,showSphereUI};
-	public int[] winDispIdxXOR = new int[]{dispPianoRollIDX,dispSphereUIIDX};
+	
+	//set only one of the following windows based on selection from menu
+	public int[] winFlagsXOR = new int[]{showSequence,showSphereUI, showSimWin};
+	public int[] winDispIdxXOR = new int[]{dispPianoRollIDX,dispSphereUIIDX, dispSimIDX};
 	public void setWinFlagsXOR(int idx, boolean val){
-		//outStr2Scr("SetWinFlagsXOR : idx " + idx + " val : " + val);
-		if(val){//turning one on
-			//turn off not shown, turn on shown				
-			for(int i =0;i<winDispIdxXOR.length;++i){//skip first window - ui menu - and last window - InstEdit window
-				if(winDispIdxXOR[i]!= idx){dispWinFrames[winDispIdxXOR[i]].setShow(false);handleShowWin(i ,0,false); flags[winFlagsXOR[i]] = false;}
-				else {
-					dispWinFrames[idx].setShow(true);
-					handleShowWin(i ,1,false); 
-					flags[winFlagsXOR[i]] = true;
-					curFocusWin = winDispIdxXOR[i];
-					setCamView();
-				}
+		for(int i =0;i<winDispIdxXOR.length;++i){//skip first window - ui menu - and last window - InstEdit window
+			if(winDispIdxXOR[i]!= idx){
+				dispWinFrames[winDispIdxXOR[i]].setShow(false);
+				handleShowWin(i ,0,false); 
+				flags[winFlagsXOR[i]] = false;
+			} else {
+				dispWinFrames[idx].setShow(true);
+				handleShowWin(i ,1,false); 
+				flags[winFlagsXOR[i]] = true;
+				curFocusWin = winDispIdxXOR[i];
+				setCamView();
 			}
-		} else {				//if turning off a window - need a default uncloseable window - for now just turn on next window : idx-1 is idx of allowable winwdows (idx 0 is sidebar menu)
-			setWinFlagsXOR((((idx-1) + 1) % winFlagsXOR.length)+1, true);
-		}			
+		}
 	}//setWinFlagsXOR
+	
+//	//handles toggling between windows.  
+//	public int[] winFlagsXOR = new int[]{showSequence,showSphereUI};
+//	public int[] winDispIdxXOR = new int[]{dispPianoRollIDX,dispSphereUIIDX};
+//	public void setWinFlagsXOR(int idx, boolean val){
+//		//outStr2Scr("SetWinFlagsXOR : idx " + idx + " val : " + val);
+//		if(val){//turning one on
+//			//turn off not shown, turn on shown				
+//			for(int i =0;i<winDispIdxXOR.length;++i){//skip first window - ui menu - and last window - InstEdit window
+//				if(winDispIdxXOR[i]!= idx){dispWinFrames[winDispIdxXOR[i]].setShow(false);handleShowWin(i ,0,false); flags[winFlagsXOR[i]] = false;}
+//				else {
+//					dispWinFrames[idx].setShow(true);
+//					handleShowWin(i ,1,false); 
+//					flags[winFlagsXOR[i]] = true;
+//					curFocusWin = winDispIdxXOR[i];
+//					setCamView();
+//				}
+//			}
+//		} else {				//if turning off a window - need a default uncloseable window - for now just turn on next window : idx-1 is idx of allowable winwdows (idx 0 is sidebar menu)
+//			setWinFlagsXOR((((idx-1) + 1) % winFlagsXOR.length)+1, true);
+//		}			
+//	}//setWinFlagsXOR
 	
 	//set flags appropriately when only 1 can be true 
 	public void setFlagsXOR(int tIdx, int[] fIdx){for(int i =0;i<fIdx.length;++i){if(tIdx != fIdx[i]){flags[fIdx[i]] =false;}}}				

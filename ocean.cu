@@ -58,7 +58,7 @@ __global__ void buildFrequencyDataKernel(float2* freq_out,
                                        	unsigned int out_width,
                                        	unsigned int out_height,
 										unsigned int is_NoteFreqs, 
-										float thresh,
+									//	float thresh,
 										float t)				//1 if notes, 0 if audio
 {
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -88,18 +88,8 @@ __global__ void buildFrequencyDataKernel(float2* freq_out,
 		if ((x < out_width) && (y < out_height)) { 	//in_width == out_width
 			float freqR = freq_rList[inx];
 			float freqC = freq_cList[iny];
-//			float freqR = (fabsf(freq_rList[inx]) < thresh ? .5 * freq_rList[inx] : freq_rList[inx]);
-//			float freqC = (fabsf(freq_cList[iny]) < thresh ? .5 * freq_cList[iny] : freq_cList[iny]);
-//			float freqR = (fabsf(freq_rList[inx]) < thresh ? .5 * absSqrt(freq_rList[inx], 1) : freq_rList[inx]);
-//			float freqC = (fabsf(freq_cList[iny]) < thresh ? .5 * absSqrt(freq_cList[iny], 1) : freq_cList[iny]);
-			//max level threshold
-			//this maximizes the value at the center of the frequency map - this is where the philips noise value is
-			float val = (freqR  * freqC * 100) ;
-//			val = absSqrt(val, 1);
-//			if(val > 1){	val = sqrtf(val);	}
-//			else if (val < -1) {val = -sqrtf(-val);}
-//			val *=.1f;
-	    	//freq_out[out_index] = make_float2(freqR*10.0f ,freqC*10.0f);
+			//this squaring these maximizes the value at the center of the frequency map - this is where the philips noise value is
+			float val =  (freqR  * freqC * 100) ;
 	    	freq_out[out_index] = make_float2(val,val);
 		}
 	
@@ -124,7 +114,7 @@ __global__ void buildFrequencyDataKernel2(float2* freq_out,
                                        	unsigned int out_width,
                                        	unsigned int out_height,
 										unsigned int is_NoteFreqs,
-										float thresh,
+									//	float thresh,
 										float t)				//1 if notes, 0 if audio
 {
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
@@ -154,18 +144,9 @@ __global__ void buildFrequencyDataKernel2(float2* freq_out,
 		if ((x < out_width) && (y < out_height)) { 	//in_width == out_width
 			float freqR = freq_rList[inx];
 			float freqC = freq_cList[iny];
-//			float freqR = (fabsf(freq_rList[inx]) < thresh ? .5 * freq_rList[inx] : freq_rList[inx]);
-//			float freqC = (fabsf(freq_cList[iny]) < thresh ? .5 * freq_cList[iny] : freq_cList[iny]);
-//			float freqR = (fabsf(freq_rList[inx]) < thresh ? .5 * absSqrt(freq_rList[inx], 1) : freq_rList[inx]);
-//			float freqC = (fabsf(freq_cList[iny]) < thresh ? .5 * absSqrt(freq_cList[iny], 1) : freq_cList[iny]);
-			//max level threshold
 			//this maximizes the value at the center of the frequency map - this is where the philips noise value is
-			float val = (freqR  * freqC * 10) ;
-//			val = absSqrt(val, 1);
-			if(val > 1){	val = sqrtf(val);	}
-			else if (val < -1) {val = -sqrtf(-val);}
-//			val *=.1f;
-	    	//freq_out[out_index] = make_float2(freqR*10.0f ,freqC*10.0f);
+			float val =  (freqR  * freqC * 10) ;
+			val = absSqrt(val, 1);
 	    	freq_out[out_index] = make_float2(val,val);
 		}
 
@@ -181,7 +162,7 @@ __global__ void buildFrequencyDataKernel2(float2* freq_out,
 //	//freq_out[out_index]
 
 }
-// generate wave heightfield at time t based on initial heightfield and dispersion relationship : add value
+// generate wave heightfield at time t based on initial heightfield and dispersion relationship : interp between noise and music
 extern "C"
 __global__ void generateSpectrumKernel(float2* h0, float2* ht,float2* freq, unsigned int in_width, unsigned int out_width, unsigned int out_height,
                                        float t,float mix,float patchSize)
@@ -210,12 +191,12 @@ __global__ void generateSpectrumKernel(float2* h0, float2* ht,float2* freq, unsi
 		float2 f0_k = freq[in_index];
 		float2 f0_mk = freq[in_mindex];
 		float2 tmpRes1 = complex_add( complex_mult(h0_k, cmplxExp), complex_mult(conjugate(h0_mk), cmplxNExp) );
-		float2 tmpRes2 = complex_add( tmpRes1, scalarMult(complex_add( complex_mult(f0_k, cmplxExp), complex_mult(conjugate(f0_mk), cmplxNExp) ), .01f));
+		float2 tmpRes2 = complex_mult( tmpRes1, complex_add( complex_mult(f0_k, cmplxExp), complex_mult(conjugate(f0_mk), cmplxNExp) ));
 		 // output frequency-space complex values
 		ht[out_index] = interp2F2(tmpRes1,tmpRes2,mix);
 	}
 }
-// generate wave heightfield at time t based on initial heightfield and dispersion relationship : multiply value
+// generate wave heightfield at time t based on initial heightfield and dispersion relationship : interpolate between noise and music convolved with noise
 extern "C"
 __global__ void generateSpectrumKernel2(float2* h0, float2* ht,float2* freq, unsigned int in_width, unsigned int out_width, unsigned int out_height,
                                        float t,float mix,float patchSize)
@@ -244,7 +225,8 @@ __global__ void generateSpectrumKernel2(float2* h0, float2* ht,float2* freq, uns
 		float2 f0_k = freq[in_index];
 		float2 f0_mk = freq[in_mindex];
 		float2 tmpRes1 = complex_add( complex_mult(h0_k, cmplxExp), complex_mult(conjugate(h0_mk), cmplxNExp) );
-		float2 tmpRes2 = complex_mult( tmpRes1, complex_add( complex_mult(f0_k, cmplxExp), complex_mult(conjugate(f0_mk), cmplxNExp) ));
+		//set "wet" mix to be convolved noise with audio frequencies
+		float2 tmpRes2 = scalarMult(complex_add( complex_mult(f0_k, cmplxExp), complex_mult(conjugate(f0_mk), cmplxNExp) ), .1f);
         // output frequency-space complex values
 		ht[out_index] = interp2F2(tmpRes1,tmpRes2,mix);
 	}
