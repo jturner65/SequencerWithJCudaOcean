@@ -54,6 +54,9 @@ public class myInstEditWindow extends myDispWindow {
 		}			
 	}//setInstFlags
 	
+	//init any extra ui objs
+	@Override
+	protected void initXtraUIObjsIndiv() {}
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
@@ -116,7 +119,11 @@ public class myInstEditWindow extends myDispWindow {
 		
 		
 	}
-	
+	//move current play position when playing mp3/sample
+	@Override
+	protected void modMySongLoc(float modAmt) {
+		
+	};
 	@Override
 	protected void drawMe(float animTimeMod) {
 		
@@ -165,7 +172,6 @@ public class myInstEditWindow extends myDispWindow {
 	@Override
 	protected void hndlMouseRelIndiv() {
 		// TODO Auto-generated method stub
-		
 	}
 	
 	@Override

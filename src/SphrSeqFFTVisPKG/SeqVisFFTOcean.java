@@ -645,7 +645,7 @@ enum clefVal{
 		if(!callFlags){
 			((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiBtnSt[mySideBarMenu.btnTrnsprtIdx][btn] = val;			//turns on appropriate button in menu
 			if(btn==1){	((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiBtnSt[mySideBarMenu.btnTrnsprtIdx][2] = 0;}	//if stop, turn off play button
-			if(flags[playMusic]) {playMusic();} else {stopMusic();} 
+		//	if(flags[playMusic]) {playMusic();} else {stopMusic();} 
 		} else {
 			switch(btn){
 				case 0 : {modCurPBETimeAllWins(-pbeModAmt);break;}//rewind
@@ -776,8 +776,10 @@ enum clefVal{
 		case dispPianoRollIDX 	: {return dispWinFrames[dispMenuIDX].uiClkCoords;}
 		case dispSphereUIIDX 	: {return dispWinFrames[dispMenuIDX].uiClkCoords;}
 		case dispSimIDX 		: {
-			double[] res = new double[]{dispWinFrames[dispMenuIDX].uiClkCoords[0], dispWinFrames[dispMenuIDX].uiClkCoords[1],dispWinFrames[dispMenuIDX].uiClkCoords[2],Math.max(dispWinFrames[dispSphereUIIDX].uiClkCoords[3],dispWinFrames[dispPianoRollIDX].uiClkCoords[3])};
-			return res;}//(dispWinFrames[dispPianoRollIDX].uiClkCoords[3] > dispWinFrames[dispSphereUIIDX].uiClkCoords[3]   ? dispWinFrames[dispPianoRollIDX].uiClkCoords : dispWinFrames[dispSphereUIIDX].uiClkCoords);}
+			//if displaying visualization with sequence source video
+			//double[] res = new double[]{dispWinFrames[dispMenuIDX].uiClkCoords[0], dispWinFrames[dispMenuIDX].uiClkCoords[1]-dispWinFrames[dispMenuIDX].uiClkCoords[3],dispWinFrames[dispMenuIDX].uiClkCoords[2],Math.max(dispWinFrames[dispSphereUIIDX].uiClkCoords[3],dispWinFrames[dispPianoRollIDX].uiClkCoords[3])};
+			//return res;
+			return dispWinFrames[dispMenuIDX].uiClkCoords;}//(dispWinFrames[dispPianoRollIDX].uiClkCoords[3] > dispWinFrames[dispSphereUIIDX].uiClkCoords[3]   ? dispWinFrames[dispPianoRollIDX].uiClkCoords : dispWinFrames[dispSphereUIIDX].uiClkCoords);}
 		case dispInstEditIDX 	: {				
 			return dispWinFrames[dispSimIDX].uiClkCoords;}
 		default :  return dispWinFrames[dispMenuIDX].uiClkCoords;
@@ -840,7 +842,6 @@ enum clefVal{
 	public final int drawing			= 6; 			//currently drawing
 	public final int modView	 		= 7;			//shift+mouse click+mouse move being used to modify the view		
 
-	
 	public final int playMusic			= 8;			//run simulation (if off localization progresses on single pose
 	//public final int useDrawnVels		= 9;			//whether or not to use the velocity of drawing in renderig the a drawn stroke to build the stroke
 	
@@ -1924,4 +1925,5 @@ enum clefVal{
 	public static final int gui_TransCyan = 38;	
 	public static final int gui_TransWhite = 39;	
 	public static final int gui_OffWhite = 40;
+
 }

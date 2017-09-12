@@ -93,6 +93,10 @@ public class mySequencer extends myDispWindow {
 		setPrivFlags(prlShowPianoIDX,true);				//initially show piano roll
 	}//initMe
 	
+	//init any extra ui objs
+	@Override
+	protected void initXtraUIObjsIndiv() {}
+
     //called by keyboard clicks to play notes
 	private void playKbdClickNote(myNote _clkNote){
 		if(null == _clkNote){return;}
@@ -533,6 +537,12 @@ public class mySequencer extends myDispWindow {
 		}
 		pa.glblOut.resumeNotes();
 	}//playMe
+	//move current play position when playing mp3/sample (i.e. something not controlled by pbe reticle
+	@Override
+	protected void modMySongLoc(float modAmt) {
+		
+	};
+
 		
 	@Override
 	protected void resizeMe(float scaleY) {//also use topOffY to modify grid blocs being displayed	
@@ -608,7 +618,6 @@ public class mySequencer extends myDispWindow {
 		//drawClickableBooleans();
 		pa.popStyle();pa.popMatrix();
 	}	
-
 	@Override
 	protected void endShiftKeyI() {}
 	@Override

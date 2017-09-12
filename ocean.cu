@@ -59,8 +59,7 @@ __global__ void buildFrequencyDataKernel(float2* freq_out,
                                        	unsigned int out_height,
 										unsigned int is_NoteFreqs, 
 									//	float thresh,
-										float t)				//1 if notes, 0 if audio
-{
+										float t){
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
     
@@ -115,8 +114,7 @@ __global__ void buildFrequencyDataKernel2(float2* freq_out,
                                        	unsigned int out_height,
 										unsigned int is_NoteFreqs,
 									//	float thresh,
-										float t)				//1 if notes, 0 if audio
-{
+										float t){
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
 
@@ -165,8 +163,7 @@ __global__ void buildFrequencyDataKernel2(float2* freq_out,
 // generate wave heightfield at time t based on initial heightfield and dispersion relationship : interp between noise and music
 extern "C"
 __global__ void generateSpectrumKernel(float2* h0, float2* ht,float2* freq, unsigned int in_width, unsigned int out_width, unsigned int out_height,
-                                       float t,float mix,float patchSize)
-{
+                                       float t,float mix,float patchSize){
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
     unsigned int in_index = y*in_width+x;
@@ -199,8 +196,7 @@ __global__ void generateSpectrumKernel(float2* h0, float2* ht,float2* freq, unsi
 // generate wave heightfield at time t based on initial heightfield and dispersion relationship : interpolate between noise and music convolved with noise
 extern "C"
 __global__ void generateSpectrumKernel2(float2* h0, float2* ht,float2* freq, unsigned int in_width, unsigned int out_width, unsigned int out_height,
-                                       float t,float mix,float patchSize)
-{
+                                       float t,float mix,float patchSize){
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
     unsigned int in_index = y*in_width+x;
@@ -234,8 +230,7 @@ __global__ void generateSpectrumKernel2(float2* h0, float2* ht,float2* freq, uns
 
 // update height map values based on output of FFT
 extern "C"
-__global__ void updateHeightmapKernel(float*  heightMap, float2* ht, unsigned int width)
-{
+__global__ void updateHeightmapKernel(float*  heightMap, float2* ht, unsigned int width){
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
     unsigned int i = y*width+x;
@@ -246,8 +241,7 @@ __global__ void updateHeightmapKernel(float*  heightMap, float2* ht, unsigned in
 
 // generate slope by partial differences in spatial domain
 extern "C"
-__global__ void calculateSlopeKernel(float* h, float2 *slopeOut, unsigned int width, unsigned int height)
-{
+__global__ void calculateSlopeKernel(float* h, float2 *slopeOut, unsigned int width, unsigned int height){
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
     unsigned int i = y*width+x;

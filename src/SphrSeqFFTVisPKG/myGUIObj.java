@@ -11,7 +11,7 @@ public class myGUIObj {
 	public myVector start, end;				//x,y coords of start corner, end corner (z==0) for clickable region
 	public String name, dispText;
 
-	private double val, minVal, maxVal;
+	protected double val, minVal, maxVal;
 	//public boolean treatAsInt;
 	
 	public int[] uiFlags;
@@ -35,11 +35,9 @@ public class myGUIObj {
 		win = _win;
 		winID = _winID;
 		ID = p.GUIObjID++;
-		name = _name;
 		xOff = _off[0];
 		yOff = _off[1];
-		//dispText = new String("UI Obj "+ID+" : "+name + " : ");
-		dispText = new String(""+name + " : ");
+		setName(_name);
 		start = new myVector(_start); end = new myVector(_end);
 		minVal=_minMaxMod[0]; maxVal = _minMaxMod[1]; val = _initVal;modMult = _minMaxMod[2];
 		initFlags();
@@ -73,6 +71,11 @@ public class myGUIObj {
 		val = ((_newVal >= minVal)&&(_newVal<=maxVal)) ? _newVal : (_newVal < minVal) ? minVal : maxVal;		
 		return val;
 	}	
+	
+	public void setName(String _name) {
+		name = _name;
+		dispText = new String(""+name + " : ");
+	}
 	
 	public double modVal(double mod){
 		val += (mod*modMult);
@@ -110,8 +113,45 @@ public class myGUIObj {
 	public String[] getStrData(){
 		ArrayList<String> tmpRes = new ArrayList<String>();
 		tmpRes.add("ID : "+ ID+" Win ID : " + winID  + " Name : "+ name + " distText : " + dispText);
-		tmpRes.add("Start loc : "+ start + " End loc : "+ end + " Treat as Int  : " + uiFlags[treatAsIntIDX]);
+		tmpRes.add("Start loc : "+ start + " End loc : "+ end + " Treat as Int  : " + getFlags(treatAsIntIDX));
 		tmpRes.add("Value : "+ val +" Max Val : "+ maxVal + " Min Val : " + minVal+ " Mod multiplier : " + modMult);
 		return tmpRes.toArray(new String[0]);
 	}
+}//myGUIObj
+
+class myGUIBar extends myGUIObj{
+	public final float[] barDims;// = new float[] {.8f * pa.menuWidth, 10.0f};
+
+	public myGUIBar(SeqVisFFTOcean _p, myDispWindow _win, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off) {
+		super(_p, _win, _winID, _name, _start, _end,  _minMaxMod, _initVal, _flags, _off);
+		barDims = new float[] {.8f * p.menuWidth, (float) (.5*yOff)};		
+	}
+	
+	public myGUIBar(SeqVisFFTOcean _p, myDispWindow _win, int _winID, String _name, double _xst, double _yst, double _xend, double _yend, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _Off) {this(_p,_win, _winID,_name,new myVector(_xst,_yst,0), new myVector(_xend,_yend,0), _minMaxMod, _initVal, _flags, _Off);	}
+
+	@Override
+	public void draw(){
+//		p.pushMatrix();p.pushStyle();
+//		p.fill(255,0,0,255);
+//		p.rect((float)start.x, (float)start.y, (float)(end.x-start.x), (float)(end.y - start.y));
+//		p.popStyle();p.popMatrix();
+		p.pushMatrix();p.pushStyle();
+			p.translate(initDrawTrans[0],initDrawTrans[1]);
+			p.setColorValFill(_cVal);
+			p.setColorValStroke(_cVal);
+			p.strokeWeight(1.0f);
+			p.stroke(0,0,0,255);
+			p.text(dispText, 0,0);
+			p.translate(0,10.0);
+			p.fill(255,255,255,255);
+			p.rect(0,0,barDims[0],barDims[1]);
+			//show progress
+			p.strokeWeight(1.0f);
+			p.stroke(0,0,0,0);
+			p.fill(255,0,0,255);
+			p.rect(0,0,(float) (val*barDims[0]),barDims[1]);
+		p.popStyle();p.popMatrix();
+	}
+
+
 }

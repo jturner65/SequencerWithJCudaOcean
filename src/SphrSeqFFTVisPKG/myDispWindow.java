@@ -203,6 +203,11 @@ public abstract class myDispWindow {
 		seqVisStTime = new int[] {0,0};
 	}
 	
+	//custom UI objects
+	protected void initExtraUIObjs() {
+		initXtraUIObjsIndiv();
+	}
+	
 	//calculate button length
 	private static final float ltrLen = 5.0f;private static final int btnStep = 5;
 	private float calcBtnLength(String tStr, String fStr){return btnStep * (int)(((PApplet.max(tStr.length(),fStr.length())+4) * ltrLen)/btnStep);}
@@ -242,8 +247,7 @@ public abstract class myDispWindow {
 					this.uiClkCoords[3] += yOff;
 					startNewLine = true;					
 				}
-			}
-			
+			}			
 			oldBtnLen = btnLen;
 		}
 		if(lastBtnHalfStLine){//set last button full length if starting new line
@@ -399,7 +403,7 @@ public abstract class myDispWindow {
 		myGUIObj tmp; 
 //		if(dispFlags[uiObjsAreVert]){		//vertical stack of UI components - clickable region x is unchanged, y changes with # of objects
 			double stClkY = uiClkCoords[1];
-			for(int i =0; i< guiObjs.length; ++i){
+			for(int i =0; i< guiStVals.length; ++i){
 				guiObjs[i] = buildGUIObj(i,guiObjNames[i],guiStVals[i], guiMinMaxModVals[i], guiBoolVals[i], new double[]{uiClkCoords[0], stClkY, uiClkCoords[2], stClkY+yOff},off);
 				stClkY += yOff;
 			}
@@ -416,8 +420,7 @@ public abstract class myDispWindow {
 //		}
 	}//
 	protected myGUIObj buildGUIObj(int i, String guiObjName, double guiStVal, double[] guiMinMaxModVals, boolean[] guiBoolVals, double[] xyDims, double[] off){
-		myGUIObj tmp;
-		tmp = new myGUIObj(pa, this,i, guiObjName, xyDims[0], xyDims[1], xyDims[2], xyDims[3], guiMinMaxModVals, guiStVal, guiBoolVals, off);		
+		myGUIObj tmp = new myGUIObj(pa, this,i, guiObjName, xyDims[0], xyDims[1], xyDims[2], xyDims[3], guiMinMaxModVals, guiStVal, guiBoolVals, off);		
 		return tmp;
 	}
 	
@@ -571,6 +574,7 @@ public abstract class myDispWindow {
 	public void drawGUIObjs(){	
 		pa.pushMatrix();pa.pushStyle();	
 		for(int i =0; i<guiObjs.length; ++i){guiObjs[i].draw();}
+		if(guiObjs.length > 0) {drawSepBar(this.uiClkCoords[3]);}
 		pa.popStyle();pa.popMatrix();
 	}
 	
@@ -689,6 +693,16 @@ public abstract class myDispWindow {
 		pa.hint(PConstants.ENABLE_DEPTH_TEST);
 		pa.popStyle();pa.popMatrix();
 	}
+	//separating bar for menu
+	protected void drawSepBar(double uiClkCoords2) {
+		pa.pushMatrix();pa.pushStyle();
+			pa.translate(0,uiClkCoords2 + (.5*pa.txtSz),0);
+			pa.fill(0,0,0,255);
+			pa.strokeWeight(1.0f);
+			pa.stroke(0,0,0,255);
+			pa.line(0,0,pa.menuWidth,0);
+		pa.popStyle();	pa.popMatrix();					
+	}//
 	
 	protected void drawNotifications(){		
 		//debug stuff
@@ -808,6 +822,7 @@ public abstract class myDispWindow {
 	public boolean msePtInUIRect(int x, int y){return ((x > uiClkCoords[0])&&(x <= uiClkCoords[2])&&(y > uiClkCoords[1])&&(y <= uiClkCoords[3]));}	
 	public boolean handleMouseClick(int mouseX, int mouseY, myPoint mouseClickIn3D, int mseBtn){
 		boolean mod = false;
+		//pa.outStr2Scr("ID :" +ID +" loc : ("  +mouseX +", " + mouseY + ") before mouse click check mod : "+ mod);
 		if((dispFlags[showIDX])&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
 			for(int j=0; j<guiObjs.length; ++j){
 				if(guiObjs[j].checkIn(mouseX, mouseY)){	
@@ -1009,6 +1024,7 @@ public abstract class myDispWindow {
 	//modify playback engine, from UI interaction
 	public void modCurrentPBETime(float modAmt){
 		pbe.modCurTime(modAmt);		
+		modMySongLoc(modAmt);
 	}
 	
 	//audio stuff, if window has audio
@@ -1149,11 +1165,15 @@ public abstract class myDispWindow {
 	public abstract void clickDebug(int btnNum);
 	
 	protected abstract void initMe();
+	//init xtra ui objects on a per-window basis
+	protected abstract void initXtraUIObjsIndiv();
+	
 	protected abstract void resizeMe(float scale);	
 	protected abstract void showMe();
 	protected abstract void closeMe();	
 	protected abstract void playMe();
 	protected abstract void stopMe();
+	protected abstract void modMySongLoc(float modAmt);
 	protected abstract void drawMe(float animTimeMod);	
 	
 	//set current key signature, at time passed - for score, set it at nearest measure boundary
@@ -1377,7 +1397,7 @@ class mySideBarMenu extends myDispWindow{
 				2								//gIDX_TimeSigDenom = 3,
 			//	1								//how many draw cycles per render - init is render every draw call
 		};
-		guiObjNames = new String[]{"Tempo","Key Signature", "Beats per Measure", "Beat Note", "Draw Cycle"};		
+		guiObjNames = new String[]{"Tempo","Key Signature", "Beats per Measure", "Beat Note"};		
 		
 		//idx 0 is treat as int, idx 1 is obj has list vals, idx 2 is object gets sent to windows
 		guiBoolVals = new boolean [][]{
@@ -1578,7 +1598,7 @@ class mySideBarMenu extends myDispWindow{
 		pa.popStyle();	pa.popMatrix();	
 		pa.pushMatrix();pa.pushStyle();
 			drawGUIObjs();					//draw what user-modifiable fields are currently available
-		pa.popStyle();	pa.popMatrix();			
+		pa.popStyle();	pa.popMatrix();	
 		pa.pushMatrix();pa.pushStyle();
 			drawWindowGuiObjs();		
 		pa.popStyle();	pa.popMatrix();			
@@ -1591,14 +1611,14 @@ class mySideBarMenu extends myDispWindow{
 			pa.dispWinFrames[pa.curFocusWin].drawClickableBooleans();					//draw what user-modifiable fields are currently available
 			pa.popStyle();	pa.popMatrix();	
 		}
-		//pa.translate(0,yTransAmt);
-		if(pa.flags[pa.showSimWin]){
-			pa.pushMatrix();pa.pushStyle();	
-			pa.dispWinFrames[pa.dispSimIDX].drawGUIObjs();					//draw what user-modifiable fields are currently available
-			pa.dispWinFrames[pa.dispSimIDX].drawClickableBooleans();					//draw what user-modifiable fields are currently available
-			pa.popStyle();	pa.popMatrix();	
-					
-		}
+//		//pa.translate(0,yTransAmt);
+//		if(pa.flags[pa.showSimWin]){
+//			pa.pushMatrix();pa.pushStyle();	
+//			pa.dispWinFrames[pa.dispSimIDX].drawGUIObjs();					//draw what user-modifiable fields are currently available
+//			pa.dispWinFrames[pa.dispSimIDX].drawClickableBooleans();					//draw what user-modifiable fields are currently available
+//			pa.popStyle();	pa.popMatrix();	
+//					
+//		}
 		//pa.translate(0,yTransAmt);
 		if(pa.flags[pa.showInstEdit]){
 			pa.pushMatrix();pa.pushStyle();			
@@ -1636,6 +1656,8 @@ class mySideBarMenu extends myDispWindow{
 	@Override
 	protected void stopMe() {}
 	@Override
+	protected void modMySongLoc(float modAmt) {};
+	@Override
 	protected void addSScrToWinIndiv(int newWinKey){}
 	@Override
 	protected void addTrajToScrIndiv(int subScrKey, String newTrajKey){}
@@ -1663,6 +1685,9 @@ class mySideBarMenu extends myDispWindow{
 	protected void processTrajIndiv(myDrawnNoteTraj drawnTraj){}	
 	@Override
 	protected void setScoreInstrValsIndiv(){}
+	//init any extra ui objs
+	@Override
+	protected void initXtraUIObjsIndiv() {}
 	@Override
 	public String toString(){
 		String res = super.toString();

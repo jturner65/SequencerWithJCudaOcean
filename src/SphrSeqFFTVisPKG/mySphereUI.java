@@ -124,6 +124,9 @@ public class mySphereUI extends myDispWindow {
 		}
 		return "";
 	}
+	//init any extra ui objs
+	@Override
+	protected void initXtraUIObjsIndiv() {}
 
 	public final myVector ctrVec = new myVector(400, 400,0);
 	//once score instruments have been set, this function is called
@@ -259,7 +262,7 @@ public class mySphereUI extends myDispWindow {
 		pa.popStyle();pa.popMatrix();
 		if(pa.flags[pa.playMusic]){playAllNotes();}				//need to build better mechanism to be draw-driven instead of 1-shot for play
 	}
-	
+
 	public void playAllNotes(){
 		 SortedMap<Integer, myNote> res = new TreeMap<Integer, myNote> (), tmp;
 		// pa.glblOut.pauseNotes();
@@ -318,6 +321,13 @@ public class mySphereUI extends myDispWindow {
 	protected void stopMe() {
 		for(mySphereCntl cntl : sphereCntls.values()){			cntl.stopAllNotes();		}
 	}	
+	//move current play position when playing mp3/sample (i.e. something not controlled by pbe reticle
+	@Override
+	protected void modMySongLoc(float modAmt) {
+		
+	};
+
+	
 	@Override
 	//gets current notes for simulation visualization - from last poll time to now - each sphere governs time using radar sweep
 	protected SortedMap<Integer, myNote> getNotesNow() {
