@@ -204,7 +204,7 @@ class myMP3SongHandler{
 	public void play() {	playMe.play();}
 	public void play(int millis) {	playMe.play(millis);}
 	public void pause() {	playMe.pause();}
-	
+
 	public void modPlayLoc(float modAmt) {
 		int curPos = playMe.position();	
 		int dispSize = songLength/20, newPos = (int) (curPos + (dispSize * modAmt));

@@ -82,6 +82,8 @@ public class myGUIObj {
 		if(getFlags(treatAsIntIDX)){val = Math.round(val);}
 		if(val<minVal){val = minVal;}
 		else if(val>maxVal){val = maxVal;}
+		//System.out.println("Mod : " + mod + " name : "+ name+ " Val : " + val);
+
 		return val;		
 	}
 	public int valAsInt(){return (int)(val) ;}
@@ -149,7 +151,7 @@ class myGUIBar extends myGUIObj{
 			p.strokeWeight(1.0f);
 			p.stroke(0,0,0,0);
 			p.fill(255,0,0,255);
-			p.rect(0,0,(float) (val*barDims[0]),barDims[1]);
+			p.rect(0,0,(float) ((val/(maxVal))*barDims[0]),barDims[1]);
 		p.popStyle();p.popMatrix();
 	}
 

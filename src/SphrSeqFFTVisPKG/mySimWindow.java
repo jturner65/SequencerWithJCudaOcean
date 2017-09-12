@@ -337,7 +337,7 @@ public class mySimWindow extends myDispWindow {
 		//(SeqVisFFTOcean _p, myDispWindow _win, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off)
 		guiObjs[songTransIDX] = new myGUIBar(pa, this, songTransIDX, "MP3 Transport for ", 
 				new myVector(0, stClkY,0), new myVector(uiClkCoords[2], stClkY+sizeClkY,0),
-				new double[] {0.0,1.0,.1}, 0.0, new boolean[]{false, false, true}, new double[]{xOff,yOff});	
+				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, true}, new double[]{xOff,yOff});	
 		
 		//setup space for ui interaction with song bar
 		stClkY += sizeClkY;				
@@ -404,17 +404,21 @@ public class mySimWindow extends myDispWindow {
 	@Override
 	protected void setUIWinVals(int UIidx) {
 		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[fftOcean.doneInit])){return;}
+		float val =  (float)(guiObjs[UIidx].getVal());
 		switch(UIidx){
-			case patchSizeIDX 	: {setOceanFFTVal("patchSizeIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.patchSize);break;}//			patchSize 	: Phillips eq : 
-			case windSpeedIDX 	: {setOceanFFTVal("windSpeedIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.windSpeed);break;}//			windSpeed 	: Phillips eq : 
-			case windDirIDX  	: {setOceanFFTVal("windDirIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.windDir);break;}	//			windDir   	: Phillips eq : 
-			case dirDependIDX  	: {setOceanFFTVal("dirDependIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.dirDepend);break;}//			dirDepend 	: Phillips eq : 
-			case heightScaleIDX : {setOceanFFTVal("heightScaleIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.heightScale);break;}//			heightScale	:
+			case patchSizeIDX 	: {setOceanFFTVal("patchSizeIDX", val, fftOcean.patchSize);break;}//			patchSize 	: Phillips eq : 
+			case windSpeedIDX 	: {setOceanFFTVal("windSpeedIDX", val, fftOcean.windSpeed);break;}//			windSpeed 	: Phillips eq : 
+			case windDirIDX  	: {setOceanFFTVal("windDirIDX", val, fftOcean.windDir);break;}	//			windDir   	: Phillips eq : 
+			case dirDependIDX  	: {setOceanFFTVal("dirDependIDX", val, fftOcean.dirDepend);break;}//			dirDepend 	: Phillips eq : 
+			case heightScaleIDX : {setOceanFFTVal("heightScaleIDX", val, fftOcean.heightScale);break;}//			heightScale	:
 			case freqMixIDX  	: {setOceanFFTVal("freqMixIDX", (float)(guiObjs[UIidx].getVal()/100.0), fftOcean.freqMix);break;}	 	//			freqMix		: Mixture amount of pure phillips wave noise to song frequencies - 100 is all song, 0 is all phillips
-			case chopinessIDX  	: {setOceanFFTVal("chopinessIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.chopiness);break;}//			chopiness	: 	
+			case chopinessIDX  	: {setOceanFFTVal("chopinessIDX", val, fftOcean.chopiness);break;}//			chopiness	: 	
 			//case threshIDX		: {setOceanFFTVal("threshIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.thresh);break;}//			threshold	: 	
 			case songSelIDX 	: {changeCurrentSong((int)(guiObjs[UIidx].getVal()));break;}
 			case winSelIDX		: {changeCurrentWindowfunc((int)(guiObjs[UIidx].getVal()));	break;}
+			case songTransIDX	: {
+				//System.out.println("val : " + val);
+				songs[songIDX].modPlayLoc(val);    break;}
 		default : {break;}
 		}
 	}
