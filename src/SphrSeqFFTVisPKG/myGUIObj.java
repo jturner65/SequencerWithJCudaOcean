@@ -144,14 +144,17 @@ class myGUIBar extends myGUIObj{
 			p.strokeWeight(1.0f);
 			p.stroke(0,0,0,255);
 			p.text(dispText, 0,0);
-			p.translate(0,10.0);
+			p.translate(0,10.0f);
 			p.fill(255,255,255,255);
 			p.rect(0,0,barDims[0],barDims[1]);
 			//show progress
 			p.strokeWeight(1.0f);
 			p.stroke(0,0,0,0);
 			p.fill(255,0,0,255);
-			p.rect(0,0,(float) ((val/(maxVal))*barDims[0]),barDims[1]);
+			float ratio = (float) (val/(maxVal)), ratLoc = ratio*barDims[0];
+			p.rect(0,0,ratLoc, barDims[1]);
+			p.translate(ratLoc,20.0f);
+			p.text(String.format("%4.2f", ratio), -10, 0);
 		p.popStyle();p.popMatrix();
 	}
 

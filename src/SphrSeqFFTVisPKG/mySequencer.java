@@ -11,10 +11,11 @@ public class mySequencer extends myDispWindow {
 	//this window will allow input of notes overlayed on a "player piano"-style 2D mesh, with piano displayed on left side
 	
 	public int gridX, gridY;									//pxls per grid box
-	public float whiteKeyWidth = 78, bkModY;				//how long, in pixels, is a white key, blk key is 2/3 as long
+	public final float whiteKeyWidth = 78;
+	public float bkModY;				//how long, in pixels, is a white key, blk key is 2/3 as long
 	//displayed piano
 	private myPianoObj dispPiano;	
-	private float[] dispPianoRect;
+	//private float[] dispPianoRect;
 	
 //	/public float tempoDurRatio = 1.0f;
 	
@@ -49,8 +50,8 @@ public class mySequencer extends myDispWindow {
 	public mySequencer(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		updateGridXandY(false);
-		dispPianoRect = new float[]{0, topOffY, whiteKeyWidth, 52 * gridY};
-		dispPiano = new myPianoObj(pa, this,  gridX, gridY, dispPianoRect, fillClr, rectDim);		//start with 52 white keys (full keyboard)
+		//dispPianoRect = new float[]{0, topOffY, whiteKeyWidth, 52 * gridY};
+		dispPiano = new myPianoObj(pa, this,  gridX, gridY, new float[]{0, topOffY, whiteKeyWidth, 52 * gridY}, fillClr, rectDim);		//start with 52 white keys (full keyboard)
 		numTrajNoteRpts = 0;		
 //		initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
 		//setup clickable regions for flag buttons - 1 per boolean flag

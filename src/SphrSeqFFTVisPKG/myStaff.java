@@ -1245,7 +1245,7 @@ class MeasureData implements Comparable<MeasureData>{//comparison by measure seq
 //convenience class to hold the important values for a note
 class NoteData implements Comparable<NoteData> {//only compares start time
 	public static SeqVisFFTOcean p;
-	public static final float C0 = 16.352f;		//baseline for note frequency
+	public static final float Cn1 = 16.352f;		//baseline for note frequency
 	//note value
 	public nValType name;
 	public int octave;		//what octave this note lives in - 0 is lowest octave 
@@ -1367,7 +1367,7 @@ class NoteData implements Comparable<NoteData> {//only compares start time
 		isSharp = !p.isNaturalNote(name);
 		amplitude = amp;
 		float octaveMult = (octave*12 + name.getVal());
-		freq = C0 * PApplet.pow(2.0f,(1.0f*octaveMult)/12.0f);
+		freq = Cn1 * PApplet.pow(2.0f,(1.0f*octaveMult)/12.0f);
 		return freq;
 	}
 	

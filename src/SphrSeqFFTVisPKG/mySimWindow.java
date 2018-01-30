@@ -21,6 +21,8 @@ import jcuda.*;
 import jcuda.driver.*;
 import jcuda.jcufft.*;
 import processing.opengl.PJOGL;
+//import processing.opengl.PJOGL;
+//import processing.opengl.PShader;
 import ddf.minim.analysis.*;
 import ddf.minim.*;
 
@@ -28,30 +30,67 @@ public class mySimWindow extends myDispWindow {
 	
 	myMP3SongHandler[] songs;
 	FFT fftSeqLog;
-	float[] blankRes1 = new float[1024];
-	float[] blankRes2 = new float[1024];
-	//AudioPlayer[] songs;
-	//FFT[] fftMP3Log;
+	public final int fftMinBandwidth = 22, fftBandsPerOctave = 24;
+	public final int songBufSize = 1024;
+	float[] blankRes1 = new float[songBufSize];
+	float[] blankRes2 = new float[songBufSize];
+	//per zone avg frequencies - avg pwr across all frequencies within each 1/numZones fraction of spectrum
+	//float[] blankBands = new float[numZones];
+	
 	String[] songTitles = new String[]{"sati.mp3","PurpleHaze.mp3","karelia.mp3","choir.mp3"};
 	String[] songList = new String[]{"Sati","PurpleHaze","Karelia","Choir"};
+	
+	public int songIDX;
+	AudioOutput notesIn;					//notes currently playing in system - just get output from current myDispWindow
 	
 	//current index of windowing function, from ui
 	int curWindowIDX = 0;
 	WindowFunction[] windowList = new WindowFunction[]{FFT.NONE, FFT.BARTLETT, FFT.BARTLETTHANN, FFT.BLACKMAN, FFT.COSINE, FFT.GAUSS, FFT.HAMMING, FFT.HANN, FFT.LANCZOS, FFT.TRIANGULAR};
 	String[] windowNames = new String[]{"NONE","BARTLETT","BARTLETTHANN","BLACKMAN","COSINE","GAUSS","HAMMING","HANN","LANCZOS","TRIANGULAR"};
 
-	public final int fftMinBandwidth = 22, 
-			fftBandsPerOctave = 24;
-
-	int[] perSongBuildKFuncs = new int[] {myOcean.bldFreqIDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX};
-	
-	public int songIDX;
-	AudioOutput notesIn;					//notes currently playing in system - just get output from current myDispWindow
-	
-	public int songBufSize = 1024;
-	
+	int[] perSongBuildKFuncs = new int[] {myOcean.bldFreqIDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX};	
 	
 	public myOcean fftOcean;
+	
+	//shader code as string
+	public String vertexShaderSource ="#version 130\n" + 
+			"varying vec3 eyeSpacePos;\n" +
+			"varying vec3 worldSpaceNormal;\n" +
+			"varying vec3 eyeSpaceNormal;\n" +
+			"uniform float heightScale; // = 0.5;\n" +
+			"uniform float chopiness;   // = 1.0;\n" +
+			"uniform vec2  size;        // = vec2(256.0, 256.0);\n" +
+			"void main(){\n" +
+			"    float height     = gl_MultiTexCoord0.x;\n" +
+			"    vec2  slope      = gl_MultiTexCoord1.xy;\n" +
+			"	vec3 normal      = normalize(cross( vec3(0.0, slope.y*heightScale, 2.0 / size.x), vec3(2.0 / size.y, slope.x*heightScale, 0.0)));\n" +
+			"    worldSpaceNormal = normal;\n" +
+			"    vec4 pos         = vec4(gl_Vertex.x, height * heightScale, gl_Vertex.z, 1.0);\n" +
+			"    gl_Position      = gl_ModelViewProjectionMatrix * pos;\n" +
+			"eyeSpacePos      = (gl_ModelViewMatrix * pos).xyz;\n" +
+			"eyeSpaceNormal   = (gl_NormalMatrix * normal).xyz;\n" +
+			"}\n";
+
+	public String fragmentShaderSource = "#version 130\n" + 
+			"varying vec3 eyeSpacePos;\n" +
+			"varying vec3 worldSpaceNormal;\n" +
+			"varying vec3 eyeSpaceNormal;\n" +
+			"uniform vec4 deepColor;\n" +
+			"uniform vec4 shallowColor;\n" +
+			"uniform vec4 skyColor;\n" +
+			"uniform vec3 lightDir;\n" +
+			"void main(){\n"  +
+			"    vec3 eyeVector              = normalize(eyeSpacePos);\n" +
+			"    vec3 eyeSpaceNormalVector   = normalize(eyeSpaceNormal);\n" +
+			"    vec3 worldSpaceNormalVector = normalize(worldSpaceNormal);\n" +
+			"    float facing    = max(0.0, dot(eyeSpaceNormalVector, -eyeVector));\n" +
+			"    float fresnel   = pow(1.0 - facing, 5.0); // Fresnel approximation\n" +
+			"    float diffuse   = max(0.0, dot(worldSpaceNormalVector, lightDir));  \n" +
+			"    vec4 waterColor = mix(shallowColor, deepColor, facing);\n" +
+			"    gl_FragColor = waterColor*diffuse + skyColor*fresnel;\n" +
+			"}\n";
+		
+	
 	//public boolean[] privFlags;
 	public static final int 
 			oceanMadeIDX 			= 0,
@@ -217,6 +256,9 @@ public class mySimWindow extends myDispWindow {
 		final GLCapabilities capabilities = new GLCapabilities(GLProfile.get(GLProfile.GL2));
 		final mySimWindow thisWin = this;
 		SwingUtilities.invokeLater(new Runnable() {	public void run() {fftOcean = new myOcean(pa, thisWin, capabilities);}});//launch in another thread	
+		//test
+		//PShader myShader = new PShader(pa, new String[] {vertexShaderSource}, new String[] {fragmentShaderSource});
+
 		setPrivFlags(oceanMadeIDX, true);
 		setPrivFlags(playVisIDX, true);
 	}
@@ -258,7 +300,8 @@ public class mySimWindow extends myDispWindow {
 	public void setOceanAudio(){
 		songs[songIDX].fftFwdOnAudio();
 		float[][] res = songs[songIDX].fftSpectrumFromAudio();
-//		float[] bandRes = songs[songIDX].fftFwdBandsFromAudio();
+		float[] bandRes = songs[songIDX].fftFwdBandsFromAudio();
+		//pa.outStr2Scr("size of band res : " + bandRes.length);
 		setSongTransInfo();
 
 		fftOcean.isNoteData = 0;
@@ -331,10 +374,9 @@ public class mySimWindow extends myDispWindow {
 		}
 		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
-	//setup UI object for 
+	//setup UI object for song slider
 	private void setupGUI_XtraObjs() {
 		double stClkY = uiClkCoords[3], sizeClkY = 3*yOff;
-		//(SeqVisFFTOcean _p, myDispWindow _win, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off)
 		guiObjs[songTransIDX] = new myGUIBar(pa, this, songTransIDX, "MP3 Transport for ", 
 				new myVector(0, stClkY,0), new myVector(uiClkCoords[2], stClkY+sizeClkY,0),
 				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, true}, new double[]{xOff,yOff});	
@@ -521,44 +563,44 @@ class myOcean implements GLEventListener{
 	public JFrame frame;
 	public Animator animator;
 	public GL2 gl;	
-	
-	//shader code as string
-	public String vertexShaderSource ="#version 130\n" + 
-			"varying vec3 eyeSpacePos;\n" +
-			"varying vec3 worldSpaceNormal;\n" +
-			"varying vec3 eyeSpaceNormal;\n" +
-			"uniform float heightScale; // = 0.5;\n" +
-			"uniform float chopiness;   // = 1.0;\n" +
-			"uniform vec2  size;        // = vec2(256.0, 256.0);\n" +
-			"void main(){\n" +
-			"    float height     = gl_MultiTexCoord0.x;\n" +
-			"    vec2  slope      = gl_MultiTexCoord1.xy;\n" +
-			"	vec3 normal      = normalize(cross( vec3(0.0, slope.y*heightScale, 2.0 / size.x), vec3(2.0 / size.y, slope.x*heightScale, 0.0)));\n" +
-			"    worldSpaceNormal = normal;\n" +
-			"    vec4 pos         = vec4(gl_Vertex.x, height * heightScale, gl_Vertex.z, 1.0);\n" +
-			"    gl_Position      = gl_ModelViewProjectionMatrix * pos;\n" +
-			"eyeSpacePos      = (gl_ModelViewMatrix * pos).xyz;\n" +
-			"eyeSpaceNormal   = (gl_NormalMatrix * normal).xyz;\n" +
-			"}\n";
 
-	public String fragmentShaderSource = "#version 130\n" + 
-			"varying vec3 eyeSpacePos;\n" +
-			"varying vec3 worldSpaceNormal;\n" +
-			"varying vec3 eyeSpaceNormal;\n" +
-			"uniform vec4 deepColor;\n" +
-			"uniform vec4 shallowColor;\n" +
-			"uniform vec4 skyColor;\n" +
-			"uniform vec3 lightDir;\n" +
-			"void main(){\n"  +
-			"    vec3 eyeVector              = normalize(eyeSpacePos);\n" +
-			"    vec3 eyeSpaceNormalVector   = normalize(eyeSpaceNormal);\n" +
-			"    vec3 worldSpaceNormalVector = normalize(worldSpaceNormal);\n" +
-			"    float facing    = max(0.0, dot(eyeSpaceNormalVector, -eyeVector));\n" +
-			"    float fresnel   = pow(1.0 - facing, 5.0); // Fresnel approximation\n" +
-			"    float diffuse   = max(0.0, dot(worldSpaceNormalVector, lightDir));  \n" +
-			"    vec4 waterColor = mix(shallowColor, deepColor, facing);\n" +
-			"    gl_FragColor = waterColor*diffuse + skyColor*fresnel;\n" +
-			"}\n";
+//	//shader code as string
+//	public String vertexShaderSource ="#version 130\n" + 
+//			"varying vec3 eyeSpacePos;\n" +
+//			"varying vec3 worldSpaceNormal;\n" +
+//			"varying vec3 eyeSpaceNormal;\n" +
+//			"uniform float heightScale; // = 0.5;\n" +
+//			"uniform float chopiness;   // = 1.0;\n" +
+//			"uniform vec2  size;        // = vec2(256.0, 256.0);\n" +
+//			"void main(){\n" +
+//			"    float height     = gl_MultiTexCoord0.x;\n" +
+//			"    vec2  slope      = gl_MultiTexCoord1.xy;\n" +
+//			"	vec3 normal      = normalize(cross( vec3(0.0, slope.y*heightScale, 2.0 / size.x), vec3(2.0 / size.y, slope.x*heightScale, 0.0)));\n" +
+//			"    worldSpaceNormal = normal;\n" +
+//			"    vec4 pos         = vec4(gl_Vertex.x, height * heightScale, gl_Vertex.z, 1.0);\n" +
+//			"    gl_Position      = gl_ModelViewProjectionMatrix * pos;\n" +
+//			"eyeSpacePos      = (gl_ModelViewMatrix * pos).xyz;\n" +
+//			"eyeSpaceNormal   = (gl_NormalMatrix * normal).xyz;\n" +
+//			"}\n";
+//
+//	public String fragmentShaderSource = "#version 130\n" + 
+//			"varying vec3 eyeSpacePos;\n" +
+//			"varying vec3 worldSpaceNormal;\n" +
+//			"varying vec3 eyeSpaceNormal;\n" +
+//			"uniform vec4 deepColor;\n" +
+//			"uniform vec4 shallowColor;\n" +
+//			"uniform vec4 skyColor;\n" +
+//			"uniform vec3 lightDir;\n" +
+//			"void main(){\n"  +
+//			"    vec3 eyeVector              = normalize(eyeSpacePos);\n" +
+//			"    vec3 eyeSpaceNormalVector   = normalize(eyeSpaceNormal);\n" +
+//			"    vec3 worldSpaceNormalVector = normalize(worldSpaceNormal);\n" +
+//			"    float facing    = max(0.0, dot(eyeSpaceNormalVector, -eyeVector));\n" +
+//			"    float fresnel   = pow(1.0 - facing, 5.0); // Fresnel approximation\n" +
+//			"    float diffuse   = max(0.0, dot(worldSpaceNormalVector, lightDir));  \n" +
+//			"    vec4 waterColor = mix(shallowColor, deepColor, facing);\n" +
+//			"    gl_FragColor = waterColor*diffuse + skyColor*fresnel;\n" +
+//			"}\n";
 	
 	public int meshSize = 1024, 
 			meshSzSq = meshSize * meshSize, 
@@ -626,9 +668,10 @@ class myOcean implements GLEventListener{
 		pa=_p;
 		win = _win;
 //		PJOGL pgl = (PJOGL) pa.beginPGL();  
-//		GL2ES2 tmpGL = pgl.gl.getGL2ES2();
+//		GL2 tmpGL = pgl.gl.getGL2();
 //		pa.endPGL();
 		
+	
 		GLCanvas glComponent = new GLCanvas(capabilities);
 		glComponent.setFocusable(true);
 		glComponent.addGLEventListener(this);
@@ -786,7 +829,7 @@ class myOcean implements GLEventListener{
 		cudaFlags[freqValsSet] = false;	//legit values have been set
 		cudaFlags[newSimVals] = false;
 	}//initJCuda
-
+	//initialize vertex buffer object
 	private void initVBO(GL2 gl) {		
 		int[] buffer = new int[1];
 		int size = meshSzSq*Sizeof.FLOAT;
@@ -887,7 +930,6 @@ class myOcean implements GLEventListener{
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		float delta = System.nanoTime();
-		long time = System.nanoTime();
 		if(cudaFlags[newSimVals]){updateSimVals();}
 		gl = drawable.getGL().getGL2();
 
@@ -1091,8 +1133,8 @@ class myOcean implements GLEventListener{
 	
 	private void initShaders(GL2 gl) {
 		shaderProgramID = gl.glCreateProgram();
-		attachShader(gl, GL2.GL_VERTEX_SHADER, vertexShaderSource);
-		attachShader(gl, GL2.GL_FRAGMENT_SHADER, fragmentShaderSource);
+		attachShader(gl, GL2.GL_VERTEX_SHADER, win.vertexShaderSource);
+		attachShader(gl, GL2.GL_FRAGMENT_SHADER, win.fragmentShaderSource);
 		gl.glLinkProgram(shaderProgramID);
 		
 		int[] buffer = new int[1];
@@ -1135,7 +1177,7 @@ class myOcean implements GLEventListener{
 	
 	//initial setup of ocean
 	public float[] generate_h0(float[] h0) {
-		float kMult = (2*pa.PI / patchSize);
+		float kMult = (pa.TWO_PI / patchSize);
 		int nMshHalf = -meshSize/2; 
 		float kx,ky,P,Er,Ei,h0_re,h0_im, L = (windSpeed*windSpeed/g), lsq = (L*L);
 		//Min kx : -42.89321Max kx : 42.89321Min ky : -42.89321Max ky : 42.89321
