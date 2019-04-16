@@ -563,44 +563,6 @@ class myOcean implements GLEventListener{
 	public JFrame frame;
 	public Animator animator;
 	public GL2 gl;	
-
-//	//shader code as string
-//	public String vertexShaderSource ="#version 130\n" + 
-//			"varying vec3 eyeSpacePos;\n" +
-//			"varying vec3 worldSpaceNormal;\n" +
-//			"varying vec3 eyeSpaceNormal;\n" +
-//			"uniform float heightScale; // = 0.5;\n" +
-//			"uniform float chopiness;   // = 1.0;\n" +
-//			"uniform vec2  size;        // = vec2(256.0, 256.0);\n" +
-//			"void main(){\n" +
-//			"    float height     = gl_MultiTexCoord0.x;\n" +
-//			"    vec2  slope      = gl_MultiTexCoord1.xy;\n" +
-//			"	vec3 normal      = normalize(cross( vec3(0.0, slope.y*heightScale, 2.0 / size.x), vec3(2.0 / size.y, slope.x*heightScale, 0.0)));\n" +
-//			"    worldSpaceNormal = normal;\n" +
-//			"    vec4 pos         = vec4(gl_Vertex.x, height * heightScale, gl_Vertex.z, 1.0);\n" +
-//			"    gl_Position      = gl_ModelViewProjectionMatrix * pos;\n" +
-//			"eyeSpacePos      = (gl_ModelViewMatrix * pos).xyz;\n" +
-//			"eyeSpaceNormal   = (gl_NormalMatrix * normal).xyz;\n" +
-//			"}\n";
-//
-//	public String fragmentShaderSource = "#version 130\n" + 
-//			"varying vec3 eyeSpacePos;\n" +
-//			"varying vec3 worldSpaceNormal;\n" +
-//			"varying vec3 eyeSpaceNormal;\n" +
-//			"uniform vec4 deepColor;\n" +
-//			"uniform vec4 shallowColor;\n" +
-//			"uniform vec4 skyColor;\n" +
-//			"uniform vec3 lightDir;\n" +
-//			"void main(){\n"  +
-//			"    vec3 eyeVector              = normalize(eyeSpacePos);\n" +
-//			"    vec3 eyeSpaceNormalVector   = normalize(eyeSpaceNormal);\n" +
-//			"    vec3 worldSpaceNormalVector = normalize(worldSpaceNormal);\n" +
-//			"    float facing    = max(0.0, dot(eyeSpaceNormalVector, -eyeVector));\n" +
-//			"    float fresnel   = pow(1.0 - facing, 5.0); // Fresnel approximation\n" +
-//			"    float diffuse   = max(0.0, dot(worldSpaceNormalVector, lightDir));  \n" +
-//			"    vec4 waterColor = mix(shallowColor, deepColor, facing);\n" +
-//			"    gl_FragColor = waterColor*diffuse + skyColor*fresnel;\n" +
-//			"}\n";
 	
 	public int meshSize = 1024, 
 			meshSzSq = meshSize * meshSize, 
@@ -636,6 +598,8 @@ class myOcean implements GLEventListener{
 	//OpenGL & Cuda variables
 	public int posVertexBuffer, heightVertexBuffer, slopeVertexBuffer, indexBuffer;	
 	public CUgraphicsResource cuda_heightVB_resource, cuda_slopeVB_resource;
+	
+	private String oceanKernel = "oceanMusic";//extensions added in loading function
 	
 	// FFT data
 	public cufftHandle fftPlan;
@@ -779,14 +743,16 @@ class myOcean implements GLEventListener{
 		device = new CUdevice();
 		cuDeviceGet(device, 0);
 		glContext = new CUcontext();
-		cuGLCtxCreate(glContext, CUctx_flags.CU_CTX_BLOCKING_SYNC, device);
+		
+		//cuGLCtxCreate(glContext, CUctx_flags.CU_CTX_BLOCKING_SYNC, device);	//deprecated - is this bad?
+		cuCtxCreate(glContext, CUctx_flags.CU_CTX_BLOCKING_SYNC, device);
 		//compile kernel file
-		String ptxFileName = "ocean.ptx";
+		String ptxFileName = oceanKernel+".ptx";
 		File f = new File(ptxFileName);
 		if(!(f.exists() && !f.isDirectory()) || (cudaFlags[forceRecomp])) { //try to compile if doesn't exist			
-			try {	compilePtxFile("ocean.cu",ptxFileName);} 
+			try {	compilePtxFile(oceanKernel+".cu",ptxFileName);} 
 			catch (IOException e) {
-				System.err.println("Could not create PTX file");
+				System.err.println("Could not create PTX file : "+ e.getMessage());
 				throw new RuntimeException("Could not create PTX file", e);
 			}
 		} else {
@@ -1232,6 +1198,7 @@ class myOcean implements GLEventListener{
 	}
 	//compiles Ptx file from file in passed file name -> cuFileName needs to have format "xxxxx.cu"
 	public void compilePtxFile(String krnFileName, String ptxFileName) throws IOException {
+	//NOTE : using new version of CUDA (as of 8/7/18) w/vs2015 compiles this incorrectly/makes it hang. TODO need to investigate this
 		File cuFile = new File(krnFileName);
 		if (!cuFile.exists()) {
 			throw new IOException("Kernel file not found: " + krnFileName);
