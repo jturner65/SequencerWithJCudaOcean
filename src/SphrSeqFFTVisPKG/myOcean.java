@@ -1,21 +1,7 @@
 package SphrSeqFFTVisPKG;
 
 import static jcuda.driver.CUgraphicsMapResourceFlags.CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD;
-import static jcuda.driver.JCudaDriver.cuCtxCreate;
-import static jcuda.driver.JCudaDriver.cuCtxSynchronize;
-import static jcuda.driver.JCudaDriver.cuDeviceGet;
-import static jcuda.driver.JCudaDriver.cuGraphicsGLRegisterBuffer;
-import static jcuda.driver.JCudaDriver.cuGraphicsMapResources;
-import static jcuda.driver.JCudaDriver.cuGraphicsResourceGetMappedPointer;
-import static jcuda.driver.JCudaDriver.cuGraphicsUnmapResources;
-import static jcuda.driver.JCudaDriver.cuInit;
-import static jcuda.driver.JCudaDriver.cuLaunchKernel;
-import static jcuda.driver.JCudaDriver.cuMemAlloc;
-import static jcuda.driver.JCudaDriver.cuMemFree;
-import static jcuda.driver.JCudaDriver.cuMemcpyHtoD;
-import static jcuda.driver.JCudaDriver.cuModuleGetFunction;
-import static jcuda.driver.JCudaDriver.cuModuleLoad;
-import static jcuda.driver.JCudaDriver.setExceptionsEnabled;
+import static jcuda.driver.JCudaDriver.*;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -51,16 +37,8 @@ import com.jogamp.opengl.util.Animator;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;
-import jcuda.driver.CUcontext;
-import jcuda.driver.CUctx_flags;
-import jcuda.driver.CUdevice;
-import jcuda.driver.CUdeviceptr;
-import jcuda.driver.CUfunction;
-import jcuda.driver.CUgraphicsResource;
-import jcuda.driver.CUmodule;
-import jcuda.jcufft.JCufft;
-import jcuda.jcufft.cufftHandle;
-import jcuda.jcufft.cufftType;
+import jcuda.driver.*;
+import jcuda.jcufft.*;
 import processing.core.PConstants;
 
 //class implementing external window for fft ocean surface, based on cuda example.
