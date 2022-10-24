@@ -108,5 +108,6 @@
 	<classpathentry kind="lib" path="libs/processing/jogl-all-natives-macosx-universal.jar"/>
 	<classpathentry kind="lib" path="libs/processing/jogl-all-natives-windows-amd64.jar"/>
 	<classpathentry kind="lib" path="libs/processing/jogl-all-natives-windows-i586.jar"/>
+	<classpathentry kind="lib" path="libs/base_JavaProjTools_Math.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

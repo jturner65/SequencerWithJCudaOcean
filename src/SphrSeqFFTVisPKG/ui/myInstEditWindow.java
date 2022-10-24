@@ -1,6 +1,17 @@
-package SphrSeqFFTVisPKG;
+package SphrSeqFFTVisPKG.ui;
 import java.util.*;
 
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.myDispWindow;
+import SphrSeqFFTVisPKG.myDrawnNoteTraj;
+import SphrSeqFFTVisPKG.myGUIObj;
+import SphrSeqFFTVisPKG.myKeySig;
+import SphrSeqFFTVisPKG.note.NoteData;
+import SphrSeqFFTVisPKG.note.myNote;
+import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.note.enums.nValType;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 

@@ -2,6 +2,8 @@ package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 
+import base_Math_Objects.vectorObjs.doubles.myVector;
+
 //object on menu that can be modified via mouse input
 public class myGUIObj {
 	public int ID;

@@ -1,87 +1,34 @@
 package SphrSeqFFTVisPKG;
 
 import java.awt.event.KeyEvent;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.*;
 
+import SphrSeqFFTVisPKG.clef.clefVal;
+import SphrSeqFFTVisPKG.clef.myClef;
+import SphrSeqFFTVisPKG.clef.myGrandClef;
+import SphrSeqFFTVisPKG.clef.base.myClefBase;
+import SphrSeqFFTVisPKG.instrument.myInstrument;
+import SphrSeqFFTVisPKG.note.NoteData;
+import SphrSeqFFTVisPKG.note.myNote;
+import SphrSeqFFTVisPKG.note.enums.chordType;
+import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.ui.myInstEditWindow;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
+import processing.core.PMatrix3D;
 import processing.opengl.PGL;
+import processing.opengl.PGraphics3D;
 import processing.opengl.PGraphicsOpenGL;
 
 import ddf.minim.*;
-import ddf.minim.spi.AudioOut;
 import ddf.minim.ugens.*;
-
-//enums used for note and key data
-//note and key value
-enum nValType {
-	C(0),Cs(1),D(2),Ds(3),E(4),F(5),Fs(6),G(7),Gs(8),A(9),As(10),B(11),rest(12); 
-	private int value; 
-	private static Map<Integer, nValType> map = new HashMap<Integer, nValType>(); 
-    static { for (nValType enumV : nValType.values()) { map.put(enumV.value, enumV);}}
-	private nValType(int _val){value = _val;} 
-	public int getVal(){return value;}
-	public static nValType getVal(int idx){return map.get(idx);}
-	public static int getNumVals(){return map.size();}						//get # of values in enum
-};	
-
-//chord type
-enum chordType {
-	Major(0),			//1,3,5
-	Minor(1),			//1,b3,5
-	Augmented(2),		//1,3,#5
-	MajFlt5(3),			//1,3,b5
-	Diminished(4),		//1,b3,b5
-	Sus2(5),			//1,2,5
-	Sus4(6),			//1,4,5
-	Maj6(7),			//1,3,5,6
-	Min6(8),			//1,b3,5,6
-	Maj7(9),			//1,3,5,7
-	Dom7(10),			//1,3,5,b7
-	Min7(11),			//1,b3,5,b7
-	Dim7(12),			//1,b3,b5,bb7==6
-	None(13);			//not a predifined chord type
-	private int value; 
-	private static Map<Integer, chordType> map = new HashMap<Integer, chordType>(); 
-	static { for (chordType enumV : chordType.values()) { map.put(enumV.value, enumV);}}
-	private chordType(int _val){value = _val;} 
-	public int getVal(){return value;}
-	public static chordType getVal(int idx){return map.get(idx);}
-	public static int getNumVals(){return map.size();}						//get # of values in enum
-};	
-//note duration types - dotted get mult by 1.5, tuples, get multiplied by (2/tuple size) -> triplets are 2/3 duration (3 in the space of 2)
-enum durType {
-	Whole(1024),Half(512),Quarter(256),Eighth(128),Sixteenth(64),Thirtisecond(32); 
-	private int value; 
-	private static Map<Integer, durType> map = new HashMap<Integer, durType>(); 
-    static { for (durType enumV : durType.values()) { map.put(enumV.value, enumV);}}
-	private durType(int _val){value = _val;} 
-	public int getVal(){return value;}
-	public static durType getVal(int idx){return map.get(idx);}
-	public static int getNumVals(){return map.size();}						//get # of values in enum
-};	
-//key signatures
-enum keySigVals {
-	CMaj(0),GMaj(1),DMaj(2),Amaj(3),EMaj(4),BMaj(5),FsMaj(6),CsMaj(7),GsMaj(8),DsMaj(9),AsMaj(10),Fmaj(11); 
-	private int value; 
-	private static Map<Integer, keySigVals> map = new HashMap<Integer, keySigVals>(); 
-    static { for (keySigVals enumV : keySigVals.values()) { map.put(enumV.value, enumV);}}
-	private keySigVals(int _val){value = _val;} 
-	public int getVal(){return value;} 	
-	public static keySigVals getVal(int idx){return map.get(idx);}
-	public static int getNumVals(){return map.size();}						//get # of values in enum
-};	
-enum clefVal{
-	Treble(0), Bass(1), Alto(2), Tenor(3), Piano(4), Drum(5); 
-	private int value; 
-	private static Map<Integer, clefVal> map = new HashMap<Integer, clefVal>(); 
-    static { for (clefVal enumV : clefVal.values()) { map.put(enumV.value, enumV);}}
-	private clefVal(int _val){value = _val;} 
-	public int getVal(){return value;} 	
-	public static clefVal getVal(int idx){return map.get(idx);}
-	public static int getNumVals(){return map.size();}						//get # of values in enum
-};	
 
 /**
  * Project 5 Music visualization - full-fledged sequencer integrated with fft fluid visualization
@@ -140,7 +87,7 @@ enum clefVal{
 	public NoteData C4;
 	public myClefBase[] clefs;
 	//list of instruments
-	public myInstr[] InstrList;
+	public myInstrument[] InstrList;
 //		//idx's of instruments available
 	public static final int 
 		Guit1InstIDX 		= 0,
@@ -236,19 +183,19 @@ enum clefVal{
 				new myClef(this, "Drum", clefVal.Drum, new NoteData(this, nValType.B, 4),clefImgs[5], new float[]{0,0,40,40},0)				
 		};
 		clefs[4] = new myGrandClef(this, "Piano", clefVal.Piano, new NoteData(this, nValType.B, 4),clefImgs[4], new float[]{0,0,40,40},0); 
-		InstrList = new myInstr[]{//TODO set harmonic series
-				new myInstr(this, "Guitar1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SAW, false),
-				new myInstr(this, "Guitar2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
-				new myInstr(this, "Bass", clefs[clefVal.Bass.getVal()], hSrsMult, Waves.TRIANGLE, false),
-				new myInstr(this, "Vox1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SINE, false),
-				new myInstr(this, "Vox2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SINE, false),
-				new myInstr(this, "Synth1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
-				new myInstr(this, "Synth2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
-				new myInstr(this, "Synth3", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
-				new myInstr(this, "Synth4", clefs[clefVal.Alto.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
-				new myInstr(this, "Synth5", clefs[clefVal.Tenor.getVal()], hSrsMult,Waves.SAW, false),
-				new myInstr(this, "Drums", clefs[clefVal.Drum.getVal()], hSrsMult,Waves.SINE, true),				//name of drum kits needs to be "Drums"
-				new myInstr(this, "Drums2", clefs[clefVal.Drum.getVal()], hSrsMult,Waves.SINE, true)				//name of drum kits needs to be "Drums"
+		InstrList = new myInstrument[]{//TODO set harmonic series
+				new myInstrument(this, "Guitar1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SAW, false),
+				new myInstrument(this, "Guitar2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
+				new myInstrument(this, "Bass", clefs[clefVal.Bass.getVal()], hSrsMult, Waves.TRIANGLE, false),
+				new myInstrument(this, "Vox1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SINE, false),
+				new myInstrument(this, "Vox2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SINE, false),
+				new myInstrument(this, "Synth1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
+				new myInstrument(this, "Synth2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
+				new myInstrument(this, "Synth3", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
+				new myInstrument(this, "Synth4", clefs[clefVal.Alto.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
+				new myInstrument(this, "Synth5", clefs[clefVal.Tenor.getVal()], hSrsMult,Waves.SAW, false),
+				new myInstrument(this, "Drums", clefs[clefVal.Drum.getVal()], hSrsMult,Waves.SINE, true),				//name of drum kits needs to be "Drums"
+				new myInstrument(this, "Drums2", clefs[clefVal.Drum.getVal()], hSrsMult,Waves.SINE, true)				//name of drum kits needs to be "Drums"
 		};
 	
 		jtFace = loadImage("data/picJT.jpg"); 
@@ -320,7 +267,7 @@ enum clefVal{
 			translateSceneCtr();				//move to center of 3d volume to start drawing	
 			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
 			popStyle();popMatrix();
-			drawAxes(100,3, new myPoint(-c.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
+			drawAxes(100,3, new myPoint(-canvas.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
 	//	}
 		if(canShow3DBox[this.curFocusWin]) {drawBoxBnds();}
 	}
@@ -336,8 +283,8 @@ enum clefVal{
 //		}		
 
 	public void buildCanvas(){
-		c.buildCanvas();
-		c.drawMseEdge();
+		canvas.buildCanvas();
+		canvas.drawMseEdge();
 	}
 	
 	//if should show problem # i
@@ -392,9 +339,9 @@ enum clefVal{
 			clefImgs[i] = loadImage(imgName);
 		}
 		clefImgs[0].loadPixels();
-		int[] tmp = clefImgs[0].pixels;
-		//set images, for grand staff set images as treble + bass clef
-		//for(int i =0; i<clefs.length;++i){if(i == clefVal.Piano.getVal()){	clefs[i].setImage(new PImage[]{clefImgs[0],clefImgs[1]});	}	else {clefs[i].setImage(new PImage[]{clefImgs[i]});}}
+//		int[] tmp = clefImgs[0].pixels;
+//		//set images, for grand staff set images as treble + bass clef
+//		for(int i =0; i<clefs.length;++i){if(i == clefVal.Piano.getVal()){	clefs[i].setImage(new PImage[]{clefImgs[0],clefImgs[1]});	}	else {clefs[i].setImage(new PImage[]{clefImgs[i]});}}
 		
 		sphereImgs = new PImage[numSphereImgs];
 		for(int i =0; i< numSphereImgs; ++i){
@@ -520,7 +467,7 @@ enum clefVal{
 		return ((flags[altKeyPressed] ? .1 : 1.0) * (flags[cntlKeyPressed] ? 10.0 : 1.0));			
 	}
 	
-	public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){return;}}}
+	public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY,canvas.getMseLoc(sceneCtrVals[sceneIDX]))){return;}}}
 	public void mousePressed() {
 		//verify left button if(mouseButton == LEFT)
 		setFlags(mouseClicked, true);
@@ -529,7 +476,7 @@ enum clefVal{
 		//for(int i =0; i<numDispWins; ++i){	if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){	return;}}
 	}// mousepressed	
 
-	private void mouseClicked(int mseBtn){ for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),mseBtn)){return;}}}		
+	private void mouseClicked(int mseBtn){ for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,canvas.getMseLoc(sceneCtrVals[sceneIDX]),mseBtn)){return;}}}		
 	
 //	private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),0)){return;}}}		
 //	private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),1)){return;}}}		
@@ -546,14 +493,14 @@ enum clefVal{
 	}//mouseDragged()
 	
 	private void mouseLeftDragged(){
-		myPoint msePt = c.getMseLoc(sceneCtrVals[sceneIDX]);
-		myVector mseDiff = new myVector(c.getOldMseLoc(),c.getMseLoc());
+		myPoint msePt = canvas.getMseLoc(sceneCtrVals[sceneIDX]);
+		myVector mseDiff = new myVector(canvas.getOldMseLoc(),canvas.getMseLoc());
 		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,msePt,mseDiff,0)) {return;}}		
 	}
 	
 	private void mouseRightDragged(){
-		myPoint msePt = c.getMseLoc(sceneCtrVals[sceneIDX]);
-		myVector mseDiff = new myVector(c.getOldMseLoc(),c.getMseLoc());
+		myPoint msePt = canvas.getMseLoc(sceneCtrVals[sceneIDX]);
+		myVector mseDiff = new myVector(canvas.getOldMseLoc(),canvas.getMseLoc());
 		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,msePt,mseDiff,1)) {return;}}		
 	}
 	
@@ -754,7 +701,7 @@ enum clefVal{
 		//outStr2Scr("Build score with default instrument list");
 		initNewScore("TempSong", InstrList, winRectDimOpen[dispPianoRollIDX][0] + winRectDimOpen[dispPianoRollIDX][2],winRectDimOpen[dispPianoRollIDX][1]+winRectDimOpen[dispPianoRollIDX][3]-4*myDispWindow.yOff);
 	}
-	public void initNewScore(String scrName, myInstr[] _instrs, float scoreWidth, float scoreHeight){
+	public void initNewScore(String scrName, myInstrument[] _instrs, float scoreWidth, float scoreHeight){
 		float [] scoreRect = new float[]{0, myDispWindow.topOffY, scoreWidth, scoreHeight};
 		score = new myScore(this,dispWinFrames[dispPianoRollIDX],"TempSong",scoreRect);	
 		//debug stuff - buildScore only
@@ -967,7 +914,7 @@ enum clefVal{
 	public final float maxAnimCntr = PI*1000.0f, baseAnimSpd = 1.0f;
 	
 
-	my3DCanvas c;												//3d interaction stuff and mouse tracking
+	my3DCanvas canvas;												//3d interaction stuff and mouse tracking
 	
 	public float[] camVals;		
 	public String dateStr, timeStr;								//used to build directory and file names for screencaps
@@ -1010,7 +957,7 @@ enum clefVal{
 		menuWidth = width * menuWidthMult;						//grid2D_X of menu region	
 		hideWinWidth = width * hideWinWidthMult;				//dims for hidden windows
 		hidWinHeight = height * hideWinHeightMult;
-		c = new my3DCanvas(this);			
+		canvas = new my3DCanvas(this);			
 		winRectDimOpen = new float[numDispWins][];
 		winRectDimClose = new float[numDispWins][];
 		winRectDimOpen[0] =  new float[]{0,0, menuWidth, height};
@@ -1225,7 +1172,7 @@ enum clefVal{
 		if(flags[debugMode]){
 			pushMatrix();pushStyle();			
 			reInitInfoStr();
-			addInfoStr(0,"mse loc on screen : " + new myPoint(mouseX, mouseY,0) + " mse loc in world :"+c.mseLoc +"  Eye loc in world :"+ c.eyeInWorld); 
+			addInfoStr(0,"mse loc on screen : " + new myPoint(mouseX, mouseY,0) + " mse loc in world :"+canvas.mseLoc +"  Eye loc in world :"+ canvas.eyeInWorld); 
 			String[] res = ((mySideBarMenu)dispWinFrames[dispMenuIDX]).getDebugData();		//get debug data for each UI object
 			//for(int s=0;s<res.length;++s) {	addInfoStr(res[s]);}				//add info to string to be displayed for debug
 			int numToPrint = min(res.length,80);
@@ -1269,7 +1216,60 @@ enum clefVal{
 			}
 		}
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// canvas functions
+	
+	public myVector getUScrUpInWorld(){		return canvas.getUScrUpInWorld();}	
+	public myVector getUScrRightInWorld(){		return canvas.getUScrRightInWorld();}
+	
+	public myPoint getMseLoc(){			return canvas.getMseLoc();}
+	public myPoint getEyeLoc(){			return canvas.getEyeLoc();	}
+	public myPoint getOldMseLoc(){		return canvas.getOldMseLoc();	}	
+	public myVector getMseDragVec(){	return canvas.getMseDragVec();}
 
+	
+	/**
+	 * get depth at specified screen dim location
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public float getDepth(int x, int y) {
+		PGL pgl = beginPGL();
+		FloatBuffer depthBuffer = ByteBuffer.allocateDirect(1 << 2).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		int newY = height - y;		pgl.readPixels(x, newY - 1, 1, 1, PGL.DEPTH_COMPONENT, PGL.FLOAT, depthBuffer);
+		float depthValue = depthBuffer.get(0);
+		endPGL();
+		return depthValue;
+	}
+	/**
+	 * determine world location as myPoint based on mouse click and passed depth
+	 * @param x
+	 * @param y
+	 * @param depth
+	 * @return
+	 */
+	public myPoint getWorldLoc(int x, int y, float depth){
+		int newY = height - y;
+		float depthValue = depth;
+		if(depth == -1){depthValue = getDepth( x,  y); }	
+		//get 3d matrices
+		PGraphics3D p3d = (PGraphics3D)g;
+		PMatrix3D proj = p3d.projection.get(), modelView = p3d.modelview.get(), modelViewProjInv = proj; modelViewProjInv.apply( modelView ); modelViewProjInv.invert();	  
+		float[] viewport = {0, 0, width, height},
+				normalized = new float[] {
+						((x - viewport[0]) / viewport[2]) * 2.0f - 1.0f, 
+						((newY - viewport[1]) / viewport[3]) * 2.0f - 1.0f, 
+						depthValue * 2.0f - 1.0f, 
+						1.0f};	  
+		float[] unprojected = new float[4];	  
+		modelViewProjInv.mult( normalized, unprojected );
+		myPoint pickLoc = new myPoint( unprojected[0]/unprojected[3], unprojected[1]/unprojected[3], unprojected[2]/unprojected[3] );
+		return pickLoc;
+	}	
+	
+	
 	public void scribeHeaderRight(String s) {scribeHeaderRight(s, 20);} // writes black on screen top, right-aligned
 	public void scribeHeaderRight(String s, float y) {fill(0); text(s,width-6*s.length(),y); noFill();} // writes black on screen top, right-aligned
 	public void displayHeader() { // Displays title and authors face on screen
@@ -1377,7 +1377,7 @@ enum clefVal{
 	public void cylinder(myPoint A, myPoint B, float r, int c1, int c2) {
 		myPoint P = A;
 		myVector V = V(A,B);
-		myVector I = c.drawSNorm;//U(Normal(V));
+		myVector I = canvas.drawSNorm;//U(Normal(V));
 		myVector J = U(N(I,V));
 		float da = TWO_PI/36;
 		beginShape(QUAD_STRIP);
@@ -1406,12 +1406,12 @@ enum clefVal{
 	void makePts(myPoint[] C) {for(int i=0; i<C.length; i++) C[i]=P();}
 
 	//draw a circle - JT
-	void circle(myPoint P, float r, myVector I, myVector J, int n) {myPoint[] pts = new myPoint[n];pts[0] = P(P,r,U(I));float a = (2*PI)/(1.0f*n);for(int i=1;i<n;++i){pts[i] = R(pts[i-1],a,J,I,P);}pushMatrix(); pushStyle();noFill(); show(pts);popStyle();popMatrix();}; // render sphere of radius r and center P
+	public void circle(myPoint P, float r, myVector I, myVector J, int n) {myPoint[] pts = new myPoint[n];pts[0] = P(P,r,U(I));float a = (2*PI)/(1.0f*n);for(int i=1;i<n;++i){pts[i] = R(pts[i-1],a,J,I,P);}pushMatrix(); pushStyle();noFill(); show(pts);popStyle();popMatrix();}; // render sphere of radius r and center P
 	
-	void circle(myPoint p, float r){ellipse((float)p.x, (float)p.y, r, r);}
+	public void circle(myPoint p, float r){ellipse((float)p.x, (float)p.y, r, r);}
 	void circle(float x, float y, float r1, float r2){ellipse(x,y, r1, r2);}
 	
-	void noteArc(float[] dims, int[] noteClr){
+	public void noteArc(float[] dims, int[] noteClr){
 		noFill();
 		setStroke(noteClr);
 		strokeWeight(1.5f*dims[3]);

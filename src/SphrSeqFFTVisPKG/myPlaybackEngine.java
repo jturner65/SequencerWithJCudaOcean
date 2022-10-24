@@ -1,5 +1,6 @@
 package SphrSeqFFTVisPKG;
 
+import SphrSeqFFTVisPKG.note.enums.durType;
 import ddf.minim.AudioPlayer;
 import ddf.minim.analysis.*;
 

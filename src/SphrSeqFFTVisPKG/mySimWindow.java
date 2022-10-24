@@ -4,6 +4,11 @@ import java.util.*;
 
 import javax.swing.*;
 
+import SphrSeqFFTVisPKG.note.myNote;
+import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.note.enums.nValType;
+import base_Math_Objects.vectorObjs.doubles.myPoint;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 //import com.jogamp.opengl.*;
 //import processing.opengl.PJOGL;
 //import processing.opengl.PShader;
@@ -445,7 +450,6 @@ public class mySimWindow extends myDispWindow {
 			case songSelIDX 	: {changeCurrentSong((int)(guiObjs[UIidx].getVal()));break;}
 			case winSelIDX		: {changeCurrentWindowfunc((int)(guiObjs[UIidx].getVal()));	break;}
 			case songTransIDX	: {
-				//System.out.println("val : " + val);
 				songs[songIDX].modPlayLoc(val);    break;}
 		default : {break;}
 		}

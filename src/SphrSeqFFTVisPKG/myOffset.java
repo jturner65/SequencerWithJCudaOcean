@@ -2,6 +2,8 @@ package SphrSeqFFTVisPKG;
 
 import java.util.ArrayList;
 
+import base_Math_Objects.vectorObjs.doubles.myPoint;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PConstants;
 
 //class to hold functionality to calculate offset "sidewalks"

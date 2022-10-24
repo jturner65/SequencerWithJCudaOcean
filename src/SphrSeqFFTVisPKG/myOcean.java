@@ -149,9 +149,11 @@ public class myOcean implements GLEventListener{
 		});
 		frame.setLayout(new BorderLayout());
 		glComponent.setPreferredSize(new Dimension(800, 800));
+		//glComponent.setLocation(null);
 		frame.add(glComponent, BorderLayout.CENTER);
 		frame.pack();
 		frame.setVisible(true);
+		frame.setAlwaysOnTop(true);
 		bringToFront();
 		glComponent.requestFocus();
 		

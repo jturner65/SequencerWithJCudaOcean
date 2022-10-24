@@ -3,6 +3,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
+import base_Math_Objects.vectorObjs.doubles.myPoint;
+import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PConstants;
 import processing.core.PMatrix3D;
 import processing.opengl.PGL;
