@@ -300,8 +300,8 @@ public class myVariStroke extends myDrawnObject {
 	public void drawMe(boolean useDrawnVels, boolean flat){
 		pa.pushMatrix();
 		pa.pushStyle();
-			pa.setColorValFill(fillClr);
-			pa.setColorValStroke(strkClr);
+			pa.setColorValFill(fillClr, 255);
+			pa.setColorValStroke(strkClr, 255);
 			pa.strokeWeight(1);
         	if(useDrawnVels){
         		int clrInt = 0;

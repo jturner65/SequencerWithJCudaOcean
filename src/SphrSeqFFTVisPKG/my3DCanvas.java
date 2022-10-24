@@ -5,6 +5,7 @@ import java.nio.FloatBuffer;
 
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_Math_Objects.vectorObjs.floats.myVectorf;
 import processing.core.PConstants;
 import processing.core.PMatrix3D;
 import processing.opengl.PGL;
@@ -111,6 +112,9 @@ public class my3DCanvas {
 //		p.outStr2Scr("eye in world : " + eyeInWorld.toStrBrf() + " | right pt " + rtInWorld.toStrBrf());
 		return p.U(pick(viewDimW/2, viewDimH/2,-.00001f),pick(viewDimW, viewDimH/2,-.00001f));
 	}
+	
+	public myVector getDrawSNorm() {return drawSNorm;}
+	public myVectorf getDrawSNorm_f() {return new myVectorf(drawSNorm);}
 	
 	public void drawCanvas(){
 		p.noLights();

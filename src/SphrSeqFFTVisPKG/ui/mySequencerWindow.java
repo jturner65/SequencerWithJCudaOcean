@@ -7,16 +7,16 @@ import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
-import SphrSeqFFTVisPKG.myTimeSig;
 import SphrSeqFFTVisPKG.myVariStroke;
-import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
+import SphrSeqFFTVisPKG.staff.myTimeSig;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import ddf.minim.AudioOutput;
@@ -602,7 +602,7 @@ public class mySequencerWindow extends myDispWindow {
 		//draw squares corresponding to trajectory
 		for(int i =0; i<pa.score.staffs.size(); ++i){//			pa.setColorValFill((i==curDrnTrajStaffIDX ? pa.gui_Red : );
 			//pa.setColorValFill((i==curTrajAraIDX ? pa.gui_Red : drawTrajBoxFillClrs[i]));
-			pa.setFill((i==curTrajAraIDX ? pa.getClr(pa.gui_Red) : drawTrajBoxFillClrs[i]));
+			pa.setFill((i==curTrajAraIDX ? pa.getClr(pa.gui_Red, 255) : drawTrajBoxFillClrs[i]));
 			pa.score.staffs.get(scoreStaffNames[i]).drawMeasPRL();
 		}
 		pa.pushMatrix();pa.pushStyle();

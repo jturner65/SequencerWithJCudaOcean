@@ -3,18 +3,20 @@ package SphrSeqFFTVisPKG;
 import java.util.*;
 import java.util.Map.Entry;
 
-import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.staff.myKeySig;
+import SphrSeqFFTVisPKG.staff.myTimeSig;
 import SphrSeqFFTVisPKG.ui.controls.myPlaybackEngine;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import ddf.minim.AudioOutput;
-import processing.core.PApplet;
 import processing.core.PConstants;
 
 //abstract class to hold base code for a menu/display window (2D for gui, etc), to handle displaying and controlling the window, and calling the implementing class for the specifics
@@ -40,7 +42,7 @@ public abstract class myDispWindow {
 	public float[] rectDim, closeBox, rectDimClosed, mseClickCrnr;	
 	public static final float gridYMult = 1.0f/67.0f, gridXMult = .5625f * gridYMult;
 	//public static final float xOff = 20 , yOff = 20, btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
-	public static final float xOff = 20 , yOff = 20.0f * (SeqVisFFTOcean.txtSz/12.0f), btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
+	public static final float xOff = 20 , yOff = 20.0f * (IRenderInterface.txtSz/12.0f), btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
 	public static final int topOffY = 40;			//offset values to render boolean menu on side of screen - offset at top before drawing
 	public static final float clkBxDim = 10;//size of interaction/close window box in pxls
 
@@ -87,7 +89,7 @@ public abstract class myDispWindow {
 	
 	
 	//edit circle quantities for visual cues when grab and smoothen
-	public static final int[] editCrcFillClrs = new int[] {SeqVisFFTOcean.gui_FaintMagenta, SeqVisFFTOcean.gui_FaintGreen};			
+	public static final int[] editCrcFillClrs = new int[] {IRenderInterface.gui_FaintMagenta, IRenderInterface.gui_FaintGreen};			
 	public static final float[] editCrcRads = new float[] {20.0f,40.0f};			
 	public static final float[] editCrcMods = new float[] {1f,2f};			
 	public final myPoint[] editCrcCtrs = new myPoint[] {new myPoint(0,0,0),new myPoint(0,0,0)};			
@@ -155,8 +157,8 @@ public abstract class myDispWindow {
 		for(int i =0;i<4;++i){fillClr[i] = fc[i];strkClr[i]=sc[i];rectDim[i]=rd[i];rectDimClosed[i]=rdClosed[i];}		
 				
 		winText = _winTxt;
-		trajFillClrCnst = SeqVisFFTOcean.gui_Black;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = SeqVisFFTOcean.gui_Black;
+		trajFillClrCnst = pa.gui_Black;		//override this in the ctor of the instancing window class
+		trajStrkClrCnst = pa.gui_Black;
 		
 		msClkObj = -1;//	lastTrajIDX = -1; //lastPBEQueryPlayTime = 0;	
 		msOvrObj = -1;
@@ -220,7 +222,7 @@ public abstract class myDispWindow {
 	
 	//calculate button length
 	private static final float ltrLen = 5.0f;private static final int btnStep = 5;
-	private float calcBtnLength(String tStr, String fStr){return btnStep * (int)(((PApplet.max(tStr.length(),fStr.length())+4) * ltrLen)/btnStep);}
+	private float calcBtnLength(String tStr, String fStr){return btnStep * (int)(((MyMathUtils.max(tStr.length(),fStr.length())+4) * ltrLen)/btnStep);}
 	//set up child class button rectangles TODO
 	//yDisp is displacement for button to be drawn
 	protected void initPrivBtnRects(float yDisp, int numBtns){
@@ -533,7 +535,7 @@ public abstract class myDispWindow {
 	}
 	
 	//displays point with a name
-	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), SeqVisFFTOcean.gui_Cyan, dispFlags[trajPointsAreFlat]);	}	
+	protected void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), pa.gui_Cyan, dispFlags[trajPointsAreFlat]);	}	
 	//draw a series of strings in a column
 	protected void dispMenuTxtLat(String txt, int[] clrAra, boolean showSphere){
 		pa.setFill(clrAra, 255); 
@@ -548,7 +550,7 @@ public abstract class myDispWindow {
 			pa.setFill(clrAra, 255); 
 			pa.setStroke(clrAra, 255);
 		} else {
-			pa.setColorValFill(pa.gui_DarkGray); 
+			pa.setColorValFill(pa.gui_DarkGray,255); 
 			pa.noStroke();	
 		}
 		pa.sphere(5);
@@ -558,10 +560,10 @@ public abstract class myDispWindow {
 	
 	//draw a series of strings in a row
 	protected void dispBttnAtLoc(String txt, float[] loc, int[] clrAra){
-		pa.setColorValFill(SeqVisFFTOcean.gui_White);
-		pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
+		pa.setColorValFill(pa.gui_White,255);
+		pa.setColorValStroke(pa.gui_Black,255);
 		pa.rect(loc);		
-		pa.setColorValFill(SeqVisFFTOcean.gui_Black);
+		pa.setColorValFill(pa.gui_Black,255);
 		//pa.translate(-xOff*.5f,-yOff*.5f);
 		pa.text(""+txt,loc[0] + (txt.length() * .3f),loc[1]+loc[3]*.75f);
 		//pa.translate(width, 0);
@@ -591,7 +593,7 @@ public abstract class myDispWindow {
 	//draw all boolean-based buttons for this window
 	public void drawClickableBooleans() {	
 		pa.pushMatrix();pa.pushStyle();	
-		pa.setColorValFill(pa.gui_Black);
+		pa.setColorValFill(pa.gui_Black,255);
 		for(int i =0; i<privModFlgIdxs.length; ++i){//prlFlagRects dispBttnAtLoc(String txt, float[] loc, int[] clrAra)
 			if(privFlags[privModFlgIdxs[i]] ){									dispBttnAtLoc(truePrivFlagNames[i],privFlagBtns[i],privFlagColors[i]);			}
 			else {	if(truePrivFlagNames[i].equals(falsePrivFlagNames[i])) {	dispBttnAtLoc(truePrivFlagNames[i],privFlagBtns[i],new int[]{180,180,180});}	
@@ -605,7 +607,7 @@ public abstract class myDispWindow {
 	
 	//draw box to hide window
 	protected void drawMouseBox(){
-	    pa.setColorValFill(dispFlags[showIDX] ? SeqVisFFTOcean.gui_LightGreen : SeqVisFFTOcean.gui_DarkRed);
+	    pa.setColorValFill((dispFlags[showIDX] ? pa.gui_LightGreen : pa.gui_DarkRed),255);
 		pa.rect(closeBox);
 		pa.setFill(strkClr);
 		pa.text(dispFlags[showIDX] ? "Close" : "Open", closeBox[0]-35, closeBox[1]+10);
@@ -718,10 +720,10 @@ public abstract class myDispWindow {
 		//debug stuff
 		pa.pushMatrix();				pa.pushStyle();
 		pa.translate(rectDim[0]+20,rectDim[1]+rectDim[3]-70);
-		dispMenuTxtLat("Drawing curve", pa.getClr((dispFlags[myDispWindow.drawingTraj] ? SeqVisFFTOcean.gui_Green : SeqVisFFTOcean.gui_Red)), true);
+		dispMenuTxtLat("Drawing curve", pa.getClr((dispFlags[myDispWindow.drawingTraj] ? pa.gui_Green : pa.gui_Red),255), true);
 		//pa.show(new myPoint(0,0,0),4, "Drawing curve",new myVector(10,15,0),(dispFlags[this.drawingTraj] ? pa.gui_Green : pa.gui_Red));
 		//pa.translate(0,-30);
-		dispMenuTxtLat("Editing curve", pa.getClr((dispFlags[myDispWindow.editingTraj] ? SeqVisFFTOcean.gui_Green : SeqVisFFTOcean.gui_Red)), true);
+		dispMenuTxtLat("Editing curve", pa.getClr((dispFlags[myDispWindow.editingTraj] ? pa.gui_Green : pa.gui_Red),255), true);
 		//pa.show(new myPoint(0,0,0),4, "Editing curve",new myVector(10,15,0),(dispFlags[this.editingTraj] ? pa.gui_Green : pa.gui_Red));
 		pa.popStyle();pa.popMatrix();		
 	}
@@ -731,7 +733,7 @@ public abstract class myDispWindow {
 		boolean doneDrawing = true;
 		for(int i =0; i<editCrcFillClrs.length;++i){
 			if(editCrcCurRads[i] <= 0){continue;}
-			pa.setColorValFill(editCrcFillClrs[i]);
+			pa.setColorValFill(editCrcFillClrs[i],255);
 			pa.noStroke();
 			pa.circle(editCrcCtrs[i],editCrcCurRads[i]);
 			editCrcCurRads[i] -= editCrcMods[i];
@@ -1302,14 +1304,14 @@ class mySideBarMenu extends myDispWindow{
 	public mySideBarMenu(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		guiBtnStFillClr = new int[]{		//button colors based on state
-				SeqVisFFTOcean.gui_White,								//disabled color for buttons
-				SeqVisFFTOcean.gui_LightGray,								//not clicked button color
-				SeqVisFFTOcean.gui_LightBlue,									//clicked button color
+				pa.gui_White,								//disabled color for buttons
+				pa.gui_LightGray,								//not clicked button color
+				pa.gui_LightBlue,									//clicked button color
 			};
 		guiBtnStTxtClr = new int[]{			//text color for buttons
-				SeqVisFFTOcean.gui_LightGray,									//disabled color for buttons
-				SeqVisFFTOcean.gui_Black,									//not clicked button color
-				SeqVisFFTOcean.gui_Black,									//clicked button color
+				pa.gui_LightGray,									//disabled color for buttons
+				pa.gui_Black,									//not clicked button color
+				pa.gui_Black,									//clicked button color
 			};			
 		super.initThisWin(_canDrawTraj, false, true);
 	}
@@ -1477,7 +1479,7 @@ class mySideBarMenu extends myDispWindow{
 			break;}
 		case gIDX_Tempo			: {
 			float tmpTempo = (float)guiObjs[UIidx].getVal();
-			if(PApplet.abs(tmpTempo - glblTempo) > pa.feps){for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalTempoVal(tmpTempo);}}
+			if(pa.abs(tmpTempo - glblTempo) > pa.feps){for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalTempoVal(tmpTempo);}}
 			break;}
 		}			
 	}
@@ -1509,7 +1511,7 @@ class mySideBarMenu extends myDispWindow{
 	private void drawSideBarBooleans(){
 		//draw booleans and their state
 		pa.translate(10,yOff*2);
-		pa.setColorValFill(SeqVisFFTOcean.gui_Black);
+		pa.setColorValFill(pa.gui_Black,255);
 		pa.text("Boolean Flags",0,yOff*.20f);
 		pa.translate(0,clkFlgsStY);
 		for(int idx =0; idx<pa.numFlagsToShow; ++idx){
@@ -1548,9 +1550,9 @@ class mySideBarMenu extends myDispWindow{
 			pa.translate(-xOff*.5f, 0);
 			for(int col =0; col<guiBtnNames[row].length;++col){
 				halfWay = (xWidthOffset - pa.textWidth(guiBtnNames[row][col]))/2.0f;
-				pa.setColorValFill(guiBtnStFillClr[guiBtnSt[row][col]+1]);
+				pa.setColorValFill(guiBtnStFillClr[guiBtnSt[row][col]+1],255);
 				pa.rect(0,0,xWidthOffset, yOff);	
-				pa.setColorValFill(guiBtnStTxtClr[guiBtnSt[row][col]+1]);
+				pa.setColorValFill(guiBtnStTxtClr[guiBtnSt[row][col]+1],255);
 				pa.text(guiBtnNames[row][col], halfWay, yOff*.75f);
 				pa.translate(xWidthOffset, 0);
 			}
@@ -1728,8 +1730,8 @@ class myScrollBars{
 	}
 	public void drawMe(){
 		pa.pushMatrix(); pa.pushStyle();
-		pa.setColorValFill(pa.gui_LightGray);
-		pa.setColorValStroke(pa.gui_Black);
+		pa.setColorValFill(pa.gui_LightGray,255);
+		pa.setColorValStroke(pa.gui_Black,255);
 		pa.strokeWeight(1.0f);
 		pa.rect(vScrlDims);
 		pa.rect(hScrlDims);

@@ -1,6 +1,7 @@
-package SphrSeqFFTVisPKG;
-import SphrSeqFFTVisPKG.myTimeSig;
+package SphrSeqFFTVisPKG.staff;
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.staff.myTimeSig;
 
 public class myTimeSig{
 	public SeqVisFFTOcean p;

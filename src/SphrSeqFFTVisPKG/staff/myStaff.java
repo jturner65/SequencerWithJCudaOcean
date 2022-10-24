@@ -6,8 +6,6 @@ import java.util.TreeMap;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.myScore;
-import SphrSeqFFTVisPKG.myTimeSig;
-import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
@@ -382,9 +380,9 @@ public class myStaff {
 	}
 	private void drawStfSelBox(int idx){
 		p.pushMatrix();p.pushStyle();
-		p.setColorValFill(SeqVisFFTOcean.gui_Black);
+		p.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
 		p.text(stfBtnLbls[idx], stfSelBoxRect[idx][0]+ 1.5f*lOff, 0);
-		p.setColorValFill(stfFlags[idx] ? SeqVisFFTOcean.gui_LightGreen : SeqVisFFTOcean.gui_LightRed);
+		p.setColorValFill((stfFlags[idx] ? SeqVisFFTOcean.gui_LightGreen : SeqVisFFTOcean.gui_LightRed), 255);
 	    p.rect(stfSelBoxRect[idx]);
 		p.popStyle();p.popMatrix();	
 	}	
@@ -439,8 +437,8 @@ public class myStaff {
 	//draw staff here
 	public void drawStaff(){
 		p.pushMatrix();p.pushStyle();
-			p.setColorValFill(SeqVisFFTOcean.gui_Black);
-			p.setColorValStroke(SeqVisFFTOcean.gui_Black);
+			p.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
+			p.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
 			p.strokeWeight(1);
 			p.translate(0, lOff);
 			drawHeader();

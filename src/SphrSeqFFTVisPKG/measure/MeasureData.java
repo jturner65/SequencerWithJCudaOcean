@@ -1,9 +1,9 @@
 package SphrSeqFFTVisPKG.measure;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myTimeSig;
-import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
+import SphrSeqFFTVisPKG.staff.myKeySig;
+import SphrSeqFFTVisPKG.staff.myTimeSig;
 
 /**
  * convenience class to hold the important info for a measure (time sig, key sig, clef, c4 disp location, etc.

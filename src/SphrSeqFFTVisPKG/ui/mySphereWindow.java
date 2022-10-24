@@ -6,16 +6,16 @@ import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
-import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PApplet;
-import processing.core.PConstants;
 
 public class mySphereWindow extends myDispWindow {
 	public final int numGUIObjs = 0;												//# of gui objects for ui
@@ -156,19 +156,19 @@ public class mySphereWindow extends myDispWindow {
 		for(int i =0; i<orbitCnt;++i){orbitRads[i] = (i+1) * offset * .9f;}
 		int numPerOrbit = 3,					//starts with 3 in the ring, then up to 4, then up to 5, etc.  add offset to each ring radius
 			ringRadIDX = 0,	perRingCnt = 0;
-		float rotAngle = 0, angleDelta = PConstants.TWO_PI/(1.0f*numPerOrbit);
+		float rotAngle = 0, angleDelta = MyMathUtils.TWO_PI_F/(1.0f*numPerOrbit);
 		for(int i =0; i<instrs.size(); ++i){		//for every instrument
 			if(numPerOrbit == perRingCnt){
 				perRingCnt = 0;
 				numPerOrbit++;
-				rotAngle = pa.random(1.0f)*PConstants.TWO_PI;
+				rotAngle = pa.random(1.0f)*MyMathUtils.TWO_PI_F;
 				ringRadIDX++;
-				angleDelta = PConstants.TWO_PI/(1.0f*numPerOrbit);
+				angleDelta = MyMathUtils.TWO_PI_F/(1.0f*numPerOrbit);
 //				mult *= -1;
 			}
 			myInstrument entry = instrs.get(scoreStaffNames[i]);
 			//for every instrument build a new mySphereCntl and give it appropriate values
-			clrAra[2] = new int[]{(int)pa.random(100,200),(int)pa.random(100,200),(int)pa.random(100,200)};
+			clrAra[2] = pa.getRndClrBright(255);
 			//int idx = (int)( pa.random(cnt + 5)-5);
 			//ctr =  new myPoint(((int)(cnt % numCols))*offset,((int)(cnt/numCols))*offset,0); 
 			//ctr =  new myPoint(ctrVec.x+(orbitRads[ringRadIDX] * pa.sin(rotAngle)), ctrVec.y+(orbitRads[ringRadIDX] * pa.cos(rotAngle)),ctrVec.z);

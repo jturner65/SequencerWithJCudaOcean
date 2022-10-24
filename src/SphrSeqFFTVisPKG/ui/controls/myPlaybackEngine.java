@@ -160,12 +160,12 @@ public class myPlaybackEngine {
 		pa.pushMatrix();pa.pushStyle();	
 			pa.translate(curPxls, 0);
 			pa.strokeWeight(sWt);
-			pa.setColorValStroke(pa.gui_Black);
+			pa.setColorValStroke(pa.gui_Black, 255);
 			pa.line(-1, dims[0], -1, dims[1]);
 			pa.line(1, dims[0], 1, dims[1]);
 			pa.setStroke(strkClr);
 			pa.line(0, dims[0], 0, dims[1]);	
-			pa.setColorValFill(pa.gui_Black);
+			pa.setColorValFill(pa.gui_Black, 255);
 			pa.text(getPBEVals(), 10, 30);
 		pa.popStyle();	pa.popMatrix();	
 	}

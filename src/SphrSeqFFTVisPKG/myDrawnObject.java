@@ -428,8 +428,8 @@ public abstract class myDrawnObject {
 	public void drawMe() {
 		pa.pushMatrix();
 		pa.pushStyle();
-		pa.setColorValFill(fillClr);
-		pa.setColorValStroke(strkClr);
+		pa.setColorValFill(fillClr, 255);
+		pa.setColorValStroke(strkClr, 255);
 			pa.strokeWeight(1);
 //			if(flags[useProcCurve]){pa.show(pts);} 
 //			else {			

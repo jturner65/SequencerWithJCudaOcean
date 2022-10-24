@@ -95,8 +95,8 @@ public class myGUIObj {
 	public void draw(){
 		p.pushMatrix();p.pushStyle();
 			p.translate(initDrawTrans[0],initDrawTrans[1]);
-			p.setColorValFill(_cVal);
-			p.setColorValStroke(_cVal);
+			p.setColorValFill(_cVal, 255);
+			p.setColorValStroke(_cVal, 255);
 			p.pushMatrix();p.pushStyle();
 				p.noStroke();
 				p.fill(bxclr[0],bxclr[1],bxclr[2],bxclr[3]);

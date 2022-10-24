@@ -6,6 +6,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.*;
 
+import com.jogamp.newt.opengl.GLWindow;
+
 import SphrSeqFFTVisPKG.clef.myClef;
 import SphrSeqFFTVisPKG.clef.myGrandClef;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
@@ -20,12 +22,18 @@ import SphrSeqFFTVisPKG.ui.myInstEditWindow;
 import SphrSeqFFTVisPKG.ui.mySequencerWindow;
 import SphrSeqFFTVisPKG.ui.mySimWindow;
 import SphrSeqFFTVisPKG.ui.mySphereWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface.GL_PrimStyle;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_Math_Objects.vectorObjs.floats.myPointf;
+import base_Math_Objects.vectorObjs.floats.myVectorf;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
 import processing.core.PMatrix3D;
+import processing.event.MouseEvent;
 import processing.opengl.PGL;
 import processing.opengl.PGraphics3D;
 import processing.opengl.PGraphicsOpenGL;
@@ -39,7 +47,7 @@ import ddf.minim.ugens.*;
  * John Turner
  * 
  */
- public class SeqVisFFTOcean extends PApplet {
+ public class SeqVisFFTOcean extends PApplet implements IRenderInterface{
 	//project-specific variables
 	public String prjNmLong = "Interactive Sequencer/Visualization with FFT Ocean", prjNmShrt = "SeqVisFFTOcean";
 	PImage jtFace; 
@@ -84,6 +92,14 @@ import ddf.minim.ugens.*;
 	//descending scale from C, to build piano roll piano
 	public final nValType[] wKeyVals = new nValType[] {nValType.C, nValType.B, nValType.A, nValType.G, nValType.F,nValType.E,nValType.D},
 								   bKeyVals = new nValType[] {nValType.As, nValType.Gs, nValType.Fs, nValType.Ds, nValType.Cs};
+	
+	/**
+	 * Precalculated cosine and sine values
+	 */
+	private double[] cylCosVals, cylSinVals;
+	//constant values defined for cylinder wall angles
+	private final float deltaThet = MyMathUtils.TWO_PI_F/36.0f, 
+		finalThet = MyMathUtils.TWO_PI_F+deltaThet;
 	
 	//list of clefs  myClef(CAProject5 _p, String _name, clefVal _clef, NoteData _mdNote,PImage _img)
 				//Notedata : nValType _name, int _octave
@@ -146,6 +162,16 @@ import ddf.minim.ugens.*;
 		size((int)(newWidth*.95f), (int)(displayHeight*.92f), P3D);
 	}
 	public void setup(){
+		//precalc cylinder cosine and sine vals
+		cylCosVals = new double[38];
+		cylSinVals = new double[38];
+		int i=0;
+		for(float a=0; a<=finalThet; a+=deltaThet) {
+			cylCosVals[i] = Math.cos(a);
+			cylSinVals[i++] = Math.sin(a);
+		}
+
+		
 		initOnce();
 		background(bground[0],bground[1],bground[2],bground[3]);		
 	}//setup	
@@ -1104,7 +1130,7 @@ import ddf.minim.ugens.*;
 		pushStyle();
 		strokeWeight(3f);
 		noFill();
-		setColorValStroke(gui_TransGray);
+		setColorValStroke(gui_TransGray,255);
 		
 		box(gridDimX,gridDimY,gridDimZ);
 		popStyle();		
@@ -1145,7 +1171,7 @@ import ddf.minim.ugens.*;
 			for(int i=0;i<_axis.length;++i){show(myPoint._add(ctr, myVector._mult(_axis[i],len)),3,rgbClrs[i],rgbClrs[i], false);}
 		}
 		strokeWeight(stW);
-		for(int i =0; i<3;++i){	setColorValStroke(rgbClrs[i]);	showVec(ctr,len, _axis[i]);	}
+		for(int i =0; i<3;++i){	setColorValStroke(rgbClrs[i],255);	showVec(ctr,len, _axis[i]);	}
 		popStyle();	popMatrix();	
 	}//	drawAxes
 	public void drawAxes(double len, float stW, myPoint ctr, myVector[] _axis, int[] clr, boolean drawVerts){//all axes same color
@@ -1160,7 +1186,7 @@ import ddf.minim.ugens.*;
 	}//	drawAxes
 
 	public void drawText(String str, double x, double y, double z, int clr){
-		int[] c = getClr(clr);
+		int[] c = getClr(clr,255);
 		pushMatrix();	pushStyle();
 			fill(c[0],c[1],c[2],c[3]);
 			unSetCamOrient();
@@ -1233,46 +1259,6 @@ import ddf.minim.ugens.*;
 	public myVector getMseDragVec(){	return canvas.getMseDragVec();}
 
 	public myVector getMse2DtoMse3DinWorld(myPoint glbTrans) { return canvas.getMse2DtoMse3DinWorld(glbTrans);}
-	/**
-	 * get depth at specified screen dim location
-	 * @param x
-	 * @param y
-	 * @return
-	 */
-	public float getDepth(int x, int y) {
-		PGL pgl = beginPGL();
-		FloatBuffer depthBuffer = ByteBuffer.allocateDirect(1 << 2).order(ByteOrder.nativeOrder()).asFloatBuffer();
-		int newY = height - y;		pgl.readPixels(x, newY - 1, 1, 1, PGL.DEPTH_COMPONENT, PGL.FLOAT, depthBuffer);
-		float depthValue = depthBuffer.get(0);
-		endPGL();
-		return depthValue;
-	}
-	/**
-	 * determine world location as myPoint based on mouse click and passed depth
-	 * @param x
-	 * @param y
-	 * @param depth
-	 * @return
-	 */
-	public myPoint getWorldLoc(int x, int y, float depth){
-		int newY = height - y;
-		float depthValue = depth;
-		if(depth == -1){depthValue = getDepth( x,  y); }	
-		//get 3d matrices
-		PGraphics3D p3d = (PGraphics3D)g;
-		PMatrix3D proj = p3d.projection.get(), modelView = p3d.modelview.get(), modelViewProjInv = proj; modelViewProjInv.apply( modelView ); modelViewProjInv.invert();	  
-		float[] viewport = {0, 0, width, height},
-				normalized = new float[] {
-						((x - viewport[0]) / viewport[2]) * 2.0f - 1.0f, 
-						((newY - viewport[1]) / viewport[3]) * 2.0f - 1.0f, 
-						depthValue * 2.0f - 1.0f, 
-						1.0f};	  
-		float[] unprojected = new float[4];	  
-		modelViewProjInv.mult( normalized, unprojected );
-		myPoint pickLoc = new myPoint( unprojected[0]/unprojected[3], unprojected[1]/unprojected[3], unprojected[2]/unprojected[3] );
-		return pickLoc;
-	}	
-	
 	
 	public void scribeHeaderRight(String s) {scribeHeaderRight(s, 20);} // writes black on screen top, right-aligned
 	public void scribeHeaderRight(String s, float y) {fill(0); text(s,width-6*s.length(),y); noFill();} // writes black on screen top, right-aligned
@@ -1299,8 +1285,6 @@ import ddf.minim.ugens.*;
 		}
 		popMatrix();
 	}//drawProjOnBox
-	
-	public myPoint getScrLocOf3dWrldPt(myPoint pt){	return new myPoint(screenX((float)pt.x,(float)pt.y,(float)pt.z),screenY((float)pt.x,(float)pt.y,(float)pt.z),screenZ((float)pt.x,(float)pt.y,(float)pt.z));}
 	
 	public myPoint bndChkInBox2D(myPoint p){p.set(Math.max(0,Math.min(p.x,grid2D_X)),Math.max(0,Math.min(p.y,grid2D_Y)),0);return p;}
 	public myPoint bndChkInBox3D(myPoint p){p.set(Math.max(0,Math.min(p.x,gridDimX)), Math.max(0,Math.min(p.y,gridDimY)),Math.max(0,Math.min(p.z,gridDimZ)));return p;}	
@@ -1429,12 +1413,8 @@ import ddf.minim.ugens.*;
 		arc((float)ctr.x, (float)ctr.y, rad, rad, alphaSt - PConstants.HALF_PI, alphaEnd- PConstants.HALF_PI);
 	}
 	
-	
-	void bezier(myPoint A, myPoint B, myPoint C, myPoint D) {bezier((float)A.x,(float)A.y,(float)A.z,(float)B.x,(float)B.y,(float)B.z,(float)C.x,(float)C.y,(float)C.z,(float)D.x,(float)D.y,(float)D.z);} // draws a cubic Bezier curve with control points A, B, C, D
-	void bezier(myPoint [] C) {bezier(C[0],C[1],C[2],C[3]);} // draws a cubic Bezier curve with control points A, B, C, D
-	myPoint bezierPoint(myPoint[] C, float t) {return P(bezierPoint((float)C[0].x,(float)C[1].x,(float)C[2].x,(float)C[3].x,(float)t),bezierPoint((float)C[0].y,(float)C[1].y,(float)C[2].y,(float)C[3].y,(float)t),bezierPoint((float)C[0].z,(float)C[1].z,(float)C[2].z,(float)C[3].z,(float)t)); }
-	myVector bezierTangent(myPoint[] C, float t) {return V(bezierTangent((float)C[0].x,(float)C[1].x,(float)C[2].x,(float)C[3].x,(float)t),bezierTangent((float)C[0].y,(float)C[1].y,(float)C[2].y,(float)C[3].y,(float)t),bezierTangent((float)C[0].z,(float)C[1].z,(float)C[2].z,(float)C[3].z,(float)t)); }
 
+	public void bezier(myPoint [] C) {bezier(C[0],C[1],C[2],C[3]);} // draws a cubic Bezier curve with control points A, B, C, D
 	
 	public myPoint Mouse() {return new myPoint(mouseX, mouseY,0);}                                          			// current mouse location
 	public myVector MouseDrag() {return new myVector(mouseX-pmouseX,mouseY-pmouseY,0);};                     			// vector representing recent mouse displacement
@@ -1498,10 +1478,9 @@ import ddf.minim.ugens.*;
 
 	public void gl_normal(myVector V) {normal((float)V.x,(float)V.y,(float)V.z);}                                          // changes normal for smooth shading
 	public void gl_vertex(myPoint P) {vertex((float)P.x,(float)P.y,(float)P.z);}                                           // vertex for shading or drawing
-	public void showVec( myPoint ctr, double len, myVector v){line(ctr.x,ctr.y,ctr.z,ctr.x+(v.x)*len,ctr.y+(v.y)*len,ctr.z+(v.z)*len);}
 	public void show(myPoint P, double r,int fclr, int sclr, boolean flat) {//TODO make flat circles for points if flat
 		pushMatrix(); pushStyle(); 
-		if((fclr!= -1) && (sclr!= -1)){setColorValFill(fclr); setColorValStroke(sclr);}
+		if((fclr!= -1) && (sclr!= -1)){setColorValFill(fclr, 255); setColorValStroke(sclr, 255);}
 		if(!flat){
 			translate((float)P.x,(float)P.y,(float)P.z); 
 			sphereDetail(5);
@@ -1513,23 +1492,11 @@ import ddf.minim.ugens.*;
 		popStyle(); popMatrix();} // render sphere of radius r and center P)
 	public void show(myPoint P, double r){show(P,r, gui_Black, gui_Black, false);}
 	public void show(myPoint P, String s) {text(s, (float)P.x, (float)P.y, (float)P.z); } // prints string s in 3D at P
-	public void show(myPoint P, double r, int fclr, int sclr, int tclr, String txt) {
-		pushMatrix(); pushStyle(); 
-		if((fclr!= -1) && (sclr!= -1)){setColorValFill(fclr); setColorValStroke(sclr);}
-		sphereDetail(5);
-		translate((float)P.x,(float)P.y,(float)P.z); 
-		sphere((float)r); 
-		setColorValFill(tclr);setColorValStroke(tclr);
-		double d = 1.1 * r;
-		show(myPoint.ZEROPT, txt, new myVector(d,d,d));
-		popStyle(); popMatrix();} // render sphere of radius r and center P)
 
-	public void show(myPoint P, double r, String s, myVector D){show(P,r, gui_Black, gui_Black, false);pushStyle();setColorValFill(gui_Black);show(P,s,D);popStyle();}
-	public void show(myPoint P, double r, String s, myVector D, int clr, boolean flat){show(P,r, clr, clr, flat);pushStyle();setColorValFill(clr);show(P,s,D);popStyle();}
+
+	public void show(myPoint P, double r, String s, myVector D){show(P,r, gui_Black, gui_Black, false);pushStyle();setColorValFill(gui_Black, 255);show(P,s,D);popStyle();}
+	public void show(myPoint P, double r, String s, myVector D, int clr, boolean flat){show(P,r, clr, clr, flat);pushStyle();setColorValFill(clr, 255);show(P,s,D);popStyle();}
 	public void show(myPoint P, String s, myVector D) {text(s, (float)(P.x+D.x), (float)(P.y+D.y), (float)(P.z+D.z));  } // prints string s in 3D at P+D
-	public void show(myPoint[] ara) {beginShape(); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} endShape(CLOSE);};                     
-	public void showNoClose(myPoint[] ara) {beginShape(); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} endShape();};                     
-	public void show(myPoint[] ara, myVector norm) {beginShape();gl_normal(norm); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} endShape(CLOSE);};                     
 	public void curveVertex(myPoint P) {curveVertex((float)P.x,(float)P.y);};                                           // curveVertex for shading or drawing
 	public void curve(myPoint[] ara) {if(ara.length == 0){return;}beginShape(); curveVertex(ara[0]);for(int i=0;i<ara.length;++i){curveVertex(ara[i]);} curveVertex(ara[ara.length-1]);endShape();};                      // volume of tet 
 	//note is tilted ellipse with stem (if  not whole note), and filled (if not whole or half note) and with flags (if 8th or smaller)
@@ -1543,8 +1510,8 @@ import ddf.minim.ugens.*;
 		//noteIdx : -2,-1, 0, 1, 2, 3
 		rotate(QUARTER_PI,0,0,1);
 		strokeWeight(1);
-		setColorValFill(gui_Black);
-		setColorValStroke(gui_Black);
+		setColorValFill(gui_Black, 255);
+		setColorValStroke(gui_Black, 255);
 		if(flags[myNote.isChord] && flags[myNote.isFlipped]){translate(-noteW,0,0);}		//only flip if close to note
 		//line(-noteW,0,0,noteW,0,0);//ledger lines, to help align the note
 		if(noteTypIdx <= -1){	strokeWeight(2);	noFill();	}
@@ -1684,252 +1651,1323 @@ import ddf.minim.ugens.*;
 	public void setStroke(int[] clr){setStroke(clr,clr[3]);}		
 	public void setFill(int[] clr, int alpha){fill(clr[0],clr[1],clr[2], alpha);}
 	public void setStroke(int[] clr, int alpha){stroke(clr[0],clr[1],clr[2], alpha);}
-	public void setColorValFill(int colorVal){ setColorValFill(colorVal,255);}
-	public void setColorValFill(int colorVal, int alpha){
-		switch (colorVal){
-			case gui_rnd				: { fill(random(255),random(255),random(255),alpha);break;}
-			case gui_White  			: { fill(255,255,255,alpha);break; }
-			case gui_Gray   			: { fill(120,120,120,alpha); break;}
-			case gui_Yellow 			: { fill(255,255,0,alpha);break; }
-			case gui_Cyan   			: { fill(0,255,255,alpha);  break; }
-			case gui_Magenta			: { fill(255,0,255,alpha);break; }
-			case gui_Red    			: { fill(255,0,0,alpha); break; }
-			case gui_Blue				: { fill(0,0,255,alpha); break; }
-			case gui_Green				: { fill(0,255,0,alpha);  break; } 
-			case gui_DarkGray   		: { fill(80,80,80,alpha); break;}
-			case gui_DarkRed    		: { fill(120,0,0,alpha);break;}
-			case gui_DarkBlue   		: { fill(0,0,120,alpha); break;}
-			case gui_DarkGreen  		: { fill(0,120,0,alpha); break;}
-			case gui_DarkYellow 		: { fill(120,120,0,alpha); break;}
-			case gui_DarkMagenta		: { fill(120,0,120,alpha); break;}
-			case gui_DarkCyan   		: { fill(0,120,120,alpha); break;}	   
-			case gui_LightGray   		: { fill(200,200,200,alpha); break;}
-			case gui_LightRed    		: { fill(255,110,110,alpha); break;}
-			case gui_LightBlue   		: { fill(110,110,255,alpha); break;}
-			case gui_LightGreen  		: { fill(110,255,110,alpha); break;}
-			case gui_LightYellow 		: { fill(255,255,110,alpha); break;}
-			case gui_LightMagenta		: { fill(255,110,255,alpha); break;}
-			case gui_LightCyan   		: { fill(110,255,255,alpha); break;}    	
-			case gui_Black			 	: { fill(0,0,0,alpha);break;}//
-			case gui_TransBlack  	 	: { fill(0x00010100);  break;}//	have to use hex so that alpha val is not lost    	
-			case gui_FaintGray 		 	: { fill(77,77,77,alpha/3); break;}
-			case gui_FaintRed 	 	 	: { fill(110,0,0,alpha/2);  break;}
-			case gui_FaintBlue 	 	 	: { fill(0,0,110,alpha/2);  break;}
-			case gui_FaintGreen 	 	: { fill(0,110,0,alpha/2);  break;}
-			case gui_FaintYellow 	 	: { fill(110,110,0,alpha/2); break;}
-			case gui_FaintCyan  	 	: { fill(0,110,110,alpha/2); break;}
-			case gui_FaintMagenta  	 	: { fill(110,0,110,alpha/2); break;}
-			case gui_TransGray 	 	 	: { fill(120,120,120,alpha/8); break;}//
-			case gui_TransRed 	 	 	: { fill(255,0,0,alpha/2);  break;}
-			case gui_TransBlue 	 	 	: { fill(0,0,255,alpha/2);  break;}
-			case gui_TransGreen 	 	: { fill(0,255,0,alpha/2);  break;}
-			case gui_TransYellow 	 	: { fill(255,255,0,alpha/2);break;}
-			case gui_TransCyan  	 	: { fill(0,255,255,alpha/2);break;}
-			case gui_TransMagenta  	 	: { fill(255,0,255,alpha/2);break;}
-			case gui_OffWhite			: { fill(248,248,255,alpha);break; }
-			default         			: { fill(255,255,255,alpha);break;}  	    	
-		}//switch	
-	}//setcolorValFill
-	public void setColorValStroke(int colorVal){ setColorValStroke(colorVal, 255);}
-	public void setColorValStroke(int colorVal, int alpha){
-		switch (colorVal){
-			case gui_White  	 	    : { stroke(255,255,255,alpha); break; }
-			case gui_Gray   	 	    : { stroke(120,120,120,alpha); break;}
-			case gui_Yellow      	    : { stroke(255,255,0,alpha); break; }
-			case gui_Cyan   	 	    : { stroke(0,255,255,alpha); break; }
-			case gui_Magenta	 	    : { stroke(255,0,255,alpha);  break; }
-			case gui_Red    	 	    : { stroke(255,120,120,alpha); break; }
-			case gui_Blue		 	    : { stroke(120,120,255,alpha); break; }
-			case gui_Green		 	    : { stroke(120,255,120,alpha); break; }
-			case gui_DarkGray    	    : { stroke(80,80,80,alpha); break; }
-			case gui_DarkRed     	    : { stroke(120,0,0,alpha); break; }
-			case gui_DarkBlue    	    : { stroke(0,0,120,alpha); break; }
-			case gui_DarkGreen   	    : { stroke(0,120,0,alpha); break; }
-			case gui_DarkYellow  	    : { stroke(120,120,0,alpha); break; }
-			case gui_DarkMagenta 	    : { stroke(120,0,120,alpha); break; }
-			case gui_DarkCyan    	    : { stroke(0,120,120,alpha); break; }	   
-			case gui_LightGray   	    : { stroke(200,200,200,alpha); break;}
-			case gui_LightRed    	    : { stroke(255,110,110,alpha); break;}
-			case gui_LightBlue   	    : { stroke(110,110,255,alpha); break;}
-			case gui_LightGreen  	    : { stroke(110,255,110,alpha); break;}
-			case gui_LightYellow 	    : { stroke(255,255,110,alpha); break;}
-			case gui_LightMagenta	    : { stroke(255,110,255,alpha); break;}
-			case gui_LightCyan   		: { stroke(110,255,255,alpha); break;}		   
-			case gui_Black				: { stroke(0,0,0,alpha); break;}
-			case gui_TransBlack  		: { stroke(1,1,1,1); break;}	    	
-			case gui_FaintGray 			: { stroke(120,120,120,250); break;}
-			case gui_FaintRed 	 		: { stroke(110,0,0,alpha); break;}
-			case gui_FaintBlue 	 		: { stroke(0,0,110,alpha); break;}
-			case gui_FaintGreen 		: { stroke(0,110,0,alpha); break;}
-			case gui_FaintYellow 		: { stroke(110,110,0,alpha); break;}
-			case gui_FaintCyan  		: { stroke(0,110,110,alpha); break;}
-			case gui_FaintMagenta  		: { stroke(110,0,110,alpha); break;}
-			case gui_TransGray 	 		: { stroke(150,150,150,alpha/4); break;}
-			case gui_TransRed 	 		: { stroke(255,0,0,alpha/2); break;}
-			case gui_TransBlue 	 		: { stroke(0,0,255,alpha/2); break;}
-			case gui_TransGreen 		: { stroke(0,255,0,alpha/2); break;}
-			case gui_TransYellow 		: { stroke(255,255,0,alpha/2); break;}
-			case gui_TransCyan  		: { stroke(0,255,255,alpha/2); break;}
-			case gui_TransMagenta  		: { stroke(255,0,255,alpha/2); break;}
-			case gui_OffWhite			: { stroke(248,248,255,alpha);break; }
-			default         			: { stroke(55,55,255,alpha); break; }
-		}//switch	
-	}//setcolorValStroke	
-	
-	public void setColorValFillAmb(int colorVal){ setColorValFillAmb(colorVal,255);}
-	public void setColorValFillAmb(int colorVal, int alpha){
-		switch (colorVal){
-			case gui_rnd				: { fill(random(255),random(255),random(255),alpha); ambient(120,120,120);break;}
-			case gui_White  			: { fill(255,255,255,alpha); ambient(255,255,255); break; }
-			case gui_Gray   			: { fill(120,120,120,alpha); ambient(120,120,120); break;}
-			case gui_Yellow 			: { fill(255,255,0,alpha); ambient(255,255,0); break; }
-			case gui_Cyan   			: { fill(0,255,255,alpha); ambient(0,255,alpha); break; }
-			case gui_Magenta			: { fill(255,0,255,alpha); ambient(255,0,alpha); break; }
-			case gui_Red    			: { fill(255,0,0,alpha); ambient(255,0,0); break; }
-			case gui_Blue				: { fill(0,0,255,alpha); ambient(0,0,alpha); break; }
-			case gui_Green				: { fill(0,255,0,alpha); ambient(0,255,0); break; } 
-			case gui_DarkGray   		: { fill(80,80,80,alpha); ambient(80,80,80); break;}
-			case gui_DarkRed    		: { fill(120,0,0,alpha); ambient(120,0,0); break;}
-			case gui_DarkBlue   		: { fill(0,0,120,alpha); ambient(0,0,120); break;}
-			case gui_DarkGreen  		: { fill(0,120,0,alpha); ambient(0,120,0); break;}
-			case gui_DarkYellow 		: { fill(120,120,0,alpha); ambient(120,120,0); break;}
-			case gui_DarkMagenta		: { fill(120,0,120,alpha); ambient(120,0,120); break;}
-			case gui_DarkCyan   		: { fill(0,120,120,alpha); ambient(0,120,120); break;}		   
-			case gui_LightGray   		: { fill(200,200,200,alpha); ambient(200,200,200); break;}
-			case gui_LightRed    		: { fill(255,110,110,alpha); ambient(255,110,110); break;}
-			case gui_LightBlue   		: { fill(110,110,255,alpha); ambient(110,110,alpha); break;}
-			case gui_LightGreen  		: { fill(110,255,110,alpha); ambient(110,255,110); break;}
-			case gui_LightYellow 		: { fill(255,255,110,alpha); ambient(255,255,110); break;}
-			case gui_LightMagenta		: { fill(255,110,255,alpha); ambient(255,110,alpha); break;}
-			case gui_LightCyan   		: { fill(110,255,255,alpha); ambient(110,255,alpha); break;}	    	
-			case gui_Black			 	: { fill(0,0,0,alpha); ambient(0,0,0); break;}//
-			case gui_TransBlack  	 	: { fill(0x00010100); ambient(0,0,0); break;}//	have to use hex so that alpha val is not lost    	
-			case gui_FaintGray 		 	: { fill(77,77,77,alpha/3); ambient(77,77,77); break;}//
-			case gui_FaintRed 	 	 	: { fill(110,0,0,alpha/2); ambient(110,0,0); break;}//
-			case gui_FaintBlue 	 	 	: { fill(0,0,110,alpha/2); ambient(0,0,110); break;}//
-			case gui_FaintGreen 	 	: { fill(0,110,0,alpha/2); ambient(0,110,0); break;}//
-			case gui_FaintYellow 	 	: { fill(110,110,0,alpha/2); ambient(110,110,0); break;}//
-			case gui_FaintCyan  	 	: { fill(0,110,110,alpha/2); ambient(0,110,110); break;}//
-			case gui_FaintMagenta  	 	: { fill(110,0,110,alpha/2); ambient(110,0,110); break;}//
-			case gui_TransGray 	 	 	: { fill(120,120,120,alpha/8); ambient(120,120,120); break;}//
-			case gui_TransRed 	 	 	: { fill(255,0,0,alpha/2); ambient(255,0,0); break;}//
-			case gui_TransBlue 	 	 	: { fill(0,0,255,alpha/2); ambient(0,0,alpha); break;}//
-			case gui_TransGreen 	 	: { fill(0,255,0,alpha/2); ambient(0,255,0); break;}//
-			case gui_TransYellow 	 	: { fill(255,255,0,alpha/2); ambient(255,255,0); break;}//
-			case gui_TransCyan  	 	: { fill(0,255,255,alpha/2); ambient(0,255,alpha); break;}//
-			case gui_TransMagenta  	 	: { fill(255,0,255,alpha/2); ambient(255,0,alpha); break;}//   	
-			case gui_OffWhite			: { fill(248,248,255,alpha);ambient(248,248,255); break; }
-			default         			: { fill(255,255,255,alpha); ambient(255,255,alpha); break; }	    
-			
-		}//switch	
-	}//setcolorValFill
-	
-	//returns one of 30 predefined colors as an array (to support alpha)
-	public int[] getClr(int colorVal){		return getClr(colorVal, 255);	}//getClr
-	public int[] getClr(int colorVal, int alpha){
-		switch (colorVal){
-		case gui_Gray   		         : { return new int[] {120,120,120,alpha}; }
-		case gui_White  		         : { return new int[] {255,255,255,alpha}; }
-		case gui_Yellow 		         : { return new int[] {255,255,0,alpha}; }
-		case gui_Cyan   		         : { return new int[] {0,255,255,alpha};} 
-		case gui_Magenta		         : { return new int[] {255,0,255,alpha};}  
-		case gui_Red    		         : { return new int[] {255,0,0,alpha};} 
-		case gui_Blue			         : { return new int[] {0,0,255,alpha};}
-		case gui_Green			         : { return new int[] {0,255,0,alpha};}  
-		case gui_DarkGray   	         : { return new int[] {80,80,80,alpha};}
-		case gui_DarkRed    	         : { return new int[] {120,0,0,alpha};}
-		case gui_DarkBlue  	 	         : { return new int[] {0,0,120,alpha};}
-		case gui_DarkGreen  	         : { return new int[] {0,120,0,alpha};}
-		case gui_DarkYellow 	         : { return new int[] {120,120,0,alpha};}
-		case gui_DarkMagenta	         : { return new int[] {120,0,120,alpha};}
-		case gui_DarkCyan   	         : { return new int[] {0,120,120,alpha};}	   
-		case gui_LightGray   	         : { return new int[] {200,200,200,alpha};}
-		case gui_LightRed    	         : { return new int[] {255,110,110,alpha};}
-		case gui_LightBlue   	         : { return new int[] {110,110,255,alpha};}
-		case gui_LightGreen  	         : { return new int[] {110,255,110,alpha};}
-		case gui_LightYellow 	         : { return new int[] {255,255,110,alpha};}
-		case gui_LightMagenta	         : { return new int[] {255,110,255,alpha};}
-		case gui_LightCyan   	         : { return new int[] {110,255,255,alpha};}
-		case gui_Black			         : { return new int[] {0,0,0,alpha};}
-		case gui_FaintGray 		         : { return new int[] {110,110,110,alpha};}
-		case gui_FaintRed 	 	         : { return new int[] {110,0,0,alpha};}
-		case gui_FaintBlue 	 	         : { return new int[] {0,0,110,alpha};}
-		case gui_FaintGreen 	         : { return new int[] {0,110,0,alpha};}
-		case gui_FaintYellow 	         : { return new int[] {110,110,0,alpha};}
-		case gui_FaintCyan  	         : { return new int[] {0,110,110,alpha};}
-		case gui_FaintMagenta  	         : { return new int[] {110,0,110,alpha};}    	
-		case gui_TransBlack  	         : { return new int[] {1,1,1,alpha/2};}  	
-		case gui_TransGray  	         : { return new int[] {110,110,110,alpha/2};}
-		case gui_TransLtGray  	         : { return new int[] {180,180,180,alpha/2};}
-		case gui_TransRed  	         	 : { return new int[] {110,0,0,alpha/2};}
-		case gui_TransBlue  	         : { return new int[] {0,0,110,alpha/2};}
-		case gui_TransGreen  	         : { return new int[] {0,110,0,alpha/2};}
-		case gui_TransYellow  	         : { return new int[] {110,110,0,alpha/2};}
-		case gui_TransCyan  	         : { return new int[] {0,110,110,alpha/2};}
-		case gui_TransMagenta  	         : { return new int[] {110,0,110,alpha/2};}	
-		case gui_TransWhite  	         : { return new int[] {220,220,220,alpha/2};}	
-		case gui_OffWhite				 : { return new int[] {255,255,235,alpha};}
-		default         		         : { return new int[] {255,255,255,alpha};}    
-		}//switch
-	}//getClr
+
 	
 	public int getRndClrInt(){return (int)random(0,23);}		//return a random color flag value from below
-	public int[] getRndClr(int alpha){return new int[]{(int)random(0,255),(int)random(0,255),(int)random(0,255),alpha};	}
 	public int[] getRndClr(){return getRndClr(255);	}		
-	public Integer[] getClrMorph(int a, int b, double t){return getClrMorph(getClr(a), getClr(b), t);}    
-	public Integer[] getClrMorph(int[] a, int[] b, double t){
+	public Integer[] getClrMorph(int a, int b, double t){return getClrMorph(getClr(a, 255), getClr(b, 255), t);}    
+
+
+	
+	
+	
+	
+	
+	
+	@Override
+	public void setRenderBackground(int r, int g, int b, int alpha) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void loadBkgndSphere(String filename) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void setBkgndSphere() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	@Override
+	public void initRenderInterface() {
+		//initialize constants
+		
+	}
+	@Override
+	public GLWindow getGLWindow() {return (GLWindow)getSurface().getNative();}
+	///////////////////////////////////////////
+	// draw routines
+	protected static int pushPopAllDepth = 0, pushPopJustStyleDepth = 0;
+	/**
+	 * push matrix, and style (if available) - must be paired with pop matrix/style calls
+	 */
+	@Override
+	public final int pushMatState() {	super.pushMatrix();super.pushStyle();return ++pushPopAllDepth;}
+	/**
+	 * pop style (if supported) and matrix - must be called after equivalent pushes
+	 */
+	@Override
+	public final int popMatState() {	super.popStyle();super.popMatrix();	return --pushPopAllDepth;}
+	
+	/**
+	 * push current style/color params onto "style stack" (save current settings)
+	 */	
+	@Override
+	public int pushJustStyleState() {	super.pushStyle();return ++pushPopJustStyleDepth;}
+	/**
+	 * pop current style/color params from "style stack" (restore/overwrite with last saved settings)
+	 */
+	@Override
+	public int popJustStyleState(){		super.popStyle();return --pushPopJustStyleDepth;}
+	
+//
+//	/**
+//	 * main draw loop - override if handling draw differently
+//	 */
+//	@Override
+//	public void draw(){
+//		//returns whether actually drawn or not
+//		if(!AppMgr.mainSimAndDrawLoop()) {return;}
+//		//TODO find better mechanism for saving screenshot
+//		if (AppMgr.doSaveAnim()) {	savePic();}
+//	}//draw	
+//	
+	/**
+	 * Builds and sets window title
+	 */
+	@Override
+	public void setWindowTitle(String applicationTitle, String windowName) {
+		//build window title
+		surface.setTitle(applicationTitle + " : " + (int)(frameRate) + " fps|cyc curFocusWin : " + windowName);		
+	}		
+	
+	/**
+	 * draw a translucent representation of a canvas plane ortho to eye-to-mouse vector
+	 * @param eyeToMse vector 
+	 * @param canvas3D
+	 */
+	@Override
+	public void drawCanvas(myVector eyeToMse, myPointf[] canvas3D){
+		disableLights();
+		pushMatState();
+		gl_beginShape(GL_PrimStyle.GL_LINE_LOOP);
+		setFill(255,255,255,80);
+		setNoStroke();
+		gl_normal(eyeToMse);
+        for(int i =canvas3D.length-1;i>=0;--i){		//build invisible canvas to draw upon
+     		//p.line(canvas3D[i], canvas3D[(i+1)%canvas3D.length]);
+     		gl_vertex(canvas3D[i]);
+     	}
+     	gl_endShape(true);
+     	popMatState();
+     	enableLights();
+	}//drawCanvas
+
+
+	/**
+	 * set perspective matrix based on frustum for camera
+	 * @param left left coordinate of the clipping plane
+	 * @param right right coordinate of the clipping plane
+	 * @param bottom bottom coordinate of the clipping plane
+	 * @param top top coordinate of the clipping plane
+	 * @param near near component of the clipping plane (> 0)
+	 * @param far far component of the clipping plane (> near)
+	 */
+	@Override
+	public void setFrustum(float left, float right, float bottom, float top, float near, float far) {
+		super.frustum(left, right, bottom, top, near, far);
+	}
+	
+	/**
+	 * set perspective projection matrix for camera
+	 * @param fovy Vertical FOV
+	 * @param ar Aspect Ratio 
+	 * @param zNear Z position of near clipping plane
+	 * @param zFar Z position of far clipping plane 
+	 */
+	@Override
+	public void setPerspective(float fovy, float ar, float zNear, float zFar) {
+		super.perspective(fovy, ar, zNear, zFar);
+	}
+	
+	/**
+	 * set orthographic projection matrix for camera (2d or 3d)
+	 * @param left left plane of clipping volume
+	 * @param right right plane of the clipping volume
+	 * @param bottom bottom plane of the clipping volume
+	 * @param top top plane of the clipping volume
+	 * @param near maximum distance from the origin to the viewer
+	 * @param far maximum distance from the origin away from the viewer
+	 */
+	@Override
+	public void setOrtho(float left, float right, float bottom, float top) {
+		super.ortho(left, right, bottom, top);
+	}
+	@Override
+	public void setOrtho(float left, float right, float bottom, float top, float near, float far) {
+		super.ortho(left, right, bottom, top, near, far);
+	}
+	
+	
+	@Override
+	public void gl_normal(float x, float y, float z) {super.normal(x,y,z);}                                          // changes normal for smooth shading
+	@Override
+	public void gl_vertex(float x, float y, float z) {super.vertex(x,y,z);}                                             // vertex for shading or drawing
+
+	/**
+	 * set fill color by value during shape building
+	 * @param clr 1st 3 values denot integer color vals
+	 * @param alpha 
+	 */
+	@Override
+	public void gl_SetFill(int r, int g, int b, int alpha) {super.fill(r,g,b,alpha);}
+
+	/**
+	 * set stroke color by value during shape building
+	 * @param clr rgba
+	 * @param alpha 
+	 */
+	@Override
+	public void gl_SetStroke(int r, int g, int b, int alpha) {super.stroke(r,g,b,alpha);}	
+	
+	
+	/**
+	 * type needs to be -1 for blank, otherwise should be specified in PConstants
+	 * 
+	 * (from PConstants) - these are allowed elements in glBegin function
+  static final int POINTS          = 3;   // vertices
+  static final int LINES           = 5;   // beginShape(), createShape()
+  static final int LINE_STRIP      = 50;  // beginShape()
+  static final int LINE_LOOP       = 51;
+  static final int TRIANGLES       = 9;   // vertices
+  static final int TRIANGLE_STRIP  = 10;  // vertices
+  static final int TRIANGLE_FAN    = 11;  // vertices
+  
+  DONOT SUPPORT QUAD PRIMS - have been deprecated/Removed from opengl
+  static final int QUADS           = 17;  // vertices
+  static final int QUAD_STRIP      = 18;  // vertices
+  
+  static final int POLYGON         = 20;  // 
+	 * 
+	 * 
+	 */
+	@Override
+	public void gl_beginShape(GL_PrimStyle primType) {
+		switch (primType) {
+			case GL_POINTS : {
+				beginShape(POINTS);
+				return;
+			}
+			case GL_LINES : {
+				beginShape(LINES);
+				return;
+			}
+			case GL_LINE_LOOP : {
+				//Processing does not support line loop, so treat as polygon
+				beginShape(POLYGON);
+				return;
+			}
+			case GL_LINE_STRIP : {
+				//Processing does not support line_strip, treat as lines
+				beginShape(LINES);
+				break;
+			}
+			case GL_TRIANGLES : {
+				beginShape(TRIANGLES);
+				break;
+			}
+			case GL_TRIANGLE_STRIP : {
+				beginShape(TRIANGLE_STRIP);
+				break;
+			}
+			case GL_TRIANGLE_FAN : {
+				beginShape(TRIANGLE_FAN);
+				break;
+			}
+			default : {
+				beginShape(POLYGON);	
+				return;
+			}		
+		};
+	}//gl_beginShape
+	/**
+	 * type needs to be -1 for blank, otherwise will be CLOSE, regardless of passed value
+	 */
+	@Override
+	public void gl_endShape(boolean isClosed) {		
+		if(isClosed) {			endShape(CLOSE);		}
+		else {				endShape();		}
+	}
+	
+	@Override
+	public void drawSphere(float rad) {sphere(rad);}
+	private int sphereDtl = 4;
+
+	@Override
+	public void setSphereDetail(int det) {sphereDtl=det;sphereDetail(det);}
+
+	@Override
+	public int getSphereDetail() {return sphereDtl;}
+	
+	/**
+	 * draw a 2 d ellipse 
+	 * @param x,y,x rad, y rad
+	 */
+	@Override
+	public void drawEllipse2D(float x, float y, float xr, float yr) {ellipse(x,y,xr,yr);}
+
+	
+	@Override
+	public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2){line(x1,y1,z1,x2,y2,z2 );}
+	@Override
+	public void drawLine(myPointf a, myPointf b, int stClr, int endClr){
+		gl_beginShape();
+		this.setStrokeWt(1.0f);
+		this.setColorValStroke(stClr, 255);
+		this.gl_vertex(a);
+		this.setColorValStroke(endClr,255);
+		this.gl_vertex(b);
+		gl_endShape();
+	}
+	@Override
+	public void drawLine(myPointf a, myPointf b, int[] stClr, int[] endClr){
+		gl_beginShape();
+		this.setStrokeWt(1.0f);
+		this.setStroke(stClr, 255);
+		this.gl_vertex(a);
+		this.setStroke(endClr,255);
+		this.gl_vertex(b);
+		gl_endShape();
+	}
+	
+	/**
+	 * draw a cloud of points with passed color values as an integrated shape
+	 * @param numPts number of points to draw
+	 * @param ptIncr incrementer between points, to draw only every 2nd, 3rd or more'th point
+	 * @param h_part_clr_int 2d array of per point 3-color stroke values
+	 * @param h_part_pos_x per point x value
+	 * @param h_part_pos_y per point y value
+	 * @param h_part_pos_z per point z value
+	 */
+	@Override
+	public void drawPointCloudWithColors(int numPts, int ptIncr, int[][] h_part_clr_int, float[] h_part_pos_x, float[] h_part_pos_y, float[] h_part_pos_z) {
+		gl_beginShape(GL_PrimStyle.GL_POINTS);
+		for(int i=0;i<=numPts-ptIncr;i+=ptIncr) {	
+			this.setStroke(h_part_clr_int[i][0], h_part_clr_int[i][1], h_part_clr_int[i][2], 255);
+			this.gl_vertex(h_part_pos_x[i], h_part_pos_y[i], h_part_pos_z[i]);
+		}
+		gl_endShape();
+	}//drawPointCloudWithColors	
+	
+	/**
+	 * draw a cloud of points with all points having same color value as an integrated shape
+	 * @param numPts number of points to draw
+	 * @param ptIncr incrementer between points, to draw only every 2nd, 3rd or more'th point
+	 * @param h_part_clr_int array of 3-color stroke values for all points
+	 * @param h_part_pos_x per point x value
+	 * @param h_part_pos_y per point y value
+	 * @param h_part_pos_z per point z value
+	 */
+	@Override
+	public void drawPointCloudWithColor(int numPts, int ptIncr, int[] h_part_clr_int, float[] h_part_pos_x, float[] h_part_pos_y, float[] h_part_pos_z) {
+		gl_beginShape(GL_PrimStyle.GL_POINTS);
+		this.setStroke(h_part_clr_int[0], h_part_clr_int[1], h_part_clr_int[2], 255);
+		for(int i=0;i<=numPts-ptIncr;i+=ptIncr) {	
+			this.gl_vertex(h_part_pos_x[i], h_part_pos_y[i], h_part_pos_z[i]);
+		}
+		gl_endShape();
+	}//drawPointCloudWithColors	
+	
+	/**
+	 * draw a box centered at origin with passed dimensions, in 3D
+	 */
+	@Override
+	public void drawBox3D(int x, int y, int z) {box(x,y,z);};
+	/**
+	 * draw a rectangle in 2D using the passed values as x,y,w,h
+	 * @param a 4 element array : x,y,w,h
+	 */
+	@Override
+	public void drawRect(float a, float b, float c, float d){rect(a,b,c,d);}				//rectangle from array of floats : x, y, w, h
+	/**
+	 * Build a set of n points inscribed on a circle centered at p in plane I,J
+	 * @param p center point
+	 * @param r circle radius
+	 * @param I, J axes of plane
+	 * @param n # of points
+	 * @return array of n equal-arc-length points centered around p
+	 */
+	public synchronized myPoint[] buildCircleInscribedPoints(myPoint p, float r, myVector I, myVector J,int n) {
+		myPoint[] pts = new myPoint[n];
+		pts[0] = new myPoint(p,r,myVector._unit(I));
+		float a = (MyMathUtils.TWO_PI_F)/(1.0f*n); 
+		for(int i=1;i<n;++i){pts[i] = pts[i-1].rotMeAroundPt(a,J,I,p);}
+		return pts;
+	}
+	/**
+	 * Build a set of n points inscribed on a circle centered at p in plane I,J
+	 * @param p center point
+	 * @param r circle radius
+	 * @param I, J axes of plane
+	 * @param n # of points
+	 * @return array of n equal-arc-length points centered around p
+	 */
+	public synchronized myPointf[] buildCircleInscribedPoints(myPointf p, float r, myVectorf I, myVectorf J,int n) {
+		myPointf[] pts = new myPointf[n];
+		pts[0] = new myPointf(p,r,myVectorf._unit(I));
+		float a = (MyMathUtils.TWO_PI_F)/(1.0f*n);
+		for(int i=1;i<n;++i){pts[i] = pts[i-1].rotMeAroundPt(a,J,I,p);}
+		return pts;
+	}
+	/**
+	 * draw a circle centered at P with specified radius r in plane proscribed by passed axes using n number of points
+	 * @param P center
+	 * @param r radius
+	 * @param I x axis
+	 * @param J y axis
+	 * @param n # of points to use
+	 */
+	@Override
+	public void drawCircle3D(myPoint P, float r, myVector I, myVector J, int n) {
+		myPoint[] pts = buildCircleInscribedPoints(P,r,I,J,n);
+		pushMatState();noFill(); show(pts);popMatState();
+	}
+	@Override
+	public void drawCircle3D(myPointf P, float r, myVectorf I, myVectorf J, int n) {
+		myPointf[] pts = buildCircleInscribedPoints(P,r,I,J,n);
+		pushMatState();noFill(); show(pts);popMatState();
+	} 
+	
+	/**
+	 * draw a 6 pointed star centered at p inscribed in circle radius r
+	 */
+	@Override
+	public void drawStar2D(myPointf p, float r) {
+		myPointf[] pts = buildCircleInscribedPoints(p,r,myVectorf.FORWARD,myVectorf.RIGHT,6);
+		drawTriangle2D(pts[0], pts[2],pts[4]);
+		drawTriangle2D(pts[1], pts[3],pts[5]);
+	}
+	/**
+	 * draw a triangle at 3 locations in 2D (only uses x,y)
+	 * @param a
+	 * @param b
+	 * @param c
+	 */
+	@Override
+	public void drawTriangle2D(myPointf a, myPointf b, myPointf c) {triangle(a.x,a.y, b.x, b.y, c.x, c.y);}
+	/**
+	 * draw a triangle at 3 locations in 2D (only uses x,y)
+	 * @param a
+	 * @param b
+	 * @param c
+	 */
+	@Override
+	public void drawTriangle2D(myPoint a, myPoint b, myPoint c) {triangle((float)a.x,(float)a.y,(float) b.x, (float)b.y,(float) c.x,(float) c.y);}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// calculations
+	
+	/**
+	 * build a frame based on world orientation given two passed points
+	 * @param A
+	 * @param B
+	 * @return vec array of {AB, ScreenNorm, ScreenTan}
+	 */
+	public myVector[] buildViewBasedFrame(myPoint A, myPoint B) {
+		myVector V = new myVector(A,B);
+		myVector I = canvas.getDrawSNorm();//U(Normal(V));
+		myVector J = I._cross(V)._normalize(); 
+		return new myVector[] {V,I,J};		
+	}
+	
+	/**
+	 * build a frame based on world orientation given two passed points
+	 * @param A
+	 * @param B
+	 * @return float vec array of {AB, ScreenNorm, ScreenTan}
+	 */
+	public myVectorf[] buildViewBasedFrame_f(myPointf A, myPointf B) {
+		myVectorf V = new myVectorf(A,B);
+		myVectorf I = canvas.getDrawSNorm_f();//U(Normal(V));
+		myVectorf J = I._cross(V)._normalize(); 
+		return new myVectorf[] {V,I,J};		
+	}
+	
+	
+	/**
+	 * Derive the points of a cylinder of radius r around axis through A and B
+	 * @param A center point of endcap
+	 * @param B center point of endcap
+	 * @param r desired radius of cylinder
+	 * @return array of points for cylinder
+	 */
+	public myPoint[] buildCylVerts(myPoint A, myPoint B, float r) {
+		myVector[] frame = buildViewBasedFrame(A, B);
+		myPoint[] resList = new myPoint[2 * cylCosVals.length];
+		double rca, rsa;
+		int idx = 0;
+		for(int i = 0; i<cylCosVals.length; ++i) {
+			rca = r*cylCosVals[i];rsa=r*cylSinVals[i];
+			resList[idx++] = myPoint._add(A,rca,frame[1],rsa,frame[2]); 
+			resList[idx++] = myPoint._add(A,rca,frame[1],rsa,frame[2],1,frame[0]);				
+		}
+		return resList;
+	}//build list of all cylinder vertices 
+	
+	/**
+	 * Derive the points of a cylinder of radius r around axis through A and B
+	 * @param A center point of endcap
+	 * @param B center point of endcap
+	 * @param r desired radius of cylinder
+	 * @return array of points for cylinder
+	 */
+	public myPointf[] buildCylVerts(myPointf A, myPointf B, float r) {
+		myVectorf[] frame = buildViewBasedFrame_f(A, B);
+		myPointf[] resList = new myPointf[2 * cylCosVals.length];
+		float rca, rsa;
+		int idx = 0;
+		for(int i = 0; i<cylCosVals.length; ++i) {
+			rca = (float) (r*cylCosVals[i]);rsa=(float) (r*cylSinVals[i]);
+			resList[idx++] = myPointf._add(A,rca,frame[1],rsa,frame[2]); 
+			resList[idx++] = myPointf._add(A,rca,frame[1],rsa,frame[2],1,frame[0]);				
+		}	
+		return resList;
+	}//build list of all cylinder vertices 
+	
+	
+	@Override
+	public void drawCylinder_NoFill(myPoint A, myPoint B, float r, int clr1, int clr2) {
+		myPoint[] vertList = buildCylVerts(A, B, r);
+		int[] c1 = getClr(clr1, 255);
+		int[] c2 = getClr(clr2, 255);
+		noFill();
+		beginShape(QUAD_STRIP);
+			for(int i=0; i<vertList.length; i+=2) {
+				gl_SetStroke(c1[0],c1[1],c1[2],255);
+				gl_vertex(vertList[i]);
+				gl_SetStroke(c2[0],c2[1],c2[2],255);
+				gl_vertex(vertList[i+1]);}
+		gl_endShape();
+	}
+	@Override
+	public void drawCylinder_NoFill(myPointf A, myPointf B, float r, int clr1, int clr2) {
+		myPointf[] vertList = buildCylVerts(A, B, r);
+		int[] c1 = getClr(clr1, 255);
+		int[] c2 = getClr(clr2, 255);
+		noFill();
+		beginShape(QUAD_STRIP);
+			for(int i=0; i<vertList.length; i+=2) {
+				gl_SetStroke(c1[0],c1[1],c1[2],255);
+				gl_vertex(vertList[i]); 
+				gl_SetStroke(c2[0],c2[1],c2[2],255);
+				gl_vertex(vertList[i+1]);}
+		gl_endShape();
+	}
+
+	@Override
+	public void drawCylinder(myPoint A, myPoint B, float r, int clr1, int clr2) {
+		myPoint[] vertList = buildCylVerts(A, B, r);
+		int[] c1 = getClr(clr1, 255);
+		int[] c2 = getClr(clr2, 255);
+		beginShape(QUAD_STRIP);
+			for(int i=0; i<vertList.length; i+=2) {
+				gl_SetFill(c1[0],c1[1],c1[2],255);		
+				gl_vertex(vertList[i]); 
+				gl_SetFill(c2[0],c2[1],c2[2],255);	
+				gl_vertex(vertList[i+1]);}
+		gl_endShape();
+	}
+	
+	@Override
+	public void drawCylinder(myPointf A, myPointf B, float r, int clr1, int clr2) {
+		myPointf[] vertList = buildCylVerts(A, B, r);
+		int[] c1 = getClr(clr1, 255);
+		int[] c2 = getClr(clr2, 255);
+		beginShape(QUAD_STRIP);
+		for(int i=0; i<vertList.length; i+=2) {
+			gl_SetFill(c1[0],c1[1],c1[2],255);		
+			gl_vertex(vertList[i]); 
+			gl_SetFill(c2[0],c2[1],c2[2],255);		
+			gl_vertex(vertList[i+1]);}
+	gl_endShape();
+	}
+	
+	//////////////////////////////////
+	// end draw routines
+	
+////////////////////////
+// transformations
+	
+	@Override
+	public void translate(float x, float y){super.translate(x,y);}
+	@Override
+	public void translate(float x, float y, float z){super.translate(x,y,z);}
+	
+	/**
+	 * this will translate the passed box dimensions to keep them on the screen
+	 * using p as start point and rectDims[2] and rectDims[3] as width and height
+	 * @param P starting point
+	 * @param rectDims box dimensions 
+	 */
+	@Override
+	public void transToStayOnScreen(myPointf P, float[] rectDims) {
+		float xLocSt = P.x + rectDims[0], xLocEnd = xLocSt + rectDims[2];
+		float yLocSt = P.y + rectDims[1], yLocEnd = yLocSt + rectDims[3];
+		float transX = 0.0f, transY = 0.0f;
+		if (xLocSt < 0) {	transX = -1.0f * xLocSt;	} else if (xLocEnd > width) {transX = width - xLocEnd - 20;}
+		if (yLocSt < 0) {	transY = -1.0f * yLocSt;	} else if (yLocEnd > height) {transY = height - yLocEnd - 20;}
+		super.translate(transX,transY);		
+	}
+
+	@Override
+	public void rotate(float thet, float x, float y, float z) {super.rotate(thet, x, y, z);}
+
+	@Override
+	public void scale(float x) {super.scale(x);}
+	@Override
+	public void scale(float x,float y) {super.scale(x, y);}
+	@Override
+	public void scale(float x,float y,float z) {super.scale(x,y,z);}
+
+	
+
+	////////////////////////
+	// end transformations
+	
+//////////////////////////////////////////////////////
+/// user interaction
+//////////////////////////////////////////////////////	
+	/**
+	 * called by papplet super
+	 */
+	@Override
+	public void mouseWheel(MouseEvent event) {
+		//ticks is how much the wheel has moved one way or the other
+		int ticks = event.getCount();		
+		//AppMgr.mouseWheel(ticks);	
+	}
+		
+	///////////////////////
+	// display directives
+	/**
+	 * opengl hint directive to not check for depth - use this to display text on screen
+	 */
+	@Override
+	public void setBeginNoDepthTest() {hint(PConstants.DISABLE_DEPTH_TEST);}
+	/**
+	 * opengl hint directive to start checking depth again
+	 */
+	@Override
+	public void setEndNoDepthTest() {	hint(PConstants.ENABLE_DEPTH_TEST);}
+
+	/**
+	 * disable lights in scene
+	 */
+	@Override
+	public void disableLights() { noLights();}
+	/**
+	 * enable lights in scene
+	 */
+	@Override
+	public void enableLights(){ lights();}	
+
+	@Override
+	public void bezier(myPoint A, myPoint B, myPoint C, myPoint D) {bezier((float)A.x,(float)A.y,(float)A.z,(float)B.x,(float)B.y,(float)B.z,(float)C.x,(float)C.y,(float)C.z,(float)D.x,(float)D.y,(float)D.z);} // draws a cubic Bezier curve with control points A, B, C, D
+	@Override
+	public final myPoint bezierPoint(myPoint[] C, float t) {return new myPoint(bezierPoint((float)C[0].x,(float)C[1].x,(float)C[2].x,(float)C[3].x,(float)t),bezierPoint((float)C[0].y,(float)C[1].y,(float)C[2].y,(float)C[3].y,(float)t),bezierPoint((float)C[0].z,(float)C[1].z,(float)C[2].z,(float)C[3].z,(float)t)); }
+	@Override
+	public final myVector bezierTangent(myPoint[] C, float t) {return new myVector(bezierTangent((float)C[0].x,(float)C[1].x,(float)C[2].x,(float)C[3].x,(float)t),bezierTangent((float)C[0].y,(float)C[1].y,(float)C[2].y,(float)C[3].y,(float)t),bezierTangent((float)C[0].z,(float)C[1].z,(float)C[2].z,(float)C[3].z,(float)t)); }
+	
+	/**
+	 * vertex with texture coordinates
+	 * @param P vertex location
+	 * @param u,v txtr coords
+	 */
+	public void vTextured(myPointf P, float u, float v) {vertex(P.x,P.y,P.z,u,v);}; 
+	public void vTextured(myPoint P, double u, double v) {vertex((float)P.x,(float)P.y,(float)P.z,(float)u,(float)v);};                         
+	
+	/////////////
+	// show functions 
+	
+	/////////////
+	// text
+	@Override
+	public void showText(String txt, float x, float y) {				text(txt,x,y);}
+	@Override
+	public void showText(String txt, float x, float y, float z ) {	text(txt,x,y,z);}
+	
+	/**
+	 * return the size, in pixels, of the passed text string, accounting for the currently set font dimensions
+	 * @param txt the text string to be measured
+	 * @return the size in pixels
+	 */
+	@Override
+	public float textWidth(String txt) {		return super.textWidth(txt);	}
+	
+	@Override
+	public void textSize(float fontSize) {super.textSize(fontSize);}
+
+	///////////
+	// end text	
+	
+	@Override
+	public void setNoFill() {noFill();}
+	
+	@Override
+	public void setNoStroke(){noStroke();}
+	
+	private void checkClrInts(int fclr, int sclr) {
+		if(fclr > -1){setColorValFill(fclr,255); } else if(fclr <= -2) {noFill();}		
+		if(sclr > -1){setColorValStroke(sclr,255);} else if(sclr <= -2) {noStroke();}
+	}
+	
+	private void checkClrIntArrays(int[] fclr, int[] sclr) {
+		if(fclr!= null){setFill(fclr,255);}
+		if(sclr!= null){setStroke(sclr,255);}
+	}	
+	
+
+	
+	///////////
+	// points
+	
+	@Override
+	public void drawSphere(myPoint P, double rad, int det) {
+		pushMatState(); 
+		sphereDetail(det);
+		translate(P.x,P.y,P.z); 
+		sphere((float) rad); 
+		popMatState();
+	}
+	
+	////////////////////
+	// showing double points as spheres or circles
+
+	
+	/**
+	 * show a point as a sphere, using double point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param det sphere detail
+	 * @param fclr fill color index
+	 * @param sclr scale color index
+	 */
+	@Override
+	public void showPtAsSphere(myPoint P, double r, int det, int fclr, int sclr) {
+		pushMatState();
+		checkClrInts(fclr, sclr);
+		drawSphere(P, r, det);
+		popMatState();
+	}
+	/**
+	 * show a point as a sphere, using double point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param det sphere detail
+	 * @param fclr fill color array
+	 * @param sclr scale color array
+	 */
+	@Override
+	public void showPtAsSphere(myPoint P, double r, int det, int[] fclr, int[] sclr) {
+		pushMatState(); 
+		checkClrIntArrays(fclr, sclr);
+		drawSphere(P, r, det);
+		popMatState();
+	};
+	
+	/**
+	 * show a point as a flat circle, using double point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param fclr fill color index
+	 * @param sclr scale color index
+	 */
+	@Override
+	public void showPtAsCircle(myPoint P, double r, int fclr, int sclr) {
+		pushMatState(); 
+		checkClrInts(fclr, sclr);
+		drawEllipse2D(P,(float)r);				
+		popMatState();
+	}
+	/**
+	 * show a point as a flat circle, using double point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param det sphere detail
+	 * @param fclr fill color array
+	 * @param sclr scale color array
+	 */
+	@Override
+	public void showPtAsCircle(myPoint P, double r, int[] fclr, int[] sclr) {
+		pushMatState(); 
+		checkClrIntArrays(fclr, sclr);
+		drawEllipse2D(P,(float)r);						
+		popMatState();
+	}
+	/**
+	 * show a point either as a sphere or as a circle, with text
+	 * @param P
+	 * @param r
+	 * @param s
+	 * @param D
+	 * @param clr
+	 * @param flat
+	 */
+	@Override
+	public void showPtWithText(myPoint P, double r, String s, myVector D, int clr, boolean flat){
+		if(flat) {			showPtAsCircle(P,r, clr, clr);} 
+		else {			showPtAsSphere(P,r,5, gui_Black, gui_Black);		}
+		pushStyle();setColorValFill(clr,255);showTextAtPt(P,s,D);popStyle();
+	}
+
+	@Override
+	public void showVec( myPoint ctr, double len, myVector v){drawLine(ctr.x,ctr.y,ctr.z,ctr.x+(v.x)*len,ctr.y+(v.y)*len,ctr.z+(v.z)*len);}
+	
+	@Override
+	public void showTextAtPt(myPoint P, String s) {text(s, (float)P.x, (float)P.y, (float)P.z); } // prints string s in 3D at P
+	
+	@Override
+	public void showTextAtPt(myPoint P, String s, myVector D) {text(s, (float)(P.x+D.x), (float)(P.y+D.y), (float)(P.z+D.z));  } // prints string s in 3D at P+D
+	
+	public void show(myPoint P, double rad, int fclr, int sclr, int tclr, String txt) {
+		pushMatState(); 
+		checkClrInts(fclr, sclr);
+		sphereDetail(5);
+		translate((float)P.x,(float)P.y,(float)P.z); 
+		setColorValFill(tclr,255);setColorValStroke(tclr,255);
+		showOffsetText(1.2f * (float)rad,tclr, txt);
+		popMatState();} // render sphere of radius r and center P)
+	
+	public void show(myPoint P, double r, int fclr, int sclr) {
+		pushMatState(); 
+		checkClrInts(fclr, sclr);
+		sphereDetail(5);
+		translate((float)P.x,(float)P.y,(float)P.z); 
+		sphere((float)r); 
+		popMatState();} // render sphere of radius r and center P)
+	
+	public void show(myPoint[] ara) {gl_beginShape(); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} gl_endShape(true);};                     
+	public void show(myPoint[] ara, myVector norm) {gl_beginShape();gl_normal(norm); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} gl_endShape(true);};   
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	// showing functions
+	
+	/**
+	 * this will properly format and display a string of text, and will translate the width, so multiple strings can be displayed on the same line with different colors
+	 * @param tclr
+	 * @param txt
+	 */
+	public final void showOffsetText_RightSideMenu(int[] tclr, float mult,  String txt) {
+		setFill(tclr,tclr[3]);setStroke(tclr,tclr[3]);
+		showText(txt,0.0f,0.0f,0.0f);
+		translate(txt.length()*mult, 0.0f,0.0f);		
+	}
+	
+	public final void showOffsetText(float d, int tclr, String txt){
+		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
+		showText(txt, d, d,d); 
+	}	
+	public final void showOffsetText(myPointf loc, int tclr, String txt){
+		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
+		showText(txt, loc.x, loc.y, loc.z); 
+	}	
+	public final void showOffsetText2D(float d, int tclr, String txt){
+		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
+		showText(txt, d, d,0); 
+	}
+		
+	public final void showBox_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, String txt) {
+		pushMatState();  
+		translate(P.x,P.y,P.z);
+		setColorValFill(IRenderInterface.gui_White,150);
+		setColorValStroke(IRenderInterface.gui_Black,255);
+		drawRect(new float[] {0,6.0f,txt.length()*7.8f,-15});
+		tclr = IRenderInterface.gui_Black;		
+		setFill(fclr,255); setStroke(strkclr,255);			
+		drawSphere(myPointf.ZEROPT, rad, det);
+		showOffsetText(1.2f * rad,tclr, txt);
+		popMatState();
+	} // render sphere of radius r and center P)
+	
+	//translate to point, draw point and text
+	public final void showNoBox_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, String txt) {
+		pushMatState();  
+		setFill(fclr,255); 
+		setStroke(strkclr,255);		
+		translate(P.x,P.y,P.z); 
+		drawSphere(myPointf.ZEROPT, rad, det);
+		showOffsetText(1.2f * rad,tclr, txt);
+		popMatState();
+	} // render sphere of radius r and center P)
+	
+	//textP is location of text relative to point
+	public final void showNoBox_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr, int tclr, myPointf txtP, String txt) {
+		pushMatState();  
+		translate(P.x,P.y,P.z); 
+		setFill(fclr,255); 
+		setStroke(strkclr,255);			
+		drawSphere(myPointf.ZEROPT, rad, det);
+		showOffsetText(txtP,tclr, txt);
+		popMatState();
+	} // render sphere of radius r and center P)
+	
+	//textP is location of text relative to point
+	public final void showCrclNoBox_ClrAra(myPointf P, float rad, int[] fclr, int[] strkclr, int tclr, myPointf txtP, String txt) {
+		pushMatState();  
+		translate(P.x,P.y,P.z); 
+		if((fclr!= null) && (strkclr!= null)){setFill(fclr,255); setStroke(strkclr,255);}		
+		drawEllipse2D(0,0,rad,rad); 
+		drawEllipse2D(0,0,2,2);
+		showOffsetText(txtP,tclr, txt);
+		popMatState();
+	} // render sphere of radius r and center P)
+	
+	//show sphere of certain radius
+	public final void show_ClrAra(myPointf P, float rad, int det, int[] fclr, int[] strkclr) {
+		pushMatState();   
+		if((fclr!= null) && (strkclr!= null)){setFill(fclr,255); setStroke(strkclr,255);}
+		drawSphere(P, rad, det);
+		popMatState();
+	} // render sphere of radius r and center P)
+	
+	///////////
+	// end double points
+	///////////
+	// float points (pointf)
+	
+	@Override
+	public void drawSphere(myPointf P, float rad, int det) {
+		pushMatState(); 
+		sphereDetail(det);
+		translate(P.x,P.y,P.z); 
+		sphere(rad); 
+		popMatState();
+	}	
+	////////////////////
+	// showing float points as spheres or circles	
+	/**
+	 * show a point as a sphere, using float point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param det sphere detail
+	 * @param fclr fill color index
+	 * @param sclr scale color index
+	 */
+	@Override
+	public void showPtAsSphere(myPointf P, float r,int det, int fclr, int sclr) {
+		pushMatState(); 
+		checkClrInts(fclr, sclr);
+		drawSphere(P,(float)r, det);
+		popMatState();		
+	}	
+	/**
+	 * show a point as a sphere, using float point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param det sphere detail
+	 * @param fclr fill color array
+	 * @param sclr scale color array
+	 */
+	@Override
+	public void showPtAsSphere(myPointf P, float r, int det, int[] fclr, int[] sclr){
+		pushMatState(); 
+		checkClrIntArrays(fclr, sclr);
+		drawSphere(P,(float)r, det);
+		popMatState();
+	} // render sphere of radius r and center P)
+	/**
+	 * show a point as a flat circle, using float point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param fclr fill color index
+	 * @param sclr scale color index
+	 */
+	@Override
+	public void showPtAsCircle(myPointf P, float r, int fclr, int sclr) {		
+		pushMatState(); 
+		checkClrInts(fclr, sclr);
+		drawEllipse2D(P,(float)r);		
+		popMatState();		
+	}
+	/**
+	 * show a point as a flat circle, using float point as center
+	 * @param P point for center
+	 * @param r radius
+	 * @param det sphere detail
+	 * @param fclr fill color array
+	 * @param sclr scale color array
+	 */
+	@Override
+	public void showPtAsCircle(myPointf P, float r, int[] fclr, int[] sclr) {		
+		pushMatState(); 
+		checkClrIntArrays(fclr, sclr);
+		drawEllipse2D(P,(float)r);					
+		popMatState();
+	} // render sphere of radius r and center P)
+
+	@Override
+	public void showPtWithText(myPointf P, float r, String s, myVectorf D, int clr, boolean flat){
+		if(flat) {			showPtAsCircle(P,r, clr, clr);} 
+		else {			showPtAsSphere(P,r,5, gui_Black, gui_Black);		}
+		pushStyle();setColorValFill(clr,255);showTextAtPt(P,s,D);popStyle();
+	}
+	
+	@Override
+	public void showVec( myPointf ctr, float len, myVectorf v){line(ctr.x,ctr.y,ctr.z,ctr.x+(v.x)*len,ctr.y+(v.y)*len,ctr.z+(v.z)*len);}
+	
+	@Override
+	public void showTextAtPt(myPointf P, String s) {text(s, P.x, P.y, P.z); } // prints string s in 3D at P
+	
+	@Override
+	public void showTextAtPt(myPointf P, String s, myVectorf D) {text(s, (P.x+D.x), (P.y+D.y),(P.z+D.z));  } // prints string s in 3D at P+D
+	
+	/////////////
+	// show functions using color idxs 
+	/**
+	 * display an array of text at a location on screen
+	 * @param d initial y location
+	 * @param tclr text color
+ 	 * @param txtAra string array to display
+	 */
+	@Override
+	public void showOffsetTextAra(float d, int tclr, String[] txtAra){
+		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
+		float y = d;
+		for (String txt : txtAra) {
+			showText(txt, d, y, d);
+			y+=10;
+		}
+	}	
+
+	/**
+	 * show array displayed at specific point on screens
+	 * @param P
+	 * @param rad
+	 * @param det
+	 * @param clrs
+	 * @param txtAra
+	 */
+	@Override
+	public void showTxtAra(myPointf P, float rad, int det, int[] clrs, String[] txtAra) {//only call with set fclr and sclr - idx0 == fill, idx 1 == strk, idx2 == txtClr
+		pushMatState(); 
+		setColorValFill(clrs[0],255); 
+		setColorValStroke(clrs[1],255);
+		drawSphere(P, rad, det);
+		translate(P.x,P.y,P.z); 
+		showOffsetTextAra(1.2f * rad, clrs[2], txtAra);
+		popMatState();
+	} // render sphere of radius r and center P)
+	
+	/**
+	 * draw a box at a point containing an array of text
+	 * @param P
+	 * @param rad
+	 * @param det
+	 * @param clrs
+	 * @param txtAra
+	 * @param rectDims
+	 */
+	@Override
+	public void showBoxTxtAra(myPointf P, float rad, int det, int[] clrs, String[] txtAra, float[] rectDims) {
+		pushMatState();  		
+			setColorValFill(clrs[0],255); 
+			setColorValStroke(clrs[1],255);
+			translate(P.x,P.y,P.z);
+			drawSphere(myPointf.ZEROPT, rad, det);			
+			
+			pushMatState();  
+			//make sure box doesn't extend off screen
+				transToStayOnScreen(P,rectDims);
+				setColorValFill(IRenderInterface.gui_White,150);
+				setColorValStroke(IRenderInterface.gui_Black,255);
+				setStrokeWt(2.5f);
+				drawRect(rectDims);
+				translate(rectDims[0],0,0);
+				showOffsetTextAra(1.2f * rad, clrs[2], txtAra);
+			 popMatState();
+		 popMatState();
+	} // render sphere of radius r and center P)
+	
+	public void show(myPointf[] ara) {gl_beginShape(); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} gl_endShape(true);};                     
+	public void show(myPointf[] ara, myVectorf norm) {gl_beginShape();gl_normal(norm); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} gl_endShape(true);};                     
+	
+	public void showNoClose(myPoint[] ara) {gl_beginShape(); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} gl_endShape();};                     
+	public void showNoClose(myPointf[] ara) {gl_beginShape(); for(int i=0;i<ara.length;++i){gl_vertex(ara[i]);} gl_endShape();};   
+	
+	///end show functions
+	
+	
+	////////////////////////
+	// splines
+	/**
+	 * implementation of catumull rom - array needs to be at least 4 points, if not, then reuses first and last points as extra cntl points  
+	 * @param pts
+	 */
+	@Override
+	public void catmullRom2D(myPointf[] ara) {
+		if(ara.length < 4){
+			if(ara.length == 0){return;}
+			gl_beginShape(); curveVertex2D(ara[0]);for(int i=0;i<ara.length;++i){curveVertex2D(ara[i]);} curveVertex2D(ara[ara.length-1]);gl_endShape();
+			return;}		
+		gl_beginShape(); for(int i=0;i<ara.length;++i){curveVertex2D(ara[i]);} gl_endShape();
+	}
+	/**
+	 * implementation of catumull rom - array needs to be at least 4 points, if not, then reuses first and last points as extra cntl points  
+	 * @param pts
+	 */
+	@Override
+	public void catmullRom2D(myPoint[] ara) {
+		if(ara.length < 4){
+			if(ara.length == 0){return;}
+			gl_beginShape(); curveVertex2D(ara[0]);for(int i=0;i<ara.length;++i){curveVertex2D(ara[i]);} curveVertex2D(ara[ara.length-1]);gl_endShape();
+			return;}		
+		gl_beginShape(); for(int i=0;i<ara.length;++i){curveVertex2D(ara[i]);} gl_endShape();		
+	}
+	protected final void curveVertex2D(myPoint P) {curveVertex((float)P.x,(float)P.y);};                                           // curveVertex for shading or drawing
+	protected final void curveVertex2D(myPointf P) {curveVertex(P.x,P.y);};                                           // curveVertex for shading or drawing
+	
+	/**
+	 * implementation of catumull rom - array needs to be at least 4 points, if not, then reuses first and last points as extra cntl points  
+	 * @param pts
+	 */
+	@Override
+	public void catmullRom3D(myPointf[] ara) {
+		if(ara.length < 4){
+			if(ara.length == 0){return;}
+			gl_beginShape(); curveVertex3D(ara[0]);for(int i=0;i<ara.length;++i){curveVertex3D(ara[i]);} curveVertex3D(ara[ara.length-1]);gl_endShape();
+			return;}		
+		gl_beginShape(); for(int i=0;i<ara.length;++i){curveVertex3D(ara[i]);} gl_endShape();
+	}
+	/**
+	 * implementation of catumull rom - array needs to be at least 4 points, if not, then reuses first and last points as extra cntl points  
+	 * @param pts
+	 */
+	@Override
+	public void catmullRom3D(myPoint[] ara) {
+		if(ara.length < 4){
+			if(ara.length == 0){return;}
+			gl_beginShape(); curveVertex3D(ara[0]);for(int i=0;i<ara.length;++i){curveVertex3D(ara[i]);} curveVertex3D(ara[ara.length-1]);gl_endShape();
+			return;}		
+		gl_beginShape(); for(int i=0;i<ara.length;++i){curveVertex3D(ara[i]);} gl_endShape();		
+	}
+	
+	protected final void curveVertex3D(myPoint P) {curveVertex((float)P.x,(float)P.y,(float)P.z);};                                           // curveVertex for shading or drawing
+	protected final void curveVertex3D(myPointf P) {curveVertex(P.x,P.y,P.z);};                                           // curveVertex for shading or drawing
+
+
+	///////////////////////////////////
+	// getters/setters
+	//////////////////////////////////
+	
+	/**
+	 * returns application window width in pxls
+	 * @return
+	 */
+	@Override
+	public final int getWidth() {return width;}
+	/**
+	 * returns application window height in pxls
+	 * @return
+	 */
+	@Override
+	public final int getHeight() {return height;}	
+	
+	/**
+	 * set smoothing level based on renderer
+	 * @param smthLvl 0 == no smoothing,  	int: either 2, 3, 4, or 8 depending on the renderer
+	 */
+	@Override
+	public void setSmoothing(int smthLvl) {
+		if (smthLvl == 0) {	noSmooth();	}
+		else {			smooth(smthLvl);}
+	}
+	/**
+	 * set camera to passed 9-element values - should be called from window!
+	 * @param camVals
+	 */
+	@Override
+	public void setCameraWinVals(float[] camVals) {		camera(camVals[0],camVals[1],camVals[2],camVals[3],camVals[4],camVals[5],camVals[6],camVals[7],camVals[8]);}
+	/**
+	 * used to handle camera location/motion
+	 */
+	@Override
+	public void setCamOrient(float rx, float ry){rotateX(rx);rotateY(ry); rotateX(MyMathUtils.HALF_PI_F);		}//sets the rx, ry, pi/2 orientation of the camera eye	
+	/**
+	 * used to draw text on screen without changing mode - reverses camera orientation setting
+	 */
+	@Override
+	public void unSetCamOrient(float rx, float ry){rotateX(-MyMathUtils.HALF_PI_F); rotateY(-ry);   rotateX(-rx); }//reverses the rx,ry,pi/2 orientation of the camera eye - paints on screen and is unaffected by camera movement
+
+	/**
+	 * return x screen value for 3d point
+	 * @param x
+	 * @param y
+	 * @param z
+	 */
+	@Override
+	public float getSceenX(float x, float y, float z) {		return screenX(x,y,z);	};
+	/**
+	 * return y screen value for 3d point
+	 * @param x
+	 * @param y
+	 * @param z
+	 */
+	@Override
+	public float getSceenY(float x, float y, float z) {		return screenY(x,y,z);	};
+	/**
+	 * return screen value of z (Z-buffer) for 3d point
+	 * @param x
+	 * @param y
+	 * @param z
+	 */
+	@Override
+	public float getSceenZ(float x, float y, float z) {		return screenZ(x,y,z);	};
+	
+	/**
+	 * return target frame rate
+	 * @return
+	 */
+	@Override
+	public final float getFrameRate() {return frameRate;}
+	@Override
+	public final myPoint getMouse_Raw() {return new myPoint(mouseX, mouseY,0);}                                          			// current mouse location
+	@Override
+	public final myVector getMouseDrag() {return new myVector(mouseX-pmouseX,mouseY-pmouseY,0);};                     			// vector representing recent mouse displacement
+	
+	@Override
+	public final myPointf getMouse_Raw_f() {return new myPointf(mouseX, mouseY,0);}                                          			// current mouse location
+	@Override
+	public final myVectorf getMouseDrag_f() {return new myVectorf(mouseX-pmouseX,mouseY-pmouseY,0);};                     			// vector representing recent mouse displacement
+
+	@Override
+	public final int[] getMouse_Raw_Int() {return new int[] {mouseX, mouseY};}                                          			// current mouse location
+	@Override
+	public final int[] getMouseDrag_Int() {return new int[] {mouseX-pmouseX,mouseY-pmouseY};};              			// vector representing recent mouse displacement
+
+	/**
+	 * get depth at specified screen dim location
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	@Override
+	public float getDepth(int x, int y) {
+		PGL pgl = beginPGL();
+		FloatBuffer depthBuffer = ByteBuffer.allocateDirect(1 << 2).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		int newY = height - y;		pgl.readPixels(x, newY - 1, 1, 1, PGL.DEPTH_COMPONENT, PGL.FLOAT, depthBuffer);
+		float depthValue = depthBuffer.get(0);
+		endPGL();
+		return depthValue;
+	}
+	
+	/**
+	 * determine world location as myPoint based on mouse click and passed depth
+	 * @param x
+	 * @param y
+	 * @param depth
+	 * @return
+	 */
+	@Override
+	public myPoint getWorldLoc(int x, int y, float depth){
+		int newY = height - y;
+		float depthValue = depth;
+		if(depth == -1){depthValue = getDepth( x,  y); }	
+		//get 3d matrices
+		PGraphics3D p3d = (PGraphics3D)g;
+		PMatrix3D proj = p3d.projection.get(), modelView = p3d.modelview.get(), modelViewProjInv = proj; modelViewProjInv.apply( modelView ); modelViewProjInv.invert();	  
+		float[] viewport = {0, 0, width, height},
+				normalized = new float[] {
+						((x - viewport[0]) / viewport[2]) * 2.0f - 1.0f, 
+						((newY - viewport[1]) / viewport[3]) * 2.0f - 1.0f, 
+						depthValue * 2.0f - 1.0f, 
+						1.0f};	  
+		float[] unprojected = new float[4];	  
+		modelViewProjInv.mult( normalized, unprojected );
+		myPoint pickLoc = new myPoint( unprojected[0]/unprojected[3], unprojected[1]/unprojected[3], unprojected[2]/unprojected[3] );
+		return pickLoc;
+	}		
+	/**
+	 * determine world location as myPointf based on mouse click and passed depth
+	 * @param x
+	 * @param y
+	 * @param depth
+	 * @return
+	 */
+	@Override
+	public myPointf getWorldLoc_f(int x, int y, float depth){
+		int newY = height - y;
+		float depthValue = depth;
+		
+		if(depth == -1){depthValue = getDepth( x,  y); }	
+		//get 3d matrices
+		PGraphics3D p3d = (PGraphics3D)g;
+		PMatrix3D proj = p3d.projection.get(), modelView = p3d.modelview.get(), modelViewProjInv = proj; modelViewProjInv.apply( modelView ); modelViewProjInv.invert();	  
+		float[] viewport = {0, 0, width, height},
+				normalized = new float[] {
+						((x - viewport[0]) / viewport[2]) * 2.0f - 1.0f, 
+						((newY - viewport[1]) / viewport[3]) * 2.0f - 1.0f, 
+						depthValue * 2.0f - 1.0f, 
+						1.0f};	  
+		float[] unprojected = new float[4];	  
+		modelViewProjInv.mult( normalized, unprojected );
+		myPointf pickLoc = new myPointf( unprojected[0]/unprojected[3], unprojected[1]/unprojected[3], unprojected[2]/unprojected[3] );
+		return pickLoc;
+	}		
+
+	@Override
+	public final myPoint getScrLocOf3dWrldPt(myPoint pt){	return new myPoint(screenX((float)pt.x,(float)pt.y,(float)pt.z),screenY((float)pt.x,(float)pt.y,(float)pt.z),screenZ((float)pt.x,(float)pt.y,(float)pt.z));}
+	
+	/////////////////////		
+	///color utils
+	/////////////////////
+
+	@Override
+	public void setFill(int r, int g, int b, int alpha){fill(r,g,b,alpha);}
+	@Override
+	public void setStroke(int r, int g, int b, int alpha){stroke(r,g,b,alpha);}
+	/**
+	 * set stroke weight
+	 */
+	@Override
+	public void setStrokeWt(float stW) {	strokeWeight(stW);}
+	@Override
+	public void setColorValFill(int colorVal, int alpha){
+		if(colorVal == gui_TransBlack) {
+			fill(0x00010100);//	have to use hex so that alpha val is not lost    TODO not taking care of alpha here
+		} else {
+			setFill(getClr(colorVal, alpha), alpha);
+		}	
+	}//setcolorValFill
+	@Override
+	public void setColorValStroke(int colorVal, int alpha){
+		setStroke(getClr(colorVal, alpha), alpha);		
+	}//setcolorValStroke	
+	@Override
+	public void setColorValFillAmb(int colorVal, int alpha){
+		if(colorVal == gui_TransBlack) {
+			fill(0x00010100);//	have to use hex so that alpha val is not lost    
+			ambient(0,0,0);
+		} else {
+			int[] fillClr = getClr(colorVal, alpha);
+			setFill(fillClr, alpha);
+			ambient(fillClr[0],fillClr[1],fillClr[2]);
+		}		
+	}//setcolorValFill
+
+	/**
+	 * any instancing-class-specific colors - colorVal set to be higher than IRenderInterface.gui_OffWhite
+	 * @param colorVal
+	 * @param alpha
+	 * @return
+	 */
+	@Override
+	public int[] getClr_Custom(int colorVal, int alpha) {return getRndClr(alpha); }		
+	@Override
+	public final int[] getRndClr(int alpha){return new int[]{(int)random(0,255),(int)random(0,255),(int)random(0,255),alpha};	}
+	@Override
+	public final int[] getRndClrBright(int alpha){return new int[]{(int)random(50,255),(int)random(25,200),(int)random(80,255),alpha};	}
+	
+	@Override
+	public final int getRndClrIndex(){return (int)random(0,IRenderInterface.gui_nextColorIDX);}		//return a random color flag value from IRenderInterface
+	 
+	
+	@Override
+	public final Integer[] getClrMorph(int[] a, int[] b, double t){
 		if(t==0){return new Integer[]{a[0],a[1],a[2],a[3]};} else if(t==1){return new Integer[]{b[0],b[1],b[2],b[3]};}
 		return new Integer[]{(int)(((1.0f-t)*a[0])+t*b[0]),(int)(((1.0f-t)*a[1])+t*b[1]),(int)(((1.0f-t)*a[2])+t*b[2]),(int)(((1.0f-t)*a[3])+t*b[3])};
 	}
-
-	//used to generate random color
-	public static final int gui_rnd = -1;
-	//color indexes
-	public static final int gui_Black 	= 0;
-	public static final int gui_White 	= 1;	
-	public static final int gui_Gray 	= 2;
-	
-	public static final int gui_Red 	= 3;
-	public static final int gui_Blue 	= 4;
-	public static final int gui_Green 	= 5;
-	public static final int gui_Yellow 	= 6;
-	public static final int gui_Cyan 	= 7;
-	public static final int gui_Magenta = 8;
-	
-	public static final int gui_LightRed = 9;
-	public static final int gui_LightBlue = 10;
-	public static final int gui_LightGreen = 11;
-	public static final int gui_LightYellow = 12;
-	public static final int gui_LightCyan = 13;
-	public static final int gui_LightMagenta = 14;
-	public static final int gui_LightGray = 15;
-
-	public static final int gui_DarkCyan = 16;
-	public static final int gui_DarkYellow = 17;
-	public static final int gui_DarkGreen = 18;
-	public static final int gui_DarkBlue = 19;
-	public static final int gui_DarkRed = 20;
-	public static final int gui_DarkGray = 21;
-	public static final int gui_DarkMagenta = 22;
-	
-	public static final int gui_FaintGray = 23;
-	public static final int gui_FaintRed = 24;
-	public static final int gui_FaintBlue = 25;
-	public static final int gui_FaintGreen = 26;
-	public static final int gui_FaintYellow = 27;
-	public static final int gui_FaintCyan = 28;
-	public static final int gui_FaintMagenta = 29;
-	
-	public static final int gui_TransBlack = 30;
-	public static final int gui_TransGray = 31;
-	public static final int gui_TransMagenta = 32;	
-	public static final int gui_TransLtGray = 33;
-	public static final int gui_TransRed = 34;
-	public static final int gui_TransBlue = 35;
-	public static final int gui_TransGreen = 36;
-	public static final int gui_TransYellow = 37;
-	public static final int gui_TransCyan = 38;	
-	public static final int gui_TransWhite = 39;	
-	public static final int gui_OffWhite = 40;
 
 }

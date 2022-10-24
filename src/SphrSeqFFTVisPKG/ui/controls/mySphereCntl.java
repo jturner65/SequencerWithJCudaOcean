@@ -120,7 +120,7 @@ public class mySphereCntl {
 		ctr = new myPoint();
 		setCtr(initThet, 0);
 		//ctr=pa.P(_ctr);
-		drawCtr = pa.P(ctr);
+		drawCtr = new myPoint(ctr);
 		specClr = new int[_clrs[0].length];
 		ambClr = new int[_clrs[1].length];
 		emissiveClr = new int[_clrs[2].length];
@@ -617,17 +617,17 @@ public class mySphereCntl {
 		pa.translate(pa.P(radarBarEndPt)._mult(1.1));
 		pa.rotate(-lastPlayAlpha, cntlRotAxis);
 		//pa.rotate(-curSwpRotAmt, cntlRotAxis);
-		pa.setColorValFill(SeqVisFFTOcean.gui_Black);
+		pa.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
 		
 		//pa.text(""+curSwpRotAmt, 0, -0);
 		pa.popStyle();pa.popMatrix();			
 	}	
 		
 	private void drawName(){
-		pa.setColorValFill(SeqVisFFTOcean.gui_DarkGray);
+		pa.setColorValFill(SeqVisFFTOcean.gui_DarkGray, 255);
 		pa.translate(-2*name.length(),0,0);
 		pa.rect(-10,-11,name.length()*8 + 10,15);
-		pa.setColorValFill(SeqVisFFTOcean.gui_White);
+		pa.setColorValFill(SeqVisFFTOcean.gui_White, 255);
 		pa.text(name, 0, 0);	
 	}
 	

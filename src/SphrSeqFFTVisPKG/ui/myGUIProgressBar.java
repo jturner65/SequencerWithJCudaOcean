@@ -23,8 +23,8 @@ public class myGUIProgressBar extends myGUIObj{
 //		p.popStyle();p.popMatrix();
 		p.pushMatrix();p.pushStyle();
 			p.translate(initDrawTrans[0],initDrawTrans[1]);
-			p.setColorValFill(_cVal);
-			p.setColorValStroke(_cVal);
+			p.setColorValFill(_cVal, 255);
+			p.setColorValStroke(_cVal, 255);
 			p.strokeWeight(1.0f);
 			p.stroke(0,0,0,255);
 			p.text(dispText, 0,0);

@@ -1,4 +1,4 @@
-package SphrSeqFFTVisPKG.clef;
+package SphrSeqFFTVisPKG.staff;
 
 import java.util.ArrayList;
 import java.util.Arrays;

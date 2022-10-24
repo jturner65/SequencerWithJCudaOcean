@@ -166,14 +166,14 @@ public class myPianoObj{
 		
 	public void drawMe(){
 		pa.pushMatrix();pa.pushStyle();
-		pa.setColorValFill(SeqVisFFTOcean.gui_Red);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
+		pa.setColorValFill(SeqVisFFTOcean.gui_Red, 255);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
 		pa.strokeWeight(1.0f);
 		pa.rect(pianoDim);		//piano box
 		//white keys		
 		float[] lineYdim = new float[2];
 		for(int i =0; i<pianoWKeyDims.length;++i){
 			pa.pushMatrix();pa.pushStyle();
-			pa.setColorValFill(SeqVisFFTOcean.gui_OffWhite);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
+			pa.setColorValFill(SeqVisFFTOcean.gui_OffWhite, 255);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
 			pa.strokeWeight(.5f);
 			pa.rect(pianoWKeyDims[i]);
 			lineYdim[0] = pianoWKeyDims[i][1]; lineYdim[1] = pianoWKeyDims[i][3];
@@ -183,14 +183,14 @@ public class myPianoObj{
 			}
 			pa.rect(win.whiteKeyWidth,lineYdim[0],winDim[2],lineYdim[1]);	
 
-			pa.setColorValFill(SeqVisFFTOcean.gui_Gray);			
+			pa.setColorValFill(SeqVisFFTOcean.gui_Gray, 255);			
 			pa.text(""+pianoWNotes[i].nameOct, (wkOff_X+.05f)*win.whiteKeyWidth, pianoWKeyDims[i][1]+.85f*keyY);			
 			pa.popStyle();pa.popMatrix();		
 		}
 		//black keys
 		for(int i =0; i<pianoBKeyDims.length;++i){
 			pa.pushMatrix();pa.pushStyle();
-			pa.setColorValFill(SeqVisFFTOcean.gui_Black);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
+			pa.setColorValFill(SeqVisFFTOcean.gui_Black, 255);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
 			pa.rect(pianoBKeyDims[i]);
 			pa.setColorValFill(SeqVisFFTOcean.gui_LightGray,512);
 			pa.noStroke();
@@ -198,7 +198,7 @@ public class myPianoObj{
 			pa.popStyle();pa.popMatrix();		
 		}
 		//vertical bars
-		pa.setColorValStroke(SeqVisFFTOcean.gui_Black);
+		pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
 		pa.strokeWeight(1.0f);
 		float startX = pianoDim[2] + pianoDim[0];
 		for(int i=0;i<numNotesWide;++i){

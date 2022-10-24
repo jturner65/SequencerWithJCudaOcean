@@ -228,8 +228,8 @@ public class myDrawnSmplTraj {
 	//use animTimeMod to animate/decay showing this traj TODO 
 	public void drawMe(float animTimeMod){
 		if(drawnTraj != null){
-			pa.setColorValFill(fillClrCnst);
-			pa.setColorValStroke(strkClrCnst);
+			pa.setColorValFill(fillClrCnst, 255);
+			pa.setColorValStroke(strkClrCnst, 255);
 			for(int i =0; i< edtCrvEndPts.length; ++i){
 				win.showKeyPt(edtCrvEndPts[i],""+ (i+1),ctlRad);
 			}	

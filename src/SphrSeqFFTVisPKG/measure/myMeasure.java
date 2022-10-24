@@ -6,13 +6,13 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myTimeSig;
-import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
+import SphrSeqFFTVisPKG.staff.myTimeSig;
 import SphrSeqFFTVisPKG.ui.myPianoObj;
 import processing.core.PApplet;
 
@@ -88,8 +88,8 @@ public class myMeasure {
 	//draw all the notes in this measure - return whether a new key,timesig or clef has been specified from previous values : 1 if clef, 2 if timesig, 4 if key sig, bitwise combo of all if multiples otherwise none
 	public void drawMe(float xOffset){
 		p.pushMatrix();p.pushStyle();		//draw sequence # of measure
-			p.setColorValFill(SeqVisFFTOcean.gui_Black);
-			p.setColorValStroke(SeqVisFFTOcean.gui_Black);
+			p.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
+			p.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
 			p.strokeWeight(1);
 			p.scale(.75f);
 			p.text(m.seqNum, 0, -staff.getlOff());
@@ -108,8 +108,8 @@ public class myMeasure {
 			p.popStyle();p.popMatrix();
 			p.pushMatrix();p.pushStyle();
 				p.translate(dispWidth, 0);				//drawn end line
-				p.setColorValFill(SeqVisFFTOcean.gui_Black);
-				p.setColorValStroke(SeqVisFFTOcean.gui_Black);
+				p.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
+				p.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
 				p.strokeWeight(2);
 				p.line(0,0,0,4*staff.getlOff());
 			p.popStyle();p.popMatrix();
