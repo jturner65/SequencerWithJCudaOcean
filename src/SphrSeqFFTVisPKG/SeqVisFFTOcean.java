@@ -189,9 +189,11 @@ enum clefVal{
 			}
 	}//main
 	
-	
-	public void settings(){			
-		size((int)(displayWidth*.95f), (int)(displayHeight*.9f),P3D);	
+	private final float maxWinRatio =  1.77777778f;
+	public void settings(){	
+		float displayRatio = displayWidth/(1.0f*displayHeight);
+		float newWidth = (displayRatio > maxWinRatio) ?  displayWidth * maxWinRatio/displayRatio : displayWidth;
+		size((int)(newWidth*.95f), (int)(displayHeight*.92f), P3D);
 	}
 	public void setup(){
 		initOnce();
@@ -365,7 +367,7 @@ enum clefVal{
 	}
 	
 	public void setCamView(){//also sets idx in scene focus and center arrays
-		sceneIDX = (curFocusWin == -1 || this.dispWinIs3D[curFocusWin]) ? 1 : 0;
+		sceneIDX = (curFocusWin == -1 || SeqVisFFTOcean.dispWinIs3D[curFocusWin]) ? 1 : 0;
 		rx = (float)cameraInitLocs[sceneIDX].x;
 		ry = (float)cameraInitLocs[sceneIDX].y;
 		dz = (float)cameraInitLocs[sceneIDX].z;
@@ -1413,14 +1415,14 @@ enum clefVal{
 		noFill();
 		setStroke(noteClr);
 		strokeWeight(1.5f*dims[3]);
-		arc(0,0, dims[2], dims[2], dims[0] - this.HALF_PI, dims[1] - this.HALF_PI);
+		arc(0,0, dims[2], dims[2], dims[0] - PConstants.HALF_PI, dims[1] - PConstants.HALF_PI);
 	}
 	//draw a ring segment from alphaSt in radians to alphaEnd in radians
 	void noteArc(myPoint ctr, float alphaSt, float alphaEnd, float rad, float thickness, int[] noteClr){
 		noFill();
 		setStroke(noteClr);
 		strokeWeight(thickness);
-		arc((float)ctr.x, (float)ctr.y, rad, rad, alphaSt - this.HALF_PI, alphaEnd- this.HALF_PI);
+		arc((float)ctr.x, (float)ctr.y, rad, rad, alphaSt - PConstants.HALF_PI, alphaEnd- PConstants.HALF_PI);
 	}
 	
 	

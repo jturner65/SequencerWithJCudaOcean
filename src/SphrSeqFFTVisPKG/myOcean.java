@@ -99,7 +99,7 @@ public class myOcean implements GLEventListener{
 	public CUfunction[] kFuncs;// generateSpectrumKernel, updateHeightmapKernel, calculateSlopeKernel;
 	public CUmodule module;
 		
-	public boolean[] cudaFlags;
+	protected int[] cudaFlags;
 	public static final int 
 			doneInit 		= 0, 
 			newFreqVals		= 1, 
@@ -133,9 +133,9 @@ public class myOcean implements GLEventListener{
 		tmpSimVals = new ConcurrentSkipListMap<String,Float>();
 		setTmpSimVals();
 		initFlags();
-		cudaFlags[forceRecomp] = win.privFlags[mySimWindow.forceCudaRecompIDX];			//whether or not 
-		cudaFlags[performInvFFT] = !win.privFlags[mySimWindow.showFreqDomainIDX];
-		cudaFlags[newSimVals] = false;
+		setFlags(forceRecomp,win.privFlags[mySimWindow.forceCudaRecompIDX]);			//whether or not 
+		setFlags(performInvFFT, !win.privFlags[mySimWindow.showFreqDomainIDX]);
+		setFlags(newSimVals, false);
 		
 		
 		frame = new JFrame("WaterSurface");
@@ -159,7 +159,28 @@ public class myOcean implements GLEventListener{
 		animator = new Animator(glComponent);
 		animator.start();
 	}
-	private void initFlags(){cudaFlags = new boolean[numCudaFlags]; for(int i =0; i<numCudaFlags;++i){cudaFlags[i]=false;}}
+	//private void initFlags(){cudaFlags = new boolean[numCudaFlags]; for(int i =0; i<numCudaFlags;++i){cudaFlags[i]=false;}}
+	
+	//boolean flag handling
+	protected void initFlags(){cudaFlags = new int[1 + numCudaFlags/32]; for(int i = 0; i<numCudaFlags; ++i){setFlags(i,false);}}
+	public boolean getFlags(int idx){int bitLoc = 1<<(idx%32);return (cudaFlags[idx/32] & bitLoc) == bitLoc;}	
+	public void setFlags(int idx, boolean val) {
+		boolean curVal = getFlags(idx);
+		if(val == curVal) {return;}
+		int flIDX = idx/32, mask = 1<<(idx%32);
+		cudaFlags[flIDX] = (val ?  cudaFlags[flIDX] | mask : cudaFlags[flIDX] & ~mask);
+		switch(idx){
+			case doneInit 		: {break;}	
+			case newFreqVals	: {break;}			
+			case newSimVals		: {break;}
+			case freqValsSet	: {break;}
+			case forceRecomp	: {break;}
+			case performInvFFT	: {break;}
+			default :{}			
+		}			
+	}//setExecFlags
+	
+	
 	
 	public void closeMe() {
 		frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));	
@@ -175,14 +196,14 @@ public class myOcean implements GLEventListener{
 	public void setFreqVals(float[] res1, float[] res2){
 		audFreqRealRes = res1;
 		audFreqImagRes = res2;	
-		cudaFlags[newFreqVals] = true;
+		setFlags(newFreqVals, true);
 	}
 	
 	//if parent UI changes any sim values
 	public void setNewSimVal(String key, float val){
 		tmpSimVals.put(key, val);
 		//tmpSimVals[idx] = val;
-		cudaFlags[newSimVals] = true;
+		setFlags(newSimVals, true);
 		//need to refresh window?
 	}
 	
@@ -196,7 +217,7 @@ public class myOcean implements GLEventListener{
 		initShaders(gl);
 		initJCuda();
 		initVBO(gl);
-		cudaFlags[doneInit] = true;
+		setFlags(doneInit, true);
 		win.sendUIValsToOcean();
 	}
 	
@@ -240,7 +261,7 @@ public class myOcean implements GLEventListener{
 		//compile kernel file
 		String ptxFileName = oceanKernel+".ptx";
 		File f = new File(ptxFileName);
-		if(!(f.exists() && !f.isDirectory()) || (cudaFlags[forceRecomp])) { //try to compile if doesn't exist			
+		if(!(f.exists() && !f.isDirectory()) || (getFlags(forceRecomp))) { //try to compile if doesn't exist			
 			try {	compilePtxFile(oceanKernel+".cu",ptxFileName);} 
 			catch (IOException e) {
 				System.err.println("Could not create PTX file : "+ e.getMessage());
@@ -261,10 +282,11 @@ public class myOcean implements GLEventListener{
 		
 		int spectrumSize = spectrumW * spectrumH * 2;
 		h_h0 = new float[spectrumSize];
+		int spectrumFloatSize = spectrumSize*Sizeof.FLOAT;
 		h_h0 = generate_h0(h_h0);
 		d_h0Ptr = new CUdeviceptr();
-		cuMemAlloc(d_h0Ptr, spectrumSize*Sizeof.FLOAT);
-		cuMemcpyHtoD(d_h0Ptr, Pointer.to(h_h0), spectrumSize*Sizeof.FLOAT);
+		cuMemAlloc(d_h0Ptr, spectrumFloatSize);
+		cuMemcpyHtoD(d_h0Ptr, Pointer.to(h_h0), spectrumFloatSize);
 		
 		int outputSize = meshSzSq*Sizeof.FLOAT*2;
 		d_htPtr = new CUdeviceptr();
@@ -275,16 +297,17 @@ public class myOcean implements GLEventListener{
 
 		d_freqPtr = new CUdeviceptr();		//2x as bg as either d_freqInRPtr or d_freqInCPtr
 		//cuMemAlloc(d_freqPtr, outputSize);
-		cuMemAlloc(d_freqPtr, spectrumSize*Sizeof.FLOAT);
+		cuMemAlloc(d_freqPtr, spectrumFloatSize);
 		//support up to 1024 simultaneous frequencies
 		//make these not device ptrs? only 1 d //TODO
+		int meshFloatSz = meshSize*Sizeof.FLOAT;
 		d_freqInRPtr = new CUdeviceptr();
-		cuMemAlloc(d_freqInRPtr, meshSize*Sizeof.FLOAT);
+		cuMemAlloc(d_freqInRPtr,meshFloatSz);
 		d_freqInCPtr = new CUdeviceptr();
-		cuMemAlloc(d_freqInCPtr, meshSize*Sizeof.FLOAT);
-		cudaFlags[newFreqVals] = false;
-		cudaFlags[freqValsSet] = false;	//legit values have been set
-		cudaFlags[newSimVals] = false;
+		cuMemAlloc(d_freqInCPtr,meshFloatSz);
+		setFlags(newFreqVals, false);
+		setFlags(freqValsSet, false);	//legit values have been set
+		setFlags(newSimVals, false);
 	}//initJCuda
 	
 	//initialize vertex buffer object
@@ -366,7 +389,7 @@ public class myOcean implements GLEventListener{
 	 */
 	private void setUnisInShdr(){
 		int uniHeightScale = gl.glGetUniformLocation(shaderProgramID, "heightScale");
-		gl.glUniform1f(uniHeightScale, heightScale * (cudaFlags[performInvFFT] ? 1.0f : 20.0f));
+		gl.glUniform1f(uniHeightScale, heightScale * (getFlags(performInvFFT) ? 1.0f : 20.0f));
 
 		int uniChopiness = gl.glGetUniformLocation(shaderProgramID, "chopiness");
 		gl.glUniform1f(uniChopiness, chopiness);
@@ -390,7 +413,7 @@ public class myOcean implements GLEventListener{
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		float delta = System.nanoTime();
-		if(cudaFlags[newSimVals]){updateSimVals();}
+		if(getFlags(newSimVals)){updateSimVals();}
 		gl = drawable.getGL().getGL2();
 
 		runCuda();
@@ -463,7 +486,7 @@ public class myOcean implements GLEventListener{
 		freqMix 		= tmpSimVals.get("freqMixIDX");
 		chopiness 		= tmpSimVals.get("chopinessIDX");
 		//thresh	 		= tmpSimVals.get("threshIDX");
-		cudaFlags[newSimVals] = false;
+		setFlags(newSimVals, false);
 	}
 	
 	private void setTmpSimVals(){
@@ -480,14 +503,14 @@ public class myOcean implements GLEventListener{
 	private void runCuda() {
 		Pointer kernelParameters = null;
 		//pa.outStr2Scr("run cuda : freqres1 : " + freqRes1.length);
-		if(cudaFlags[newFreqVals]){
+		if(getFlags(newFreqVals)){
 			cuMemcpyHtoD(d_freqInRPtr, Pointer.to(audFreqRealRes), audFreqRealRes.length*Sizeof.FLOAT);
 			cuMemcpyHtoD(d_freqInCPtr, Pointer.to(audFreqImagRes), audFreqImagRes.length*Sizeof.FLOAT);
-			cudaFlags[newFreqVals] = false;
-			cudaFlags[freqValsSet] = true;
+			setFlags(newFreqVals,false);
+			setFlags(freqValsSet,true);
 		}
 		
-		if(cudaFlags[freqValsSet]){
+		if(getFlags(freqValsSet)){
 			int tblockX = 8;
 			int tblockY = 8;
 			int tgridX = meshSize/tblockX;
@@ -514,7 +537,7 @@ public class myOcean implements GLEventListener{
 			);
 			cuCtxSynchronize();
 	
-			cudaFlags[freqValsSet] = false;
+			setFlags(freqValsSet, false);
 		}
 		
 		int blockX = 8;
@@ -535,7 +558,7 @@ public class myOcean implements GLEventListener{
 				Pointer.to(new float[] { patchSize }));
 		
 		//convert back from frequency domain to spatial domain
-		if(cudaFlags[performInvFFT]) {
+		if(getFlags(performInvFFT)) {
 			cuLaunchKernel(kFuncs[genSpecIDX], 				//recalc phillips spectrum value for each time step
 					gridX, gridY, 1, // Grid dimension
 					blockX, blockY, 1, // Block dimension

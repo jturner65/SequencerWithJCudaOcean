@@ -178,7 +178,7 @@ public class mySimWindow extends myDispWindow {
 			break;
 		}
 		case showFreqDomainIDX 		: {
-			fftOcean.cudaFlags[myOcean.performInvFFT] = !val;
+			fftOcean.setFlags(myOcean.performInvFFT, !val);
 			break;}
 		case useAudioForOceanIDX 	: {
 			if(privFlags[playVisIDX]){
@@ -207,7 +207,7 @@ public class mySimWindow extends myDispWindow {
 		}
 		//pa.outStr2Scr("Song in buffer : " + songTitles[songIDX] + " size: " +  songs[songIDX].bufferSize() + " Sample rate : "+ songs[songIDX].sampleRate());
 		songs[songIDX].play();
-		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[myOcean.doneInit])){return;}
+		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.getFlags(myOcean.doneInit))){return;}
 		fftOcean.setFreqVals(blankRes1, blankRes2);		
 	}
 	
@@ -224,7 +224,7 @@ public class mySimWindow extends myDispWindow {
 			//sum all outputs before using
 			fftSeqLog = new FFT(notesIn.bufferSize(), notesIn.sampleRate()); 
 			fftSeqLog.logAverages(fftMinBandwidth, fftBandsPerOctave);
-			if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[myOcean.doneInit])){return;}
+			if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.getFlags(myOcean.doneInit))){return;}
 			//fftOcean.setFreqVals(new float[1024], new float[1024]);
 			fftOcean.setFreqVals(blankRes1, blankRes2);
 		}
@@ -252,7 +252,7 @@ public class mySimWindow extends myDispWindow {
 	public int getFreqKFunc() {		return perSongBuildKFuncs[songIDX];	}
 	
 	public void setOceanFreqVals(){
-		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[myOcean.doneInit])){return;}
+		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.getFlags(myOcean.doneInit))){return;}
 		if(privFlags[useAudioForOceanIDX]){	setOceanAudio();	} else {setOceanNotes();	}
 	}
 
@@ -431,7 +431,7 @@ public class mySimWindow extends myDispWindow {
 	//set appropriate values from UI
 	@Override
 	protected void setUIWinVals(int UIidx) {
-		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.cudaFlags[myOcean.doneInit])){return;}
+		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.getFlags(myOcean.doneInit))){return;}
 		float val =  (float)(guiObjs[UIidx].getVal());
 		switch(UIidx){
 			case patchSizeIDX 	: {setOceanFFTVal("patchSizeIDX", val, fftOcean.patchSize);break;}//			patchSize 	: Phillips eq : 
