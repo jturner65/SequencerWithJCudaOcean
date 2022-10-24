@@ -1,5 +1,6 @@
-package SphrSeqFFTVisPKG;
+package SphrSeqFFTVisPKG.ui;
 
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.nValType;
@@ -7,7 +8,7 @@ import base_Math_Objects.vectorObjs.doubles.myPoint;
 
 public class myPianoObj{
 	public static SeqVisFFTOcean pa;
-	public static mySequencer win;
+	public static mySequencerWindow win;
 	//dimensions of piano keys, for display and mouse-checking
 	public float[][] pianoWKeyDims, pianoBKeyDims;	
 	//array of note data for each piano key - played if directly clicked on
@@ -24,7 +25,7 @@ public class myPianoObj{
 	public int numWhiteKeys;										//# of white keys on piano - should be 52, maybe resize if smaller?
 	public static  final int numKeys = 88;
 	public int numNotesWide;										//# of notes to show as grid squares
-	public myPianoObj(SeqVisFFTOcean _p, mySequencer _win, float kx, float ky, float[] _pianoDim, int[] _winFillClr, float[] _winDim){
+	public myPianoObj(SeqVisFFTOcean _p, mySequencerWindow _win, float kx, float ky, float[] _pianoDim, int[] _winFillClr, float[] _winDim){
 		pa = _p;
 		win = _win;
 		pianoDim = new float[_pianoDim.length];
@@ -88,7 +89,7 @@ public class myPianoObj{
 		if(resIdx != -1){
 			//measure-less note to be played immediately
 			NoteData tmpa = ( keyType == 0 ? pianoWNotes[resIdx] : pianoBNotes[resIdx]);
-			res = new myNote(pa, tmpa.name, tmpa.octave, null, win.pa.score.staffs.get(win.scoreStaffNames[win.curTrajAraIDX]));
+			res = new myNote(pa, tmpa.name, tmpa.octave, null, win.pa.score.staffs.get(win.getScoreStaffName(win.curTrajAraIDX)));
 			snapClickLoc.set(xLoc,yLoc,0);			
 		}
 		//pa.outStr2Scr("Key x : " + keyClickX+ " Key y : "+keyClickY + " idx : "+resIdx+" Key Type : "+ keyType, true);
@@ -121,7 +122,7 @@ public class myPianoObj{
 			nrDims[0] =(((int)((x-win.whiteKeyWidth)/keyX)) * keyX)+win.whiteKeyWidth;
 			//pa.outStr2Scr("checkRollArea NRDIMS 0 : " + nrDims[0] + " orig x : " + x + " | " +  keyX);
 			NoteData tmpa = ( keyType == 0 ? pianoWNotes[resIdx] : pianoBNotes[resIdx]);
-			res = new myNote(pa, tmpa.name, tmpa.octave, null, win.pa.score.staffs.get(win.scoreStaffNames[win.curTrajAraIDX]));
+			res = new myNote(pa, tmpa.name, tmpa.octave, null, win.pa.score.staffs.get(win.getScoreStaffName(win.curTrajAraIDX)));
 			//pa.outStr2Scr("Note name in checkRollArea : " + res.n.name, true );
 			if(isNatural){//modify note grid dim so box doesn't overlap black keys
 				if (pa.chkHasSharps(res.n.name)){nrDims[1] += win.bkModY; nrDims[3] -= win.bkModY;}//increase y0, decrease y1 coord to make room for black key

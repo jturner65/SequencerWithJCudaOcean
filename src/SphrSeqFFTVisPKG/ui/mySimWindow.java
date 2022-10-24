@@ -1,10 +1,16 @@
-package SphrSeqFFTVisPKG;
+package SphrSeqFFTVisPKG.ui;
 
 import java.util.*;
 
 import javax.swing.*;
 
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.myDispWindow;
+import SphrSeqFFTVisPKG.myDrawnSmplTraj;
+import SphrSeqFFTVisPKG.myGUIObj;
+import SphrSeqFFTVisPKG.myOcean;
 import SphrSeqFFTVisPKG.clef.myKeySig;
+import SphrSeqFFTVisPKG.musicPlayer.myMP3SongHandler;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
@@ -369,7 +375,7 @@ public class mySimWindow extends myDispWindow {
 	//setup UI object for song slider
 	private void setupGUI_XtraObjs() {
 		double stClkY = uiClkCoords[3], sizeClkY = 3*yOff;
-		guiObjs[songTransIDX] = new myGUIBar(pa, this, songTransIDX, "MP3 Transport for ", 
+		guiObjs[songTransIDX] = new myGUIProgressBar(pa, this, songTransIDX, "MP3 Transport for ", 
 				new myVector(0, stClkY,0), new myVector(uiClkCoords[2], stClkY+sizeClkY,0),
 				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, true}, new double[]{xOff,yOff});	
 		
@@ -483,7 +489,7 @@ public class mySimWindow extends myDispWindow {
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
 	@Override
-	protected void processTrajIndiv(myDrawnNoteTraj drawnNoteTraj){}
+	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){}
 	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){	return false;}
 	@Override

@@ -3,7 +3,7 @@ import java.util.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.myDispWindow;
-import SphrSeqFFTVisPKG.myDrawnNoteTraj;
+import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.note.NoteData;
@@ -191,7 +191,7 @@ public class myInstEditWindow extends myDispWindow {
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc){}//not a snap-to window
 	@Override
-	protected void processTrajIndiv(myDrawnNoteTraj drawnNoteTraj){
+	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
 		
 		//traj processing
 	}

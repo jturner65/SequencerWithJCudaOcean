@@ -1,7 +1,11 @@
-package SphrSeqFFTVisPKG;
+package SphrSeqFFTVisPKG.ui;
 
 import java.util.*;
 
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.myDispWindow;
+import SphrSeqFFTVisPKG.myDrawnSmplTraj;
+import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
@@ -13,7 +17,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PApplet;
 import processing.core.PConstants;
 
-public class mySphereUI extends myDispWindow {
+public class mySphereWindow extends myDispWindow {
 	public final int numGUIObjs = 0;												//# of gui objects for ui
 	
 	public TreeMap<String, mySphereCntl> sphereCntls;								//controls for each instrument
@@ -43,7 +47,7 @@ public class mySphereUI extends myDispWindow {
 	//focus location of sphere UI 
 	public static final myPoint fcsCtr = new myPoint(396,396,1190);
 	
-	public mySphereUI(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
+	public mySphereWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
 		//initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
@@ -173,7 +177,7 @@ public class mySphereUI extends myDispWindow {
 					ringRadIDX,
 					pa.sphereImgs[cnt%pa.sphereImgs.length],//,pa.sphereImgs[(idx +1 + pa.sphereImgs.length)%pa.sphereImgs.length],pa.sphereImgs[(idx +2 + pa.sphereImgs.length)%pa.sphereImgs.length]},
 					clrAra);
-			if(scoreStaffNames[i].toLowerCase().contains("Drums".toLowerCase())){
+			if(scoreStaffNames[i].toLowerCase().contains("drums")){
 				//pa.outStr2Scr("Drums are set to be a drumkit");
 				tmpSph.setFlag(mySphereCntl.isDrumKitIDX, true);
 				//tmpSph.isDrumKit=true;
@@ -249,10 +253,10 @@ public class mySphereUI extends myDispWindow {
 		mySphereCntl tmp = sphereCntls.get(curSelSphere);
 		if(null != tmpDrawnTraj){tmp.drawTrajPts(tmpDrawnTraj, animTimeMod);}
 		if(privFlags[showTrajIDX]){
-		TreeMap<String,ArrayList<myDrawnNoteTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
+		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
 			if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 				//pa.outStr2Scr("MATCh : cur sel : " + curSelSphere + " cur instr : " + instrs.get(getTrajAraKeyStr(i)).instrName + " key : " + getTrajAraKeyStr(i));
-				ArrayList<myDrawnNoteTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
+				ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
 				if(null!=tmpAra){	
 					for(int j =0; j<tmpAra.size();++j){tmp.drawTrajPts(tmpAra.get(j),animTimeMod);}
 				}	
@@ -292,8 +296,8 @@ public class mySphereUI extends myDispWindow {
 	protected void drawMe(float animTimeMod) {
 		pa.background(0,15,55,255);
 		drawTunnel();
-		curMseLookVec = pa.canvas.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);			//needs to be here - used for determination of whether a sphere is hit or not
-		curMseLoc3D = pa.canvas.getMseLoc(pa.sceneCtrVals[pa.sceneIDX]);
+		curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);			//needs to be here - used for determination of whether a sphere is hit or not
+		curMseLoc3D = pa.getMseLoc(pa.sceneCtrVals[pa.sceneIDX]);
 		//pa.outStr2Scr("Current mouse loc in 3D : " + curMseLoc3D.toStrBrf() + "| scenectrvals : " + pa.sceneCtrVals[pa.sceneIDX].toStrBrf() +"| current look-at vector from mouse point : " + curMseLookVec.toStrBrf());
 		pa.pushMatrix();pa.pushStyle();
 		pa.noLights();
@@ -385,10 +389,10 @@ public class mySphereUI extends myDispWindow {
 	//print out all trajectories for current sphere
 	public void dbgShowTrajLocs(){
 		if(null != tmpDrawnTraj){	tmpDrawnTraj.dbgPrintAllPoints();}
-		TreeMap<String,ArrayList<myDrawnNoteTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
+		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
 		if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 			pa.outStr2Scr("cur sel sphere: " + curSelSphere);
-			ArrayList<myDrawnNoteTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
+			ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
 			if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){tmpAra.get(j).dbgPrintAllPoints();}	}	
 		}		
 	}
@@ -421,7 +425,7 @@ public class mySphereUI extends myDispWindow {
 		}		
 	}
 	@Override
-	protected void processTrajIndiv(myDrawnNoteTraj drawnNoteTraj){
+	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
 		pa.outStr2Scr("Process traj in sphere ui");
 		sphereCntls.get(curSelSphere).processTrajIndiv(drawnNoteTraj);
 		//traj processing

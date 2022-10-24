@@ -6,13 +6,13 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDrawnNoteTraj;
-import SphrSeqFFTVisPKG.mySphereUI;
+import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myVariStroke;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.ui.mySphereWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import ddf.minim.AudioOutput;
@@ -33,7 +33,7 @@ public class mySphereCntl {
 	
 	public AudioOutput noteOut;			//here or instrument?
 	
-	public mySphereUI win;	//the UI window drawing this sphere cntl	
+	public mySphereWindow win;	//the UI window drawing this sphere cntl	
 	public myInstrument instr;	//the instrument this control handles
 	public String name;
 	
@@ -101,7 +101,7 @@ public class mySphereCntl {
 	
 	//private boolean resendNotes;
 	
-	public mySphereCntl(SeqVisFFTOcean _pa, mySphereUI _win, myInstrument _instr, String _name, float _rad, /**myPoint _ctr,**/ float _orbitRad, float _initAngle, int _UIRingIDX, PImage _txtr, int[][] _clrs){
+	public mySphereCntl(SeqVisFFTOcean _pa, mySphereWindow _win, myInstrument _instr, String _name, float _rad, /**myPoint _ctr,**/ float _orbitRad, float _initAngle, int _UIRingIDX, PImage _txtr, int[][] _clrs){
 		pa = _pa;
 		ID = sphCntl++;
 		win = _win;
@@ -273,7 +273,7 @@ public class mySphereCntl {
 		int clickRing = getClickRing(clickVec);							//ring clicked in - corresponds to note
 		pa.outStr2Scr("sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY  +  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf()// + " cur depth : " + curDepth
 		+ "\n\tRing disp vec (ntRngDispVec) : " + ntRngDispVec.toStrBrf() + " Click ring : " + clickRing
-		+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ mySphereUI.fcsCtr.toStrBrf() 
+		+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ mySphereWindow.fcsCtr.toStrBrf() 
 		+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf()		
 		+"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 		return new myVector(ctrOfNotes,clickFromCtr);
@@ -386,7 +386,7 @@ public class mySphereCntl {
 		return res;
 	}
 			
-	private void convTrajToDrumBeats(myDrawnNoteTraj drawnNoteTraj){
+	private void convTrajToDrumBeats(myDrawnSmplTraj drawnNoteTraj){
 		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		ArrayList<myNote> tmpDrawnSphereNotes = new ArrayList<myNote>();										//new trajectory of notes to play
 		myNote newDrumNote,lastDrumNote = null;
@@ -411,7 +411,7 @@ public class mySphereCntl {
 		}//for each point
 		addDrawnNotesToStruct(pa.flags[pa.clearStaffNewTraj],tmpDrawnSphereNotes);
 	}
-	private void convTrajToNotes(myDrawnNoteTraj drawnNoteTraj){
+	private void convTrajToNotes(myDrawnSmplTraj drawnNoteTraj){
 		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		//TreeMap<Integer,myNote> tmpdrawnStaffNotes = new TreeMap<Integer,myNote>();		
 		ArrayList<myNote> tmpDrawnSphereNotes = new ArrayList<myNote>();										//new trajectory of notes to play
@@ -440,7 +440,7 @@ public class mySphereCntl {
 	}//convTrajToNotes	
 	
 	//convert points in drawnNoteTraj to notes : convert traj notes to actual notes on sphere 
-	public void processTrajIndiv(myDrawnNoteTraj drawnNoteTraj){	
+	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	
 		if(getFlag(isDrumKitIDX)){	convTrajToDrumBeats(drawnNoteTraj);	} 
 		else {				convTrajToNotes(drawnNoteTraj);}
 	}
@@ -461,7 +461,7 @@ public class mySphereCntl {
 			lastPlayAlpha -= PConstants.TWO_PI;
 		}
 		
-		hasFocusVec = pa.V(ctr,mySphereUI.fcsCtr);							//	 unit vector toward eye from non-displaced ctr	
+		hasFocusVec = pa.V(ctr,mySphereWindow.fcsCtr);							//	 unit vector toward eye from non-displaced ctr	
 		ntRngDispVec = myVector._mult(cntlRotAxis, 1.1f*radius );
 		rollAmt += tick * ballSpeedMult;		
 		if(focusZoom == 0){//not zooming any more - either decay or never had focus
@@ -578,7 +578,7 @@ public class mySphereCntl {
 		pa.popStyle();pa.popMatrix();	
 	}
 	
-	public void drawTrajPts(myDrawnNoteTraj traj, float animTimeMod){
+	public void drawTrajPts(myDrawnSmplTraj traj, float animTimeMod){
 		pa.pushMatrix();pa.pushStyle();
 			pa.translate(drawCtr);		//either ctr or displaced position		
 			pa.translate(ntRngDispVec.x,ntRngDispVec.y,ntRngDispVec.z-1.0f);

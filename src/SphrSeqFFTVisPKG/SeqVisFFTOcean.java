@@ -17,6 +17,9 @@ import SphrSeqFFTVisPKG.note.enums.chordType;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.ui.myInstEditWindow;
+import SphrSeqFFTVisPKG.ui.mySequencerWindow;
+import SphrSeqFFTVisPKG.ui.mySimWindow;
+import SphrSeqFFTVisPKG.ui.mySphereWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PApplet;
@@ -678,9 +681,9 @@ import ddf.minim.ugens.*;
 				winDescr = new String[] {"","Piano/Score Editor Window - Draw In Here to enter or edit notes, and to see the resultant score","Control the various instruments using the spheres","Simulation Responds to Music", "Instrument Frequency Response Edit Window"};
 //			//display window initialization	
 		int wIdx = dispPianoRollIDX, fIdx = showSequence;
-		dispWinFrames[wIdx] = new mySequencer(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx],winRectDimClose[wIdx],winDescr[wIdx],canDrawInWin[wIdx]);			
+		dispWinFrames[wIdx] = new mySequencerWindow(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx],winRectDimClose[wIdx],winDescr[wIdx],canDrawInWin[wIdx]);			
 		wIdx = dispSphereUIIDX;fIdx = showSphereUI;
-		dispWinFrames[wIdx] = new mySphereUI(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],canDrawInWin[wIdx]);
+		dispWinFrames[wIdx] = new mySphereWindow(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[wIdx],canDrawInWin[wIdx]);
 		wIdx = dispSimIDX;fIdx = showSimWin;
 		dispWinFrames[wIdx] = new mySimWindow(this, winTitles[wIdx], fIdx,winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx], winRectDimClose[wIdx], winDescr[0],canDrawInWin[wIdx]);
 		wIdx = dispInstEditIDX;fIdx=showInstEdit;
@@ -1017,7 +1020,7 @@ import ddf.minim.ugens.*;
 			case showInstEdit 		: {dispWinFrames[dispInstEditIDX].setShow(val);handleShowWin(dispInstEditIDX-1 ,(val ? 1 : 0),false); setWinsHeight(); break;}	//show InstEdit window
 
 			//case useDrawnVels 		: {for(int i =1; i<dispWinFrames.length;++i){dispWinFrames[i].rebuildAllDrawnTrajs();}break;}
-			case forceInKey			: {if(val){((mySequencer)dispWinFrames[dispPianoRollIDX]).forceAllNotesInKey();}break;}
+			case forceInKey			: {if(val){((mySequencerWindow)dispWinFrames[dispPianoRollIDX]).forceAllNotesInKey();}break;}
 			case moveKeyNoteUp		: {break;}
 			case setGlobalVals		: {break;}
 			default : {break;}
@@ -1224,6 +1227,7 @@ import ddf.minim.ugens.*;
 	public myVector getUScrRightInWorld(){		return canvas.getUScrRightInWorld();}
 	
 	public myPoint getMseLoc(){			return canvas.getMseLoc();}
+	public myPoint getMseLoc(myPoint glbTrans){			return canvas.getMseLoc(glbTrans);}
 	public myPoint getEyeLoc(){			return canvas.getEyeLoc();	}
 	public myPoint getOldMseLoc(){		return canvas.getOldMseLoc();	}	
 	public myVector getMseDragVec(){	return canvas.getMseDragVec();}

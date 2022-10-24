@@ -7,11 +7,11 @@ import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 /**
- * class holds trajctory and 4 macro cntl points, and handling for them
+ * class holds trajectory and 4 macro cntl points, and the handling for them
  * @author 7strb
  *
  */
-public class myDrawnNoteTraj {
+public class myDrawnSmplTraj {
 	public SeqVisFFTOcean pa;
 	public myDispWindow win;
 	public static int trjCnt = 0;
@@ -45,7 +45,7 @@ public class myDrawnNoteTraj {
 	
 	public int ctlRad;
 	
-	public myDrawnNoteTraj(SeqVisFFTOcean _p, myDispWindow _win,float _topOffy, int _fillClrCnst, int _strkClrCnst, boolean _flat, boolean _smCntl){
+	public myDrawnSmplTraj(SeqVisFFTOcean _p, myDispWindow _win,float _topOffy, int _fillClrCnst, int _strkClrCnst, boolean _flat, boolean _smCntl){
 		pa = _p;
 		fillClrCnst = _fillClrCnst; 
 		strkClrCnst = _strkClrCnst;

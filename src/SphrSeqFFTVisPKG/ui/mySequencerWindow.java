@@ -1,8 +1,14 @@
-package SphrSeqFFTVisPKG;
+package SphrSeqFFTVisPKG.ui;
 
 import java.util.*;
 import java.util.Map.Entry;
 
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.myDispWindow;
+import SphrSeqFFTVisPKG.myDrawnSmplTraj;
+import SphrSeqFFTVisPKG.myGUIObj;
+import SphrSeqFFTVisPKG.myTimeSig;
+import SphrSeqFFTVisPKG.myVariStroke;
 import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
@@ -17,7 +23,7 @@ import ddf.minim.AudioOutput;
 import ddf.minim.Minim;
 import ddf.minim.ugens.Waves;
 
-public class mySequencer extends myDispWindow {
+public class mySequencerWindow extends myDispWindow {
 	//this window will allow input of notes overlayed on a "player piano"-style 2D mesh, with piano displayed on left side
 	
 	public int gridX, gridY;									//pxls per grid box
@@ -57,7 +63,7 @@ public class mySequencer extends myDispWindow {
 	
 	public durType defaultNoteLength;			//default note length for each square in piano roll
 	
-	public mySequencer(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
+	public mySequencerWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		updateGridXandY(false);
 		//dispPianoRect = new float[]{0, topOffY, whiteKeyWidth, 52 * gridY};
@@ -392,7 +398,7 @@ public class mySequencer extends myDispWindow {
     } 
     
 	//get notes to display on piano roll from trajectory and put in staff
-	public void calcPRLNotesFromTraj(myDrawnNoteTraj drawnNoteTraj){
+	public void calcPRLNotesFromTraj(myDrawnSmplTraj drawnNoteTraj){
 		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		TreeMap<Integer,myNote> tmpdrawnPRollNotes = new TreeMap<Integer,myNote>();										//new trajectory of notes to play
 		int ticksPerDfltBeat =  defaultNoteLength.getVal();
@@ -449,7 +455,7 @@ public class mySequencer extends myDispWindow {
 		}
 	}	
 	
-	public void calcStaffNotesFromTraj(myDrawnNoteTraj drawnNoteTraj){			//TODO
+	public void calcStaffNotesFromTraj(myDrawnSmplTraj drawnNoteTraj){			//TODO
 		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		TreeMap<Integer,myNote> tmpdrawnStaffNotes = new TreeMap<Integer,myNote>();										//new trajectory of notes to play		
 		int ticksPerDfltBeat =  defaultNoteLength.getVal();
@@ -516,7 +522,7 @@ public class mySequencer extends myDispWindow {
 	}	
 
 	@Override  //
-	protected void processTrajIndiv(myDrawnNoteTraj drawnNoteTraj){
+	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
 		if(privFlags[prlShowPianoIDX]){
 			calcPRLNotesFromTraj(drawnNoteTraj);
 		} else {
@@ -538,7 +544,7 @@ public class mySequencer extends myDispWindow {
 		SortedMap<Integer, myNote> tmpNotes;
 		pa.glblOut.pauseNotes();
 		for(int i =0; i<pa.score.staffs.size(); ++i){	
-			myStaff staff = pa.score.staffs.get(this.scoreStaffNames[i]);
+			myStaff staff = pa.score.staffs.get(scoreStaffNames[i]);
 			if((!staff.stfFlags[myStaff.enabledIDX]) || (!staff.stfFlags[staff.hasNotesIDX])){continue;}
 			//tmpNotes = staff.getSubMapOfNotes(lastPBEQueryPlayTime, curPBEPlayTime);
 			tmpNotes = staff.getAllNotesAndClear(curPBEPlayTime, 1000000000, false);

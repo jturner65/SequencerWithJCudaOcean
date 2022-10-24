@@ -9,6 +9,7 @@ import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.staff.myStaff;
+import SphrSeqFFTVisPKG.ui.myPianoObj;
 
 public class myScore {
 	public static SeqVisFFTOcean pa;

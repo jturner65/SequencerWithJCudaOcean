@@ -35,6 +35,7 @@ import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 
+import SphrSeqFFTVisPKG.ui.mySimWindow;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.*;
