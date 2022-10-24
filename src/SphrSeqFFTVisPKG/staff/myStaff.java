@@ -5,12 +5,12 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.keySigVals;
-import SphrSeqFFTVisPKG.myKeySig;
 import SphrSeqFFTVisPKG.myPianoObj;
 import SphrSeqFFTVisPKG.myScore;
 import SphrSeqFFTVisPKG.myTimeSig;
+import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
+import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;

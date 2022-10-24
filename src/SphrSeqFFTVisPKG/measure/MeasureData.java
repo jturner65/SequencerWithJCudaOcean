@@ -1,8 +1,8 @@
 package SphrSeqFFTVisPKG.measure;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myKeySig;
 import SphrSeqFFTVisPKG.myTimeSig;
+import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 
 /**

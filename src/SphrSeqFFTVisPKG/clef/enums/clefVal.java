@@ -1,4 +1,4 @@
-package SphrSeqFFTVisPKG.clef;
+package SphrSeqFFTVisPKG.clef.enums;
 
 import java.util.HashMap;
 import java.util.Map;

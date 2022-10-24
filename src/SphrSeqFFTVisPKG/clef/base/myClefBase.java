@@ -1,7 +1,7 @@
 package SphrSeqFFTVisPKG.clef.base;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.clef.clefVal;
+import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import processing.core.PImage;

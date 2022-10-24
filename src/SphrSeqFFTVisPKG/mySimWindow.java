@@ -4,6 +4,7 @@ import java.util.*;
 
 import javax.swing.*;
 
+import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;

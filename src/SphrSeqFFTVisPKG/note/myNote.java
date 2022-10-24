@@ -3,7 +3,7 @@ package SphrSeqFFTVisPKG.note;
 import java.util.ArrayList;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myKeySig;
+import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.enums.durType;

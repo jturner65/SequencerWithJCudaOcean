@@ -3,7 +3,8 @@ package SphrSeqFFTVisPKG;
 import java.util.*;
 import java.util.Map.Entry;
 
-import SphrSeqFFTVisPKG.clef.clefVal;
+import SphrSeqFFTVisPKG.clef.myKeySig;
+import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;

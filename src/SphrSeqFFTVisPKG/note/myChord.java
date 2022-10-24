@@ -5,7 +5,7 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myKeySig;
+import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.enums.chordType;
 import SphrSeqFFTVisPKG.note.enums.nValType;

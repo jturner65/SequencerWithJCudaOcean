@@ -6,10 +6,10 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.*;
 
-import SphrSeqFFTVisPKG.clef.clefVal;
 import SphrSeqFFTVisPKG.clef.myClef;
 import SphrSeqFFTVisPKG.clef.myGrandClef;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
+import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
@@ -1228,7 +1228,7 @@ import ddf.minim.ugens.*;
 	public myPoint getOldMseLoc(){		return canvas.getOldMseLoc();	}	
 	public myVector getMseDragVec(){	return canvas.getMseDragVec();}
 
-	
+	public myVector getMse2DtoMse3DinWorld(myPoint glbTrans) { return canvas.getMse2DtoMse3DinWorld(glbTrans);}
 	/**
 	 * get depth at specified screen dim location
 	 * @param x

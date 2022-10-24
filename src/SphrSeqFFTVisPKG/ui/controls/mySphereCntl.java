@@ -49,7 +49,7 @@ public class mySphereCntl {
 	//graphical components for sphere UI
 	//needs texture to map on sphere, and color settings for sphere and display
 
-	public int numNoteRings = 36;	//# of note rings to draw -> changing this will force a change to the drum machine
+	public final int numNoteRings = 36;	//# of note rings to draw -> changing this will force a change to the drum machine
 	public float radius, invRadius,
 		ballSpeedMult;					//multiplier for playback time for this instrument, to speed up or slow down ball rolling
 	public final float ringRad = 4;			//for ray cast calc, ringrad==radius difference between drawn note rings
@@ -77,7 +77,8 @@ public class mySphereCntl {
 					  panIDX = 2;
 
 	public myPoint mseClkDisp;			//displacement to click location on concentric note ring
-	public static final myPoint ctrOfNotes = new myPoint(911.7756, 475.4429, -200.0001);			//ctr point in click space of notes - measure distance from this point /ringRad to get rel note value from start note
+	//public static final myPoint ctrOfNotes = new myPoint(911.7756, 475.4429, -200.0001);			//ctr point in click space of notes - measure distance from this point /ringRad to get rel note value from start note
+	public static final myPoint ctrOfNotes = new myPoint(1214.5973, 648.0260, 33.5801);			//ctr point in click space of notes - measure distance from this point /ringRad to get rel note value from start note
 	public float curFcsZoom, 
 				rollAmt,				//for rolling animation
 				rotAmt,					//rotation around center				
@@ -196,6 +197,10 @@ public class mySphereCntl {
 		//walking = (Math.random() < .950) ? walking : !walking;
 		if(Math.random() <= prob){setFlag(idx,!getFlag(idx));}		
 	}
+	
+	protected int getClickRing(myVector clickVec) {
+		return (int)(clickVec._mag()/(ringRad*.5f));
+	}
   	
 
 	public boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, myVector mseClickRayDir){
@@ -203,17 +208,16 @@ public class mySphereCntl {
 		//pa.outStr2Scr("Click in sphere : " + ID + " mseClckInWorld : " + mseClckInWorld.toStrBrf());
 		myPoint clickLocInRings = getMouseLoc3D(mouseX, mouseY);
 		myVector clickVec =  getClickVec(mouseX, mouseY);
+		int clickRing = getClickRing(clickVec);		
 		if(clickLocInRings != null){				
-//			pa.outStr2Scr("hndlMouseClickIndiv sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   
-////					+  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf() 
-////			+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() 
-//			+ " Clicked ring :\t" + clickRing 
-//			+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
+			pa.outStr2Scr("hndlMouseClickIndiv sphere ID : " + ID + " clickLocInRings not null : sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   
+					+  " \tPick Res (clickLoc) : " + clickLocInRings.toStrBrf() 
+			+ "\n\tClick from ctr : " + clickLocInRings.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() + " Clicked ring : " + clickRing 
+			+ "\n\tVec from ring ctr to click : " +clickVec.toStrBrf() + " | mseClkDisp : "+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 		} else { //outside of sweep circle, check if on controlls
-//			myPoint clickLoc = getClickLoc(mouseX, mouseY);
-//			myPoint	clickFromCtr = myPoint._sub(clickLoc,mseClkDisp);
+			myPoint clickLoc = getClickLoc(mouseX, mouseY);
+			myPoint	clickFromCtr = myPoint._sub(clickLoc,mseClkDisp);
 //			double clickDist = clickVec._mag();
-			int clickRing = (int)(clickVec._mag()/(ringRad*.5f));				
 			if(clickRing <= 0){//clear out trajectories
 				win.clearAllTrajectories();
 				clearNotes();
@@ -224,10 +228,10 @@ public class mySphereCntl {
 //				+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 			}
 			
-			//pa.outStr2Scr("hndlMouseClickIndiv outside note circles sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   +  " \tclickVec : " + clickVec.toStrBrf() );
-//			+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() + " Clicked ring :\t" + clickRing 
-//			+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
-			//myVector curMseLookVec = pa.c.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);
+			pa.outStr2Scr("hndlMouseClickIndiv outside note circles sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   +  " \tclickVec : " + clickVec.toStrBrf()
+			+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() + " Clicked ring :\t" + clickRing 
+			+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
+//			myVector curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);
 //			myVector noteCtr = new myVector(ctrOfNotes);
 			for(int i=0;i<3;++i){		//get rid of these once we have values being set via UI input
 				boolean hit = cntls[i].hitMeMini(new myVector(clickVec));
@@ -265,20 +269,21 @@ public class mySphereCntl {
 		//float curDepth = 0.5779974f;// need to force this here so that swapping windows with sequencer doesn't screw up pick depth.  
 		myPoint clickLoc = getClickLoc(mouseX, mouseY),
 				clickFromCtr = myPoint._sub(clickLoc,mseClkDisp);
-//		myVector clickVec = new myVector(ctrOfNotes,clickFromCtr);
-//		int clickRing = (int)(clickVec._mag()/(ringRad*.5f));						//ring clicked in - corresponds to note
-//		pa.outStr2Scr("sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY  +  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf()// + " cur depth : " + curDepth
-//		+ "\n\tRing disp vec (ntRngDispVec) : " + ntRngDispVec.toStrBrf() + " Click ring : " + clickRing
-//		+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ mySphereUI.fcsCtr.toStrBrf() 
-//		+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf()		
-//		+"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
+		myVector clickVec = new myVector(ctrOfNotes,clickFromCtr);
+		int clickRing = getClickRing(clickVec);							//ring clicked in - corresponds to note
+		pa.outStr2Scr("sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY  +  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf()// + " cur depth : " + curDepth
+		+ "\n\tRing disp vec (ntRngDispVec) : " + ntRngDispVec.toStrBrf() + " Click ring : " + clickRing
+		+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ mySphereUI.fcsCtr.toStrBrf() 
+		+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf()		
+		+"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 		return new myVector(ctrOfNotes,clickFromCtr);
 	}
 	
 	//called by traj drawing routine
 	public myPoint getMouseLoc3D(int mouseX, int mouseY) {
 		myVector clickVec =  getClickVec(mouseX, mouseY);
-		int clickRing = (int)(clickVec._mag()/(ringRad*.5f));		
+		//int clickRing = (int)(clickVec._mag()/(ringRad*.5f));	
+		int clickRing = getClickRing(clickVec);		
 		if((clickRing >=  numNoteRings) || (clickRing <= 0)) {	return null;}
 		return clickVec;	
 	}
@@ -346,9 +351,10 @@ public class mySphereCntl {
 	//return the note corresponding to the passed point
 	public myNote getNoteFromSphereLoc(myPoint pt){
 		myVector ptDirCtrVec = new myVector(pt);
+		int clickRing = getClickRing(ptDirCtrVec);		
 		ptDirCtrVec._normalize();
 		double clickDist = pa.P()._dist(pt);
-		int clickRing = (int)(clickDist/(ringRad*.5f));						//ring clicked in - corresponds to note
+		//int clickRing = (int)(clickDist/(ringRad*.5f));						//ring clicked in - corresponds to note
 		if(clickDist > .5*(ringRad * (numNoteRings+1))){
 			pa.outStr2Scr("Bad Note value - outside ring bounds : " + clickRing + " loc : " + pt.toStrBrf());
 			return null;
@@ -363,10 +369,11 @@ public class mySphereCntl {
 	//return the drum sample "note" corresponding to the passed point
 	public myNote getDrumNoteFromSphereLoc(myPoint pt){
 		myVector ptDirCtrVec = new myVector(pt);
+		int noteSphereRing = getClickRing(ptDirCtrVec);		
 		ptDirCtrVec._normalize();
 		double clickDist = pa.P()._dist(pt); 
-		int noteSphereRing = (int)(clickDist/(ringRad*.5f));
-		int clickRing = 36 -(4*((36-noteSphereRing)/4));						//ring clicked in - corresponds to note
+		//int noteSphereRing = (int)(clickDist/(ringRad*.5f));
+		int clickRing = numNoteRings -(4*((numNoteRings-noteSphereRing)/4));						//ring clicked in - corresponds to note
 		//pa.outStr2Scr("click ring in getDrum note : " + clickRing + "  original noteSphrRing : " + noteSphereRing );
 		if(clickDist > .5*(ringRad * (numNoteRings+1))){
 			pa.outStr2Scr("Bad Note value - outside ring bounds : " + clickRing + " loc : " + pt.toStrBrf());

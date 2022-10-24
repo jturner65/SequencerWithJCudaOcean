@@ -1,8 +1,10 @@
-package SphrSeqFFTVisPKG;
+package SphrSeqFFTVisPKG.clef;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 
 public class myKeySig {

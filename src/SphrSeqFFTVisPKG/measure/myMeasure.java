@@ -6,9 +6,9 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myKeySig;
 import SphrSeqFFTVisPKG.myPianoObj;
 import SphrSeqFFTVisPKG.myTimeSig;
+import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;

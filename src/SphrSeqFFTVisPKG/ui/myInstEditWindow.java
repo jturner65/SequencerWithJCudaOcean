@@ -5,7 +5,7 @@ import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.myDrawnNoteTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
-import SphrSeqFFTVisPKG.myKeySig;
+import SphrSeqFFTVisPKG.clef.myKeySig;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
