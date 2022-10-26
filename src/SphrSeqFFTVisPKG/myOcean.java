@@ -36,15 +36,16 @@ import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 
 import SphrSeqFFTVisPKG.ui.mySimWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.*;
 import jcuda.jcufft.*;
-import processing.core.PConstants;
 
 //class implementing external window for fft ocean surface, based on cuda example.
 public class myOcean implements GLEventListener{
-	public SeqVisFFTOcean pa;
+	public IRenderInterface pa;
 	public mySimWindow win;
 	public JFrame frame;
 	public Animator animator;
@@ -69,7 +70,7 @@ public class myOcean implements GLEventListener{
 			//UI mod variables
 			patchSize = 75.0f,
 			windSpeed = 50.0f,
-			windDir = (float) (Math.PI / 3.0f),
+			windDir = MyMathUtils.THIRD_PI_F,
 			dirDepend = 0.07f,
 			heightScale = 0.5f,
 			freqMix = 0,						//amount of frequency data to mix into simulation
@@ -134,8 +135,8 @@ public class myOcean implements GLEventListener{
 		tmpSimVals = new ConcurrentSkipListMap<String,Float>();
 		setTmpSimVals();
 		initFlags();
-		setFlags(forceRecomp,win.privFlags[mySimWindow.forceCudaRecompIDX]);			//whether or not 
-		setFlags(performInvFFT, !win.privFlags[mySimWindow.showFreqDomainIDX]);
+		setFlags(forceRecomp,win.getPrivFlags(mySimWindow.forceCudaRecompIDX));			//whether or not 
+		setFlags(performInvFFT, !win.getPrivFlags(mySimWindow.showFreqDomainIDX));
 		setFlags(newSimVals, false);
 		
 		
@@ -233,7 +234,7 @@ public class myOcean implements GLEventListener{
 	
 	public void delMe(){
 		try{
-			pa.outStr2Scr("Attempting to Release Ocean variables");
+			win.getMsgObj().dispInfoMessage("myOcean","delMe","Attempting to Release Ocean variables");
 			cuMemFree(d_h0Ptr);
 			cuMemFree(d_htPtr);
 			cuMemFree(d_slopePtr);
@@ -246,7 +247,7 @@ public class myOcean implements GLEventListener{
 			gl.glDeleteBuffers(1, IntBuffer.wrap(new int[] {slopeVertexBuffer}));
 			
 		} catch (Exception e1){
-			pa.outStr2Scr("error when closing frame");
+			win.getMsgObj().dispInfoMessage("myOcean","delMe","Error when closing frame : ");
 			e1.printStackTrace();
 		}
 		//System.exit(0);
@@ -664,7 +665,7 @@ public class myOcean implements GLEventListener{
 	
 	//initial setup of ocean
 	public float[] generate_h0(float[] h0) {
-		float kMult = (PConstants.TWO_PI / patchSize);
+		float kMult = (MyMathUtils.TWO_PI_F / patchSize);
 		int nMshHalf = -meshSize/2; 
 		float kx,ky,P,Er,Ei,h0_re,h0_im, L = (windSpeed*windSpeed/g), lsq = (L*L);
 		//Min kx : -42.89321Max kx : 42.89321Min ky : -42.89321Max ky : 42.89321
@@ -677,8 +678,8 @@ public class myOcean implements GLEventListener{
 				else {P = (float) (Math.sqrt(phillips(kx, ky, windDir, windSpeed, wScl, dirDepend,lsq)));	}
 				Er = (float) rnd.nextGaussian();
 				Ei = (float) rnd.nextGaussian();
-				h0_re = (Er*P * pa.SQRT2);
-				h0_im = (Ei*P * pa.SQRT2);
+				h0_re = (Er*P * MyMathUtils.SQRT_2_F);
+				h0_im = (Ei*P * MyMathUtils.SQRT_2_F);
 
 				int i2 = 2* (y * spectrumW + x);
 				h0[i2] = h0_re;
@@ -728,7 +729,7 @@ public class myOcean implements GLEventListener{
 		//build compilation command
 		String command = "nvcc " + modelString + " -ptx " + cuFile.getPath() + " -o " + ptxFileName;
 		//execute compilation
-		pa.outStr2Scr("Executing\n" + command);
+		win.getMsgObj().dispInfoMessage("myOcean","compilePtxFile","Executing\n" + command);
 		Process process = Runtime.getRuntime().exec(command);
 
 		String errorMessage = new String(toByteArray(process.getErrorStream())), outputMessage = new String(toByteArray(process.getInputStream()));
@@ -740,12 +741,12 @@ public class myOcean implements GLEventListener{
 		}
 
 		if (exitValue != 0) {
-			pa.outStr2Scr("nvcc process error : exitValue : " + exitValue);
-			pa.outStr2Scr("errorMessage :\n" + errorMessage);
-			pa.outStr2Scr("outputMessage :\n" + outputMessage);
+			win.getMsgObj().dispInfoMessage("myOcean","compilePtxFile","nvcc process error : exitValue : " + exitValue);
+			win.getMsgObj().dispInfoMessage("myOcean","compilePtxFile","errorMessage :\n" + errorMessage);
+			win.getMsgObj().dispInfoMessage("myOcean","compilePtxFile","outputMessage :\n" + outputMessage);
 			throw new IOException("Could not create .ptx file: " + errorMessage);
 		}
-		pa.outStr2Scr("Finished compiling PTX file : "+ ptxFileName);
+		win.getMsgObj().dispInfoMessage("myOcean","compilePtxFile","Finished compiling PTX file : "+ ptxFileName);
 	}
 
 	public byte[] toByteArray(InputStream inputStream) throws IOException {

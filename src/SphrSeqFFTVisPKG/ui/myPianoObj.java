@@ -1,13 +1,14 @@
 package SphrSeqFFTVisPKG.ui;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 
 public class myPianoObj{
-	public static SeqVisFFTOcean pa;
+	public static IRenderInterface pa;
 	public static mySequencerWindow win;
 	//dimensions of piano keys, for display and mouse-checking
 	public float[][] pianoWKeyDims, pianoBKeyDims;	
@@ -25,7 +26,7 @@ public class myPianoObj{
 	public int numWhiteKeys;										//# of white keys on piano - should be 52, maybe resize if smaller?
 	public static  final int numKeys = 88;
 	public int numNotesWide;										//# of notes to show as grid squares
-	public myPianoObj(SeqVisFFTOcean _p, mySequencerWindow _win, float kx, float ky, float[] _pianoDim, int[] _winFillClr, float[] _winDim){
+	public myPianoObj(IRenderInterface _p, mySequencerWindow _win, float kx, float ky, float[] _pianoDim, int[] _winFillClr, float[] _winDim){
 		pa = _p;
 		win = _win;
 		pianoDim = new float[_pianoDim.length];
@@ -69,19 +70,19 @@ public class myPianoObj{
 	//return note clicked on if clicked on piano directly
 	public myNote checkClick(int mouseX, int mouseY, myPoint snapClickLoc){
 		myNote res = null;
-		if(!pa.ptInRange(mouseX, mouseY, pianoDim[0], pianoDim[1], pianoDim[0]+pianoDim[2], pianoDim[1]+pianoDim[3])){return res;}//not in this window)
+		if(!MyMathUtils.ptInRange(mouseX, mouseY, pianoDim[0], pianoDim[1], pianoDim[0]+pianoDim[2], pianoDim[1]+pianoDim[3])){return res;}//not in this window)
 		int resIdx = -1, keyType = -1;
 		double xLoc = 0, yLoc = 0;
 		boolean found = false;
 		//black keys
 		for(int i =0; i<pianoBKeyDims.length;++i){
-			if(pa.ptInRange(mouseX, mouseY, pianoBKeyDims[i][0],pianoBKeyDims[i][1],pianoBKeyDims[i][0]+pianoBKeyDims[i][2],pianoBKeyDims[i][1] + pianoBKeyDims[i][3])){
+			if(MyMathUtils.ptInRange(mouseX, mouseY, pianoBKeyDims[i][0],pianoBKeyDims[i][1],pianoBKeyDims[i][0]+pianoBKeyDims[i][2],pianoBKeyDims[i][1] + pianoBKeyDims[i][3])){
 				resIdx = i;	keyType = 1;found = true; xLoc =pianoBKeyDims[i][0]+(.5f*pianoBKeyDims[i][2]); yLoc  =pianoBKeyDims[i][1]+(.5f*pianoBKeyDims[i][3]); 	break; 
 			}
 		}
 		if(!found){//prevent double-taps with black keys
 			for(int i =0; i<pianoWKeyDims.length;++i){
-				if(pa.ptInRange(mouseX, mouseY, pianoWKeyDims[i][0],pianoWKeyDims[i][1],pianoWKeyDims[i][0]+pianoWKeyDims[i][2],pianoWKeyDims[i][1]+pianoWKeyDims[i][3])){
+				if(MyMathUtils.ptInRange(mouseX, mouseY, pianoWKeyDims[i][0],pianoWKeyDims[i][1],pianoWKeyDims[i][0]+pianoWKeyDims[i][2],pianoWKeyDims[i][1]+pianoWKeyDims[i][3])){
 					resIdx = i;keyType = 0;found = true;xLoc =pianoWKeyDims[i][0]+(wkOff_X*pianoWKeyDims[i][2]); yLoc =pianoWKeyDims[i][1]+(.5f*pianoWKeyDims[i][3]); 	break;
 				}
 			}
@@ -103,7 +104,7 @@ public class myPianoObj{
 		int resIdx = -1, keyType = -1;
 		boolean found = false, isNatural = false, isBlkKey = false;
 		for(int i =0; i<pianoBKeyDims.length;++i){
-			if(pa.ptInRange(x, y, win.whiteKeyWidth,pianoBKeyDims[i][1],winDim[2],pianoBKeyDims[i][1] + pianoBKeyDims[i][3])){
+			if(MyMathUtils.ptInRange(x, y, win.whiteKeyWidth,pianoBKeyDims[i][1],winDim[2],pianoBKeyDims[i][1] + pianoBKeyDims[i][3])){
 				resIdx = i;	keyType = 1;found = true;  	nrDims[1] = pianoBKeyDims[i][1]; nrDims[2] = keyX;nrDims[3] = pianoBKeyDims[i][3];
 				isBlkKey = true;
 				break; 
@@ -111,7 +112,7 @@ public class myPianoObj{
 		}
 		if(!found){//prevent double-taps with black keys
 			for(int i =0; i<pianoWKeyDims.length;++i){
-				if(pa.ptInRange(x, y, win.whiteKeyWidth,pianoWKeyDims[i][1],winDim[2],pianoWKeyDims[i][1]+pianoWKeyDims[i][3])){
+				if(MyMathUtils.ptInRange(x, y, win.whiteKeyWidth,pianoWKeyDims[i][1],winDim[2],pianoWKeyDims[i][1]+pianoWKeyDims[i][3])){
 					resIdx = i;keyType = 0;found = true;nrDims[1] = pianoWKeyDims[i][1]; nrDims[2] = keyX;nrDims[3] = pianoWKeyDims[i][3];
 					isNatural=(i != 0);	//treat all keys but c7 as naturals - this is to decrease size of drawn box
 					break;

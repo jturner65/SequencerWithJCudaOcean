@@ -2,7 +2,6 @@ package SphrSeqFFTVisPKG.ui;
 import java.util.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.note.NoteData;
@@ -10,12 +9,13 @@ import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
-public class myInstEditWindow extends myDispWindow {
+public class myInstEditWindow extends myMusicSimWindow {
 	
 	public static final int 
 		trajEditsADSR 			= 0;					//drawn trajectory edits ADSR for instrument, otherwise we're editing oscil mults
@@ -34,22 +34,22 @@ public class myInstEditWindow extends myDispWindow {
 		
 		super.initThisWin(_canDrawTraj, false);
 	}
+	/**
+	 * Build button descriptive arrays : each object array holds true label, false label, and idx of button in owning child class
+	 * this must return count of -all- booleans managed by privFlags, not just those that are interactive buttons (some may be 
+	 * hidden to manage booleans that manage or record state)
+	 * @param tmpBtnNamesArray ArrayList of Object arrays to be built containing all button definitions. 
+	 * @return count of -all- booleans to be managed by privFlags
+	 */
 	@Override
-	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
-		truePrivFlagNames = new String[]{								//needs to be in order of flags
-				"ADSR->Harm  "
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Harm->ADSR  "
-		};
-		privModFlgIdxs = new int[]{trajEditsADSR};
-		numClickBools = privModFlgIdxs.length;	
-		//maybe have call for 		initPrivBtnRects(0);	
-		initPrivBtnRects(0,numClickBools);
+	public final int initAllPrivBtns_Indiv(ArrayList<Object[]> tmpBtnNamesArray) {
+		
+		
+		return tmpBtnNamesArray.size();
 	}
-
-	protected void initMe() {		
+	
+	@Override
+	protected void initMe_Indiv() {		
 		dispFlags[canDrawTraj] = true;			//to edit instrument qualities need to use drawn trajectories		
 //		dispFlags[uiObjsAreVert] = true;
 		//init specific sim flags
@@ -71,7 +71,7 @@ public class myInstEditWindow extends myDispWindow {
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
-	protected void setupGUIObjsAras(){	
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){	
 		//pa.outStr2Scr("setupGUIObjsAras in :"+ name);
 		int numInstrs = 0;
 		if(pa.score!=null){

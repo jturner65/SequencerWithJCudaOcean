@@ -1,9 +1,10 @@
-package SphrSeqFFTVisPKG;
+package SphrSeqFFTVisPKG.score;
 
 import java.util.ArrayList;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.nValType;
@@ -11,10 +12,11 @@ import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
 import SphrSeqFFTVisPKG.ui.myPianoObj;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 
 public class myScore {
 	public static SeqVisFFTOcean pa;
-	public myDispWindow w;
+	public myMusicSimWindow w;
 	public static int sngCnt = 0;
 	public int ID;
 	public String songName;	
@@ -37,7 +39,7 @@ public class myScore {
 	//distance between staffs
 	public static final float stOff = 90, boxStX = 0, boxStY = 10;
 	
-	public myScore(SeqVisFFTOcean _p, myDispWindow _w,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstrument> _inst) {
+	public myScore(SeqVisFFTOcean _p, myMusicSimWindow _w,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstrument> _inst) {
 		pa=_p;
 		w=_w;
 		ID = sngCnt++;
@@ -54,7 +56,7 @@ public class myScore {
 		initScrFlags();
 	}	
 
-	public myScore(SeqVisFFTOcean _p,myDispWindow _w, String _name, float[] _scoreDim) {
+	public myScore(SeqVisFFTOcean _p,myMusicSimWindow _w, String _name, float[] _scoreDim) {
 		this(_p,_w,_name,_scoreDim,new ArrayList<String>(),new ArrayList<myInstrument>());
 	}		
 	public void initScrFlags(){		scrFlags = new boolean[numScrFlags];for(int i=0;i<numScrFlags;++i){scrFlags[i]=false;}	}

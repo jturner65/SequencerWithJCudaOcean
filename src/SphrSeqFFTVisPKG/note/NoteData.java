@@ -3,6 +3,7 @@ package SphrSeqFFTVisPKG.note;
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 /**
  * convenience class to hold the important values for a note
@@ -10,7 +11,6 @@ import SphrSeqFFTVisPKG.note.enums.nValType;
  *
  */
 public class NoteData implements Comparable<NoteData> {//only compares start time
-	public static SeqVisFFTOcean p;
 	public static final float Cn1 = 16.352f;		//baseline for note frequency
 	//note value
 	public nValType name;
@@ -30,23 +30,21 @@ public class NoteData implements Comparable<NoteData> {//only compares start tim
 	
 	public boolean isSharp;		//this note is a black key (always a sharp)
 		
-	public NoteData(SeqVisFFTOcean _p,nValType _name, int _octave){
-		p=_p;
+	public NoteData(nValType _name, int _octave){
 		setNoteVals(_name,_octave, 1.0f);
 		setDur(0);
 		if(_name == nValType.rest){setRest();}
 	}	
 	
 	public NoteData(NoteData _n){//copy ctor
-		p=_n.p;
 		setNoteVals(_n.name,_n.octave, _n.amplitude);
 		setDur(_n.dur);
 		setDurType();
 		stTime = _n.stTime;
 	}
 	
-	public NoteData(SeqVisFFTOcean _p,int d, int s, nValType _name, int _octave){
-		this(_p,  _name, _octave);
+	public NoteData(int d, int s, nValType _name, int _octave){
+		this(_name, _octave);
 		setDur(d);
 		stTime = s;
 		if(_name == nValType.rest){setRest();}
@@ -130,7 +128,7 @@ public class NoteData implements Comparable<NoteData> {//only compares start tim
 		name = _name;
 		octave = _octave;
 		nameOct = "" + name+octave;
-		isSharp = !p.isNaturalNote(name);
+		isSharp = !name.isNaturalNote();
 		amplitude = amp;
 		float octaveMult = (octave*12 + name.getVal());
 		freq = (float) (Cn1 * Math.pow(2.0f,(1.0f*octaveMult)/12.0f));

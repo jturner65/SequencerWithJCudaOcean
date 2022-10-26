@@ -5,13 +5,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myScore;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.score.myScore;
 import SphrSeqFFTVisPKG.ui.myPianoObj;
 
 import java.util.SortedMap;
@@ -455,10 +455,7 @@ public class myStaff {
 	}
 	//playback - returns all notedata for all notes and chords in this measure sorted by start time
 	//play all notes via staff's instrument
-	public void play(float curPBEPlayTime){
-		
-		
-	}
+	public void play(float curPBEPlayTime){	}
 
 	// add new sequence # and new start time
 	public void addNewTimeSeq(int newSeq, int sttime){

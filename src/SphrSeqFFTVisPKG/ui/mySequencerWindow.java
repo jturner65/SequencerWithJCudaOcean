@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.myVariStroke;
@@ -17,23 +16,19 @@ import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import ddf.minim.AudioOutput;
-import ddf.minim.Minim;
 import ddf.minim.ugens.Waves;
 
-public class mySequencerWindow extends myDispWindow {
+public class mySequencerWindow extends myMusicSimWindow {
 	//this window will allow input of notes overlayed on a "player piano"-style 2D mesh, with piano displayed on left side
 	
 	public int gridX, gridY;									//pxls per grid box
 	public final float whiteKeyWidth = 78;
 	public float bkModY;				//how long, in pixels, is a white key, blk key is 2/3 as long
 	//displayed piano
-	private myPianoObj dispPiano;	
-	//private float[] dispPianoRect;
-	
-//	/public float tempoDurRatio = 1.0f;
+	private myPianoObj dispPiano;
 	
 	public int numTrajNoteRpts;
 	
@@ -73,23 +68,24 @@ public class mySequencerWindow extends myDispWindow {
 		//setup clickable regions for flag buttons - 1 per boolean flag
 		super.initThisWin(_canDrawTraj, false);
 	}
+
+
+	/**
+	 * Build button descriptive arrays : each object array holds true label, false label, and idx of button in owning child class
+	 * this must return count of -all- booleans managed by privFlags, not just those that are interactive buttons (some may be 
+	 * hidden to manage booleans that manage or record state)
+	 * @param tmpBtnNamesArray ArrayList of Object arrays to be built containing all button definitions. 
+	 * @return count of -all- booleans to be managed by privFlags
+	 */
 	@Override
-	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
-		truePrivFlagNames = new String[]{								//needs to be in order of flags
-				"Hide Piano Roll"
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Show Piano Roll"
-		};
-		privModFlgIdxs = new int[]{prlShowPianoIDX};
-		numClickBools = privModFlgIdxs.length;	
-		//maybe have call for 		initPrivBtnRects(0);	
-		initPrivBtnRects(0,numClickBools);
+	public final int initAllPrivBtns_Indiv(ArrayList<Object[]> tmpBtnNamesArray) {
+		
+		
+		return tmpBtnNamesArray.size();
 	}
 
 	@Override
-	protected void initMe() {//init/reinit this window
+	protected void initMe_Indiv() {//init/reinit this window
 	//	dispFlags[uiObjsAreVert] = true;
 		dispFlags[drawsPBERet] = true;
 		dispFlags[plays] = true;						//this window responds to travelling reticle

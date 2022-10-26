@@ -1,17 +1,17 @@
 package SphrSeqFFTVisPKG.staff;
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 public class myTimeSig{
-	public SeqVisFFTOcean p;
+	public IRenderInterface p;
 	public static int tsigCnt = 0;
 	public final int ID;
 	public final int beatPerMeas, beatNote;
 	public final durType noteType;
 	public float[] drawDim;
 	
-	public myTimeSig(SeqVisFFTOcean _p, int _bPerMeas, int _beatNote, durType _noteType){
+	public myTimeSig(IRenderInterface _p, int _bPerMeas, int _beatNote, durType _noteType){
 		p=_p;
 		ID = tsigCnt++;
 		beatPerMeas =_bPerMeas; 
@@ -31,18 +31,18 @@ public class myTimeSig{
 	
 	//assumes starting at upper left of drawing rectangle - yOff is offset from drawing-control parent
 	public void drawMe(float offset){
-		p.pushMatrix();p.pushStyle();
+		p.pushMatState();
 		p.translate(drawDim[0] + offset,drawDim[1]);
-			p.pushMatrix();p.pushStyle();
+			p.pushMatState();
 			p.scale(2.0f);
-			p.text(beatPerMeas, 0, 0);
-			p.popStyle();p.popMatrix();	
+			p.showText(""+beatPerMeas, 0.0f, 0.0f);
+			p.popMatState();
 		p.translate(0,drawDim[1]);
-			p.pushMatrix();p.pushStyle();
+			p.pushMatState();
 			p.scale(2.0f);
-			p.text(beatNote, 0, 0);
-			p.popStyle();p.popMatrix();	
-		p.popStyle();p.popMatrix();		}
+			p.showText(""+beatNote, 0, 0);
+			p.popMatState();
+		p.popMatState();	}
 	public int getTicksPerBeat(){return noteType.getVal();}	
 	
 	public float tSigMult(){

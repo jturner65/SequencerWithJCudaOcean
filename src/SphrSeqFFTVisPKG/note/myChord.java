@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.enums.chordType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 //collection of notes related in some way for a single instrument, also holds data for root of chord
 public class myChord extends myNote{
@@ -23,13 +24,13 @@ public class myChord extends myNote{
 	public TreeMap<String, myNote> cnotes;	//keyed by frequency
 		
 	//note passed is root of chord
-	public myChord(SeqVisFFTOcean _p, nValType _name, int _octave, myMeasure _measure, myStaff _stf) {
-		super(_p,_name,_octave,_measure,_stf);
+	public myChord(myMusicSimWindow _win, nValType _name, int _octave, myMeasure _measure, myStaff _stf) {
+		super(_win,_name,_octave,_measure,_stf);
 		initChord();
 	} 
 	//turn a note into a chord
-	public myChord(SeqVisFFTOcean _p, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
-		super(_p, _alphaSt, _alphaEnd, _ring, _sphrOwn);
+	public myChord(myMusicSimWindow _win,  float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
+		super(_win, _alphaSt, _alphaEnd, _ring, _sphrOwn);
 		initChord();
 	}
 	//turn a note into a chord
@@ -67,7 +68,7 @@ public class myChord extends myNote{
 	public void setChordType(chordType chrd, boolean keyBased, myKeySig key){
 		this.type = chrd;
 		if(this.type == chordType.None){return;}	//do not modify "none" chords
-		int[] noteDispAra = p.getChordDisp(chrd), indNDisp;
+		int[] noteDispAra = win.getChordDisp(chrd), indNDisp;
 		int numNotes = noteDispAra.length;
 		ArrayList<myNote> newCNotes = new ArrayList<myNote>();
 		myNote newNote;
@@ -83,10 +84,10 @@ public class myChord extends myNote{
 		//
 		if(flags[isFromSphere]){
 			for(int i =1; i<numNotes; ++i){
-				newNote = new myNote(p,  this.sphereDims[1], this.sphereDims[1], this.sphereRing, this.sphrOwn);
+				newNote = new myNote(win, this.sphereDims[1], this.sphereDims[1], this.sphereRing, this.sphrOwn);
 				if(noteDispAra[i] > 12){noteDispAra[i] -= 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave+1);}
 				if(noteDispAra[i] < -12){noteDispAra[i] += 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave-1);}
-				indNDisp = p.getNoteDisp(newNote.n, noteDispAra[i]);
+				indNDisp = win.getNoteDisp(newNote.n, noteDispAra[i]);
 				newNote.n.editNoteVal(nValType.getVal(indNDisp[0]), indNDisp[1]);
 			}		
 		
@@ -95,7 +96,7 @@ public class myChord extends myNote{
 				newNote = new myNote(this);
 				if(noteDispAra[i] > 12){noteDispAra[i] -= 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave+1);}
 				if(noteDispAra[i] < -12){noteDispAra[i] += 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave-1);}
-				indNDisp = p.getNoteDisp(newNote.n, noteDispAra[i]);
+				indNDisp = win.getNoteDisp(newNote.n, noteDispAra[i]);
 				newNote.n.editNoteVal(nValType.getVal(indNDisp[0]), indNDisp[1]);
 			}		
 		}
@@ -104,21 +105,21 @@ public class myChord extends myNote{
 	}//setChordType
 	
 	@Override
-	public void drawMePRL(){
-		p.rect(gridDims);
-		for(Entry<String, myNote> note : cnotes.entrySet()){if(this.ID != note.getValue().ID){note.getValue().drawMePRL();}}
+	public void drawMePRL(IRenderInterface p){
+		p.drawRect(gridDims);
+		for(Entry<String, myNote> note : cnotes.entrySet()){if(this.ID != note.getValue().ID){note.getValue().drawMePRL(p);}}
 	}
 	
 	@Override
-	public void drawMeSphere(){
-		this.drawMeSpherePriv();
-		for(Entry<String, myNote> note : cnotes.entrySet()){if(this.ID != note.getValue().ID){note.getValue().drawMeSphere();}}	
+	public void drawMeSphere(IRenderInterface p){
+		this.drawMeSpherePriv(p);
+		for(Entry<String, myNote> note : cnotes.entrySet()){if(this.ID != note.getValue().ID){note.getValue().drawMeSphere(p);}}	
 	}
 
 	@Override
-	public void drawMe(){
-		drawMePriv();
-		for(Entry<String, myNote> note : cnotes.entrySet()){if(this.ID != note.getValue().ID){note.getValue().drawMe();}}
+	public void drawMe(IRenderInterface p){
+		drawMePriv(p);
+		for(Entry<String, myNote> note : cnotes.entrySet()){if(this.ID != note.getValue().ID){note.getValue().drawMe(p);}}
 	}
 	@Override	
 	public void moveNoteHalfStep(myKeySig _key, ArrayList<nValType> keyAra, boolean up){		

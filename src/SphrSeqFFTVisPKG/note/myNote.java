@@ -2,14 +2,16 @@ package SphrSeqFFTVisPKG.note;
 
 import java.util.ArrayList;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 /**
@@ -18,7 +20,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
  *
  */
 public class myNote {
-	public SeqVisFFTOcean p;
+	public myMusicSimWindow win;
 	public static int nCnt = 0;
 	public int ID;		
 	public float noteC4DispLoc;		//displacement for this note from C4 for display purposes, governed by owning staff
@@ -57,14 +59,14 @@ public class myNote {
 	
 	
 	//build note then set duration
-	public myNote(SeqVisFFTOcean _p, nValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
-		p=_p;
+	public myNote(myMusicSimWindow _win, nValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
+		win=_win;
 		ID = nCnt++;	
 		meas = _measure;
 		owningStaff = _owningStaff;
 		sphrOwn = null;
-		noteWidth = owningStaff.getlOff() * p.ntWdthMult;		//modify based on duration ? TODO
-		n = new NoteData(p,_name, _octave);
+		noteWidth = owningStaff.getlOff() * win.ntWdthMult;		//modify based on duration ? TODO
+		n = new NoteData(_name, _octave);
 		tupleVal = -1;
 		gridDims = new float[]{0,0,0,0};
 		sphereDims = new float[]{0,0,0,0};
@@ -80,8 +82,8 @@ public class myNote {
 		flags[isInStaff] = (owningStaff.getClefsAtTime(n.stTime).isOnStaff(n) == 0);
 	}	
 	//ctor for note data for notes in spherical UI
-	public myNote(SeqVisFFTOcean _p, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
-		p=_p;
+	public myNote(myMusicSimWindow _win, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn){
+		win=_win;
 		ID = nCnt++;	
 		meas = null;	
 		sphrOwn = _sphrOwn;
@@ -92,12 +94,12 @@ public class myNote {
 	}
 	
 	public myNote(myNote _note){
-		p=_note.p;
+		win=_note.win;
 		ID = nCnt++;	
 		meas = _note.meas;
 		owningStaff = _note.owningStaff;
 		sphrOwn = _note.sphrOwn;
-		noteWidth = owningStaff.getlOff() * p.ntWdthMult;		
+		noteWidth = owningStaff.getlOff() * win.ntWdthMult;		
 		n = new NoteData(_note.n);
 		tupleVal = _note.tupleVal;
 		gridDims = new float[]{0,0,0,0};
@@ -118,11 +120,11 @@ public class myNote {
 	//sphere dims are alphaSt, alphaEnd, ring, thickness
 	public void setSphereDims(float _alphaSt, float _alphaEnd, int _ring){
 		sphereAlpha = _alphaSt;
-		if(sphereAlpha < 0){ sphereAlpha = p.TWO_PI + sphereAlpha;}		//add 2 pi if negative
+		if(sphereAlpha < 0){ sphereAlpha = MyMathUtils.TWO_PI_F + sphereAlpha;}		//add 2 pi if negative
 		float tmpAlphaEnd = _alphaEnd;
-		if(tmpAlphaEnd < 0){ tmpAlphaEnd = p.TWO_PI + tmpAlphaEnd;}		//add 2 pi if negative
+		if(tmpAlphaEnd < 0){ tmpAlphaEnd = MyMathUtils.TWO_PI_F + tmpAlphaEnd;}		//add 2 pi if negative
 		//if(tmpAlphaEnd < sphereAlpha){float tmp = sphereAlpha; sphereAlpha = tmpAlphaEnd; tmpAlphaEnd=tmp;}			
-		if(tmpAlphaEnd < sphereAlpha){tmpAlphaEnd = p.TWO_PI + tmpAlphaEnd;}
+		if(tmpAlphaEnd < sphereAlpha){tmpAlphaEnd = MyMathUtils.TWO_PI_F + tmpAlphaEnd;}
 		sphereDims = new float[]{sphereAlpha,tmpAlphaEnd,(_ring + .5f)*sphrOwn.ringRad,sphrOwn.ringRad};
 		sphereRing = _ring;	
 		sphereDur = sphrOwn.getTickFromAlpha(sphereDims[1] - sphereDims[0]);
@@ -130,7 +132,7 @@ public class myNote {
 	}
 	//build the note data given the loaded sphere dims
 	public void buildSphereNoteName(){
-		if(sphrOwn == null){ p.outStr2Scr("Error buildSphereNoteName : sphrOwn is null"); return;}
+		if(sphrOwn == null){ win.getMsgObj().dispErrorMessage("myNote","buildSphereNoteName","Error buildSphereNoteName : sphrOwn is null"); return;}
 		myClefBase clef = sphrOwn.instr.clef;
 		n = new NoteData(clef.getSphereMidNote());		//use the middle note of the clef as the starting point, then assign that note data value to the middle of the note rings, find disp of actual ring from middle, and displace note data accordingly
 		int numRings = sphrOwn.numNoteRings,
@@ -140,7 +142,7 @@ public class myNote {
 			n.editNoteVal(n.name, n.octave-1);
 			if(numNotesDisp < -12){numNotesDisp += 12; n.editNoteVal(n.name, n.octave-1);}
 		}
-		int[] indNDisp = p.getNoteDisp(n, numNotesDisp);		
+		int[] indNDisp = win.getNoteDisp(n, numNotesDisp);		
 		this.n.editNoteVal(nValType.getVal(indNDisp[0]), indNDisp[1]);
 		//p.outStr2Scr("new note : "+ n.toString() + " #rings : "+sphereRing + " notes disp : " +numNotesDisp);
 	}
@@ -212,6 +214,8 @@ public class myNote {
 			case A  : 
 			case As : {return 5;}
 			case B  : {return 6;}
+		default:
+			break;
 		}
 		return 0;
 	}
@@ -276,38 +280,38 @@ public class myNote {
 	public boolean equals(myNote _n){return n.equals(_n.n);	}	
 	
 	//draw piano roll rectangle
-	public void drawMePRL(){p.rect(gridDims);}
+	public void drawMePRL(IRenderInterface p){p.drawRect(gridDims);}
 	
-	public void drawMeSphere(){ drawMeSpherePriv();}
+	public void drawMeSphere(IRenderInterface p){ drawMeSpherePriv(p);}
 	//void noteArc(myPoint ctr, float alphaSt, float alphaEnd, float rad, float thickness, int[] noteClr){
-	protected void drawMeSpherePriv(){//
-		p.pushMatrix();p.pushStyle();
+	protected void drawMeSpherePriv(IRenderInterface p){//
+		p.pushMatState();
 		p.noteArc(sphereDims, sphrOwn.noteClr);		
-		p.popStyle();p.popMatrix();
+		p.popMatState();
 	}
 	
 	//draw this note
-	public void drawMe(){		drawMePriv();	}
-	protected void drawMePriv(){
-		p.pushMatrix();p.pushStyle();
-		if(flags[isRest]){
+	public void drawMe(IRenderInterface p){		drawMePriv(p);	}
+	protected void drawMePriv(IRenderInterface p){
+		p.pushMatState();
+		if(flags[isRest]){ 
 			//translate to middle of measure
 			p.translate(0, owningStaff.getlOff() * 2.5f);
-			p.drawRest(owningStaff.getlOff(), n.typIdx, flags[isDotted]);			
+			win.drawRest(owningStaff.getlOff(), n.typIdx, flags[isDotted]);			
 		} else {	
-			p.text(dispMsg,0,0);//8va etc
+			p.showText(dispMsg,0,0);//8va etc
 			//where this note should live on the staff (assume measure has translated to appropriate x position), from C4
 			p.translate(0, dispYVal);
 			if(n.isSharp){//show sharp sign
 				p.translate(.5f*owningStaff.getlOff(),0);
-				p.pushMatrix();p.pushStyle();
+				p.pushMatState();
 				p.scale(1,1.5f);
-				p.text("#",-1.5f*owningStaff.getlOff(),.5f*owningStaff.getlOff());
-				p.popStyle();p.popMatrix();
+				p.showText("#",-1.5f*owningStaff.getlOff(),.5f*owningStaff.getlOff());
+				p.popMatState();
 			}
-			p.drawNote(owningStaff.getlOff(), new myVector(0,0,0), n.typIdx,0 ,flags, (dispYVal <0 ? dispYVal : (dispYVal - staffSize > 0) ? dispYVal - staffSize : 0)/10.0f  );//TODO
+			win.drawNote(owningStaff.getlOff(), new myVector(0,0,0), n.typIdx,0 ,flags, (dispYVal <0 ? dispYVal : (dispYVal - staffSize > 0) ? dispYVal - staffSize : 0)/10.0f  );//TODO
 		}
-		p.popStyle();p.popMatrix();
+		p.popMatState();
 	}
 
 	public String toString(){

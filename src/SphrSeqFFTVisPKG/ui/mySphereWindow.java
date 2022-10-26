@@ -2,8 +2,6 @@ package SphrSeqFFTVisPKG.ui;
 
 import java.util.*;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
@@ -11,13 +9,16 @@ import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.GUI_AppManager;
 import processing.core.PApplet;
 
-public class mySphereWindow extends myDispWindow {
+public class mySphereWindow extends myMusicSimWindow {
 	public final int numGUIObjs = 0;												//# of gui objects for ui
 	
 	public TreeMap<String, mySphereCntl> sphereCntls;								//controls for each instrument
@@ -47,33 +48,31 @@ public class mySphereWindow extends myDispWindow {
 	//focus location of sphere UI 
 	public static final myPoint fcsCtr = new myPoint(396,396,1190);
 	
-	public mySphereWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
-		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
+	public mySphereWindow(IRenderInterface _p, GUI_AppManager _AppMgr, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt) {
+		super(_p, _AppMgr, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt);
+		//float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
 		//initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
 		curSelSphere = "";	
-		trajFillClrCnst = SeqVisFFTOcean.gui_DarkCyan;		//override this in the ctor of the instancing window class
-		trajStrkClrCnst = SeqVisFFTOcean.gui_Cyan;
-		super.initThisWin(_canDrawTraj, true);
+		super.initThisWin(false);
 	}
 	
+	/**
+	 * Build button descriptive arrays : each object array holds true label, false label, and idx of button in owning child class
+	 * this must return count of -all- booleans managed by privFlags, not just those that are interactive buttons (some may be 
+	 * hidden to manage booleans that manage or record state)
+	 * @param tmpBtnNamesArray ArrayList of Object arrays to be built containing all button definitions. 
+	 * @return count of -all- booleans to be managed by privFlags
+	 */
 	@Override
-	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
-		truePrivFlagNames = new String[]{								//needs to be in order of flags
-				"Showing Drawn Tajectories"
-		};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-				"Hiding Drawn Tajectories"
-		};
-		privModFlgIdxs = new int[]{showTrajIDX};
-		numClickBools = privModFlgIdxs.length;	
-		//maybe have call for 		initPrivBtnRects(0);		 here
-		initPrivBtnRects(0,numClickBools);
+	public final int initAllPrivBtns_Indiv(ArrayList<Object[]> tmpBtnNamesArray) {
+		
+		
+		return tmpBtnNamesArray.size();
 	}
+
 	
 	@Override
-	protected void initMe() {	
+	protected void initMe_Indiv() {	
 		dispFlags[plays] = true;								//this window responds to travelling reticle/playing
 		vsblStLoc = new float[]{0,0};
 		dispFlags[trajDecays] = true;								//this window responds to travelling reticle/playing
@@ -102,7 +101,7 @@ public class mySphereWindow extends myDispWindow {
 	
 	//initialize structure to hold modifiable menu regions
 	@Override
-	protected void setupGUIObjsAras(){	
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){	
 		//pa.outStr2Scr("setupGUIObjsAras in :"+ name);
 		guiMinMaxModVals = new double [][]{{}};					//min max mod values for each modifiable UI comp		
 		guiStVals = new double[]{};								//starting value
@@ -124,7 +123,7 @@ public class mySphereWindow extends myDispWindow {
 	}
 	//if any ui values have a string behind them for display
 	@Override
-	protected String getUIListValStr(int UIidx, int validx) {
+	public String getUIListValStr(int UIidx, int validx) {
 		switch(UIidx){
 			default : {break;}
 		}
@@ -208,7 +207,7 @@ public class mySphereWindow extends myDispWindow {
 	public void addSphereNoteToPlayNow(myInstrument instr, SortedMap<Integer, myNote> tmpNotes, float durMult, int stTime){
 		//pa.outStr2Scr("Iter : " + stIterStatic++ + " Stop ");
 		int retCode = instr.addSphNotesToPlay(tmpNotes,stTime);
-		this.dispFlags[myDispWindow.notesLoaded] = true;
+		this.dispFlags[myMusicSimWindow.notesLoaded] = true;
 	}//addTrajNoteToPlay
 //	static int iterStatic = 0;
 //	protected void addSphereNoteToPlayNow(SortedMap<Integer, myNote> tmpNotes, float durMult){

@@ -1,8 +1,9 @@
 package SphrSeqFFTVisPKG.ui.controls;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 
 /**
  * handles all transport control - accessible by all classes who need it. 
@@ -13,11 +14,11 @@ import SphrSeqFFTVisPKG.note.enums.durType;
  *
  */
 public class myPlaybackEngine {
-	public SeqVisFFTOcean pa;
+	public IRenderInterface pa;
 	public static int pbCnt = 0;
 	public int ID;
 	
-	public myDispWindow win;					//owning display window
+	public myMusicSimWindow win;					//owning display window
 	
 	public int[] fillClr, strkClr;
 	//current dims of reticle
@@ -49,7 +50,7 @@ public class myPlaybackEngine {
 	
 	public static final int numPFlags = 4;
 
-	public myPlaybackEngine(SeqVisFFTOcean _p, myDispWindow _win, int[] fc, int[] sc, float[] _dims){
+	public myPlaybackEngine(IRenderInterface _p, myMusicSimWindow _win, int[] fc, int[] sc, float[] _dims){
 		pa = _p;
 		win = _win;
 		ID = pbCnt++;
@@ -107,8 +108,8 @@ public class myPlaybackEngine {
 	
 	//stop playing and move back to the st loc
 	public void stop(){
-		curTime = (pbeFlags[isLoopingIDX] && pbeFlags[loopSetIDX] ? pa.max(stTime,stLoopTime) : stTime);
-		curPxls = (pbeFlags[isLoopingIDX] && pbeFlags[loopSetIDX] ? pa.max(stPixels,stLoopPxls) : stPixels);
+		curTime = (pbeFlags[isLoopingIDX] && pbeFlags[loopSetIDX] ? MyMathUtils.max(stTime,stLoopTime) : stTime);
+		curPxls = (pbeFlags[isLoopingIDX] && pbeFlags[loopSetIDX] ? MyMathUtils.max(stPixels,stLoopPxls) : stPixels);
 		pbeFlags[isPlayingIDX] = false; pbeFlags[isLoopingIDX] = false;		
 	}
 	
@@ -157,17 +158,17 @@ public class myPlaybackEngine {
 	//window should control this - needs to be passing over currently playing note always, in piano roll or in staff
 	//offset is how much to slide over based on if window has discontinuity (for measure with time sig change, for example) 
 	public void drawMe(){
-		pa.pushMatrix();pa.pushStyle();	
+		pa.pushMatState();
 			pa.translate(curPxls, 0);
-			pa.strokeWeight(sWt);
-			pa.setColorValStroke(pa.gui_Black, 255);
-			pa.line(-1, dims[0], -1, dims[1]);
-			pa.line(1, dims[0], 1, dims[1]);
-			pa.setStroke(strkClr);
-			pa.line(0, dims[0], 0, dims[1]);	
-			pa.setColorValFill(pa.gui_Black, 255);
-			pa.text(getPBEVals(), 10, 30);
-		pa.popStyle();	pa.popMatrix();	
+			pa.setStrokeWt(sWt);
+			pa.setColorValStroke(IRenderInterface.gui_Black, 255);
+			pa.drawLine(-1, dims[0], 0, -1, dims[1], 0);
+			pa.drawLine(1, dims[0], 0, 1, dims[1], 0);
+			pa.setStroke(strkClr,255);
+			pa.drawLine(0, dims[0], 0, 0, dims[1], 0);	
+			pa.setColorValFill(IRenderInterface.gui_Black, 255);
+			pa.showText(getPBEVals(), 10, 30);
+		pa.popMatState();
 	}
 
 }//myPlaybackEngine

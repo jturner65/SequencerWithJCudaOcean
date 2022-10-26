@@ -3,12 +3,12 @@ package SphrSeqFFTVisPKG.staff;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 public class myKeySig {
-	public SeqVisFFTOcean p;
+	public IRenderInterface p;
 	public static int sigCnt = 0;
 	public int ID;
 	//there are 12 key signatures, each with a specific mapping of "allowed" notes
@@ -50,7 +50,7 @@ public class myKeySig {
 	public float[] drawDim;
 	public int keyIdx;
 	
-	public myKeySig(SeqVisFFTOcean _p, keySigVals _key) {
+	public myKeySig(IRenderInterface _p, keySigVals _key) {
 		p=_p;
 		ID = sigCnt++;
 		key = _key;		
@@ -73,16 +73,16 @@ public class myKeySig {
 
 	//assumes starting at upper left of measure bound - offY is for offset from clef, to align with correct notes
 	public void drawMe(float offX, float offY){
-		p.pushMatrix();p.pushStyle();
+		p.pushMatState();
 		p.translate(drawDim[0] + offX,drawDim[1] + offY);		
 		for(int i=0;i<occsDisp[keyIdx].length;++i){
 			p.translate(occsDimAra[keyIdx][i][0], occsDimAra[keyIdx][i][1]);
-			p.pushMatrix();p.pushStyle();
+			p.pushMatState();
 			p.scale(1, 1.6f);
-			p.text(occsDisp[keyIdx][i], 0, 0);
-			p.popStyle();p.popMatrix();	
+			p.showText(occsDisp[keyIdx][i], 0, 0);
+			p.popMatState();	
 		}
-		p.popStyle();p.popMatrix();	
+		p.popMatState();
 	}
 	
 	public boolean equals(myKeySig _ot){return (_ot.key.getVal() == this.key.getVal());}

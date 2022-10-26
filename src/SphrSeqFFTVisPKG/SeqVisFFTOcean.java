@@ -18,17 +18,19 @@ import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.chordType;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.score.myScore;
 import SphrSeqFFTVisPKG.ui.myInstEditWindow;
 import SphrSeqFFTVisPKG.ui.mySequencerWindow;
 import SphrSeqFFTVisPKG.ui.mySimWindow;
 import SphrSeqFFTVisPKG.ui.mySphereWindow;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface.GL_PrimStyle;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_Math_Objects.vectorObjs.floats.myPointf;
 import base_Math_Objects.vectorObjs.floats.myVectorf;
+import base_UI_Objects.windowUI.base.myDispWindow;
 import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PImage;
@@ -66,9 +68,7 @@ import ddf.minim.ugens.*;
 	//handles all transport controls
 	public final int pbeModAmt = 1;		//how many beats ffwd and rewind move crsr for playback engine
 	
-	//display note width multiplier
-	public final float ntWdthMult = 2.5f;
-	
+
 	// tools for playing music
 	public Minim minim;		
 	public AudioOutput glblOut;		
@@ -88,10 +88,6 @@ import ddf.minim.ugens.*;
 	public final int numHarms = 10;
 	
 	public myScore score;					//score being worked on - all windows reference same score
-
-	//descending scale from C, to build piano roll piano
-	public final nValType[] wKeyVals = new nValType[] {nValType.C, nValType.B, nValType.A, nValType.G, nValType.F,nValType.E,nValType.D},
-								   bKeyVals = new nValType[] {nValType.As, nValType.Gs, nValType.Fs, nValType.Ds, nValType.Cs};
 	
 	/**
 	 * Precalculated cosine and sine values
@@ -101,28 +97,6 @@ import ddf.minim.ugens.*;
 	private final float deltaThet = MyMathUtils.TWO_PI_F/36.0f, 
 		finalThet = MyMathUtils.TWO_PI_F+deltaThet;
 	
-	//list of clefs  myClef(CAProject5 _p, String _name, clefVal _clef, NoteData _mdNote,PImage _img)
-				//Notedata : nValType _name, int _octave
-	public NoteData C4;
-	public myClefBase[] clefs;
-	//list of instruments
-	public myInstrument[] InstrList;
-//		//idx's of instruments available
-	public static final int 
-		Guit1InstIDX 		= 0,
-		Guit2InstIDX 		= 1,
-		BassInstIDX 		= 2,
-		Vox1InstIDX 		= 3,
-		Vox2InstIDX 		= 4,
-		Synth1InstIDX 		= 5,
-		Synth2InstIDX 		= 6,
-		Synth3InstIDX 		= 7,
-		Synth4InstIDX 		= 8,
-		Synth5InstIDX 		= 9,
-		drumsInstIDX		= 10,
-		drums2InstIDX		= 11;
-	public static final int numInstsAvail = 12;	
-
 	//pxl displacements to draw rests
 	public float[][] restDisp = new float[][] {
 		new float[]{0,-20},
@@ -171,7 +145,7 @@ import ddf.minim.ugens.*;
 			cylSinVals[i++] = Math.sin(a);
 		}
 
-		
+		noSmooth();
 		initOnce();
 		background(bground[0],bground[1],bground[2],bground[3]);		
 	}//setup	
@@ -179,7 +153,7 @@ import ddf.minim.ugens.*;
 	//called once at start of program
 	public void initOnce(){
 		initVisOnce();						//always first
-		C4 = new NoteData(this, nValType.C, 4);
+		
 		hSrsMult = new float[numHarms];
 		for(int i=0;i<numHarms;++i){hSrsMult[i] = 1.0f/(i+1); }
 		sceneIDX = 1;//(flags[show3D] ? 1 : 0);
@@ -270,23 +244,23 @@ import ddf.minim.ugens.*;
 		//else {														draw3D_solve2D();}
 		buildCanvas();		
 		popStyle();popMatrix(); 
-		drawUI();																	//draw UI overlay on top of rendered results			
+		drawUI(modAmtSec);																	//draw UI overlay on top of rendered results			
 		if (flags[saveAnim]) {	savePic();}
 		consoleStrings.clear();
 		surface.setTitle(prjNmLong + " : " + (int)(frameRate) + " fps|cyc ");
 	}//draw
 	//move reticle if currently playing
 	public void movePBEReticle(float modAmtSec){
-		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.plays])){dispWinFrames[i].movePBEReticle(modAmtSec); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
+		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myMusicSimWindow.plays])){dispWinFrames[i].movePBEReticle(modAmtSec); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
 	}
 	
 	//call 1 time if play is turned to true
 	public void playMusic(){
-		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.plays])){dispWinFrames[i].play(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
+		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myMusicSimWindow.plays])){dispWinFrames[i].play(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
 	}
 	//call 1 time if play is turned to false or stop is called
 	public void stopMusic(){
-		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.plays])){dispWinFrames[i].stopPlaying(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
+		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myMusicSimWindow.plays])){dispWinFrames[i].stopPlaying(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
 	}
 	
 	public void draw3D_solve3D(){
@@ -294,7 +268,7 @@ import ddf.minim.ugens.*;
 			background(bground[0],bground[1],bground[2],bground[3]);				//if refreshing screen, this clears screen, sets background
 			pushMatrix();pushStyle();
 			translateSceneCtr();				//move to center of 3d volume to start drawing	
-			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
+			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myMusicSimWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
 			popStyle();popMatrix();
 			drawAxes(100,3, new myPoint(-canvas.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
 	//	}
@@ -318,13 +292,13 @@ import ddf.minim.ugens.*;
 	
 	//if should show problem # i
 	public boolean isShowingWindow(int i){return flags[(i+this.showUIMenu)];}//showUIMenu is first flag of window showing flags
-	public void drawUI(){					
-		for(int i =1; i<numDispWins; ++i){if ((isShowingWindow(i)) && !(dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
+	public void drawUI(float modAmtMillis){					
+		for(int i =1; i<numDispWins; ++i){if ((isShowingWindow(i)) && !(dispWinFrames[i].dispFlags[myMusicSimWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
 		//dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
-		for(int i =1; i<numDispWins; ++i){dispWinFrames[i].drawHeader();}
+		for(int i =1; i<numDispWins; ++i){dispWinFrames[i].drawHeader(modAmtMillis);}
 		//menu
-		dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
-		dispWinFrames[0].drawHeader();
+		dispWinFrames[0].draw2D(modAmtMillis);
+		dispWinFrames[0].drawHeader(modAmtMillis);
 		drawOnScreenData();				//debug and on-screen data
 		hint(PConstants.DISABLE_DEPTH_TEST);
 		noLights();
@@ -387,57 +361,7 @@ import ddf.minim.ugens.*;
 	}		
 	
 			//where is middle c for this staff's instrument's cleff
-	//where is middle c for this measure's notes (if clef is different from default staff clef, based on instrument)
-	public float getC4LocMultClef(clefVal clef, boolean isGrandStaff){
-		if(isGrandStaff){return 5;}
-		switch (clef){
-			case Treble : {return 5;}
-			case Bass   : {return -1;}
-			case Alto   : {return 2;}
-			case Tenor  : {return 2;}
-			case Drum   : {return 2;}
-			case Piano	: {return 5;}//should never get here - only will happen if somehow piano grandstaff doesn't get appropriate boolean set
-			default:		break;
-		}
-		return 0;
-	}		
-	//get nValType value and octave of note displaced by dispamt # of half steps (negative for down)
-	public int[] getNoteDisp(NoteData _note, int dispAmt){
-		int[] res = new int[]{0,0};
-		int octDisp = dispAmt/12;		//+/- # of octaves
-		//if(abs(dispAmt)>12){outStr2Scr("----->Danger attempting to modify note by more than 1 octave in getNoteDisp.  ",true);return res;}			
-		int oldNVal = _note.name.getVal(),
-			newNValNoMod = (oldNVal + dispAmt),
-			newNVal = (newNValNoMod+12)%12;
-		res[0] = newNVal;
-		res[1] = _note.octave;
-		int octModAmt = 0;
-		if(newNVal < newNValNoMod)		{	octModAmt++;}		//if newVal is < newVal without mod then wrapped around while adding 
-		else if(newNVal > newNValNoMod) {	octModAmt--;}		//if newVal is > newVal without mod then wrapped around negatively while subtracting			
-		return res;			
-	}
-	
-		//return array of halfstep displacements for each note of chord, starting with 0 for root
-	public int[] getChordDisp(chordType typ){
-		switch (typ){
-		case Major		:{return (new int[]{0,4,7});}	//1,3,5
-		case Minor		:{return (new int[]{0,3,7});}	//1,b3,5
-		case Augmented	:{return (new int[]{0,4,8});}	//1,3,#5
-		case MajFlt5	:{return (new int[]{0,4,6});}	//1,3,b5
-		case Diminished	:{return (new int[]{0,3,6});}	//1,b3,b5
-		case Sus2       :{return (new int[]{0,2,7});}	//1,2,5
-		case Sus4       :{return (new int[]{0,5,7});}	//1,4,5			
-		case Maj6       :{return (new int[]{0,4,7,9});}	//1,3,5,6
-		case Min6      	:{return (new int[]{0,3,7,9});}	//1,b3,5,6
-		case Maj7      	:{return (new int[]{0,4,7,11});}	//1,3,5,7
-		case Dom7      	:{return (new int[]{0,4,7,10});}	//1,3,5,b7
-		case Min7      	:{return (new int[]{0,3,7,10});}	//1,b3,5,b7
-		case Dim7      	:{return (new int[]{0,3,6,9});}	//1,b3,b5,bb7==6
-		case None      	:{return (new int[]{0});}	//not a predifined chord type
-		default         :{return (new int[]{0});}						
-		}			
-	}
-			
+		
 	//////////////////////////////////////////////////////
 	/// user interaction
 	//////////////////////////////////////////////////////	
@@ -496,7 +420,7 @@ import ddf.minim.ugens.*;
 		return ((flags[altKeyPressed] ? .1 : 1.0) * (flags[cntlKeyPressed] ? 10.0 : 1.0));			
 	}
 	
-	public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY,canvas.getMseLoc(sceneCtrVals[sceneIDX]))){return;}}}
+	public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY)){return;}}}
 	public void mousePressed() {
 		//verify left button if(mouseButton == LEFT)
 		setFlags(mouseClicked, true);
@@ -505,7 +429,7 @@ import ddf.minim.ugens.*;
 		//for(int i =0; i<numDispWins; ++i){	if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){	return;}}
 	}// mousepressed	
 
-	private void mouseClicked(int mseBtn){ for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,canvas.getMseLoc(sceneCtrVals[sceneIDX]),mseBtn)){return;}}}		
+	private void mouseClicked(int mseBtn){ for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,mseBtn)){return;}}}		
 	
 //	private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),0)){return;}}}		
 //	private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),1)){return;}}}		
@@ -522,15 +446,13 @@ import ddf.minim.ugens.*;
 	}//mouseDragged()
 	
 	private void mouseLeftDragged(){
-		myPoint msePt = canvas.getMseLoc(sceneCtrVals[sceneIDX]);
 		myVector mseDiff = new myVector(canvas.getOldMseLoc(),canvas.getMseLoc());
-		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,msePt,mseDiff,0)) {return;}}		
+		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,mseDiff,0)) {return;}}		
 	}
 	
 	private void mouseRightDragged(){
-		myPoint msePt = canvas.getMseLoc(sceneCtrVals[sceneIDX]);
 		myVector mseDiff = new myVector(canvas.getOldMseLoc(),canvas.getMseLoc());
-		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,msePt,mseDiff,1)) {return;}}		
+		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,mseDiff,1)) {return;}}		
 	}
 	
 	
@@ -635,7 +557,7 @@ import ddf.minim.ugens.*;
 	}//handleTrnsprt
 	public void modCurPBETimeAllWins(float modAmt){
 		if(flags[playMusic]) {stopMusic();}
-		for(int i =0; i < numDispWins; ++i){dispWinFrames[i].modCurrentPBETime(modAmt);}	
+		for(int i =0; i < numDispWins; ++i){((myMusicSimWindow) dispWinFrames[i]).modCurrentPBETime(modAmt);}	
 		if(flags[playMusic]) {playMusic();}
 	}
 
@@ -680,8 +602,8 @@ import ddf.minim.ugens.*;
 		glblOut = minim.getLineOut(OutTyp,glbBufrSize, 44100.0f);	
 		//glblOut.setVolume(.5f);
 		float tmpTempo = 1;
-		if(myDispWindow.glblTempo <1){		tmpTempo = 120.0f;}			
-		else{			tmpTempo = myDispWindow.glblTempo;		}
+		if(myMusicSimWindow.glblTempo <1){		tmpTempo = 120.0f;}			
+		else{			tmpTempo = myMusicSimWindow.glblTempo;		}
 		glblOut.setTempo(tmpTempo);			
 		glblSum.patch(glblOut);
 		outStr2Scr("Out tempo set to   " + tmpTempo);
@@ -690,15 +612,15 @@ import ddf.minim.ugens.*;
 	public void initDispWins(){
 		float InstEditWinHeight = InstEditWinYMult * height;		//how high is the InstEdit window when shown
 		//instanced window dimensions when open and closed - only showing 1 open at a time
-		winRectDimOpen[dispPianoRollIDX] =  new float[]{menuWidth, 0,width-menuWidth,height-hidWinHeight};			
-		winRectDimOpen[dispSphereUIIDX] =  new float[]{menuWidth+hideWinWidth, 0,width-menuWidth-hideWinWidth,height-hidWinHeight};			
-		winRectDimOpen[dispSimIDX] =  new float[]{menuWidth+hideWinWidth, 0,width-menuWidth-hideWinWidth,height-hidWinHeight};			
+		winRectDimOpen[dispPianoRollIDX] =  new float[]{menuWidth, 0,width-menuWidth,height-hideWinHeight};			
+		winRectDimOpen[dispSphereUIIDX] =  new float[]{menuWidth+hideWinWidth, 0,width-menuWidth-hideWinWidth,height-hideWinHeight};			
+		winRectDimOpen[dispSimIDX] =  new float[]{menuWidth+hideWinWidth, 0,width-menuWidth-hideWinWidth,height-hideWinHeight};			
 		winRectDimOpen[dispInstEditIDX]  =  new float[]{menuWidth, InstEditWinHeight, width-menuWidth, height-InstEditWinHeight};
 		//hidden
 		winRectDimClose[dispPianoRollIDX] =  new float[]{menuWidth, 0, hideWinWidth, height};				
 		winRectDimClose[dispSphereUIIDX] =  new float[]{menuWidth, 0, hideWinWidth, height};				
 		winRectDimClose[dispSimIDX] =  new float[]{menuWidth, 0, hideWinWidth, height};				
-		winRectDimClose[dispInstEditIDX]  =  new float[]{menuWidth, height-hidWinHeight, width-menuWidth, hidWinHeight};
+		winRectDimClose[dispInstEditIDX]  =  new float[]{menuWidth, height-hideWinHeight, width-menuWidth, hideWinHeight};
 		
 		winTrajFillClrs = new int []{gui_Black,gui_LightGray,gui_LightGray,gui_LightGray,gui_LightGreen};		//set to color constants for each window
 		winTrajStrkClrs = new int []{gui_Black,gui_DarkGray,gui_DarkGray,gui_DarkGray,gui_White};		//set to color constants for each window			
@@ -717,21 +639,22 @@ import ddf.minim.ugens.*;
 		//setup default score and finalize init of windows
 		initNewScore();				
 		for(int i =0; i < numDispWins; ++i){
-			dispWinFrames[i].setGlobalTempoVal(120);		//set for right now
-			dispWinFrames[i].setGlobalKeySigVal(0);		//set for right now
-			dispWinFrames[i].setGlobalTimeSigVal(4,4,getDurTypeForNote(4));		//set for right now
-			dispWinFrames[i].dispFlags[myDispWindow.is3DWin] = dispWinIs3D[i];
-			dispWinFrames[i].setTrajColors(winTrajFillClrs[i], winTrajStrkClrs[i]);
+			myMusicSimWindow win = ((myMusicSimWindow) dispWinFrames[i]);
+			win.setGlobalTempoVal(120);		//set for right now
+			win.setGlobalKeySigVal(0);		//set for right now
+			win.setGlobalTimeSigVal(4,4,getDurTypeForNote(4));		//set for right now
+			win.dispFlags[myMusicSimWindow.is3DWin] = dispWinIs3D[i];
+			//win.setTrajColors(winTrajFillClrs[i], winTrajStrkClrs[i]);
 		}	
 				
 	}//initDispWins
 	//needs to happen here, and then be propagated out to all windows
 	public void initNewScore(){//uses default values originally called in mySequencer constructor
 		//outStr2Scr("Build score with default instrument list");
-		initNewScore("TempSong", InstrList, winRectDimOpen[dispPianoRollIDX][0] + winRectDimOpen[dispPianoRollIDX][2],winRectDimOpen[dispPianoRollIDX][1]+winRectDimOpen[dispPianoRollIDX][3]-4*myDispWindow.yOff);
+		initNewScore("TempSong", InstrList, winRectDimOpen[dispPianoRollIDX][0] + winRectDimOpen[dispPianoRollIDX][2],winRectDimOpen[dispPianoRollIDX][1]+winRectDimOpen[dispPianoRollIDX][3]-4*myMusicSimWindow.yOff);
 	}
 	public void initNewScore(String scrName, myInstrument[] _instrs, float scoreWidth, float scoreHeight){
-		float [] scoreRect = new float[]{0, myDispWindow.topOffY, scoreWidth, scoreHeight};
+		float [] scoreRect = new float[]{0, myMusicSimWindow.topOffY, scoreWidth, scoreHeight};
 		score = new myScore(this,dispWinFrames[dispPianoRollIDX],"TempSong",scoreRect);	
 		//debug stuff - buildScore only
 		String[] scoreStaffNames = new String[_instrs.length];
@@ -933,7 +856,7 @@ import ddf.minim.ugens.*;
 	public ArrayDeque<String> consoleStrings;							//data being printed to console - show on screen
 	
 	public int drawCount,simCycles;												// counter for draw cycles		
-	public float menuWidth,menuWidthMult = .15f, hideWinWidth, hideWinWidthMult = .03f, hidWinHeight, hideWinHeightMult = .05f;			//side menu is 15% of screen grid2D_X, 
+	public float menuWidth,menuWidthMult = .15f, hideWinWidth, hideWinWidthMult = .03f, hideWinHeight, hideWinHeightMult = .05f;			//side menu is 15% of screen grid2D_X, 
 
 	public ArrayList<String> DebugInfoAra;										//enable drawing dbug info onto screen
 	public String debugInfoString;
@@ -985,7 +908,7 @@ import ddf.minim.ugens.*;
 		consoleStrings = new ArrayDeque<String>();				//data being printed to console		
 		menuWidth = width * menuWidthMult;						//grid2D_X of menu region	
 		hideWinWidth = width * hideWinWidthMult;				//dims for hidden windows
-		hidWinHeight = height * hideWinHeightMult;
+		hideWinHeight = height * hideWinHeightMult;
 		canvas = new my3DCanvas(this);			
 		winRectDimOpen = new float[numDispWins][];
 		winRectDimClose = new float[numDispWins][];
@@ -995,7 +918,7 @@ import ddf.minim.ugens.*;
 		strokeCap(SQUARE);//makes the ends of stroke lines squared off
 		
 		//display window initialization
-		dispWinFrames = new myDispWindow[numDispWins];		
+		dispWinFrames = new myMusicSimWindow[numDispWins];		
 		//menu bar init
 		dispWinFrames[dispMenuIDX] = new mySideBarMenu(this, "UI Window", showUIMenu,  winFillClrs[dispMenuIDX], winStrkClrs[dispMenuIDX], winRectDimOpen[dispMenuIDX],winRectDimClose[dispMenuIDX], "User Controls",canDrawInWin[dispMenuIDX]);			
 		
@@ -1352,7 +1275,7 @@ import ddf.minim.ugens.*;
 		double m=CD.magn/AB.magn, n=CD.magn*AB.magn;		
 		myVector rotAxis = U(AB._cross(CD));		//expect ab and ac to be coplanar - this is the axis to rotate around to find f
 		
-		myVector rAB = myVector._rotAroundAxis(AB, rotAxis, PConstants.HALF_PI);
+		myVector rAB = myVector._rotAroundAxis(AB, rotAxis, MyMathUtils.HALF_PI_F);
 		double c=AB._dot(CD)/n, 
 				s=rAB._dot(CD)/n;
 		double AB2 = AB._dot(AB), a=AB._dot(AC)/AB2, b=rAB._dot(AC)/AB2;
@@ -1403,14 +1326,14 @@ import ddf.minim.ugens.*;
 		noFill();
 		setStroke(noteClr);
 		strokeWeight(1.5f*dims[3]);
-		arc(0,0, dims[2], dims[2], dims[0] - PConstants.HALF_PI, dims[1] - PConstants.HALF_PI);
+		arc(0,0, dims[2], dims[2], dims[0] - MyMathUtils.HALF_PI_F, dims[1] - MyMathUtils.HALF_PI_F);
 	}
 	//draw a ring segment from alphaSt in radians to alphaEnd in radians
 	void noteArc(myPoint ctr, float alphaSt, float alphaEnd, float rad, float thickness, int[] noteClr){
 		noFill();
 		setStroke(noteClr);
 		strokeWeight(thickness);
-		arc((float)ctr.x, (float)ctr.y, rad, rad, alphaSt - PConstants.HALF_PI, alphaEnd- PConstants.HALF_PI);
+		arc((float)ctr.x, (float)ctr.y, rad, rad, alphaSt - MyMathUtils.HALF_PI_F, alphaEnd- MyMathUtils.HALF_PI_F);
 	}
 	
 
@@ -1499,84 +1422,6 @@ import ddf.minim.ugens.*;
 	public void show(myPoint P, String s, myVector D) {text(s, (float)(P.x+D.x), (float)(P.y+D.y), (float)(P.z+D.z));  } // prints string s in 3D at P+D
 	public void curveVertex(myPoint P) {curveVertex((float)P.x,(float)P.y);};                                           // curveVertex for shading or drawing
 	public void curve(myPoint[] ara) {if(ara.length == 0){return;}beginShape(); curveVertex(ara[0]);for(int i=0;i<ara.length;++i){curveVertex(ara[i]);} curveVertex(ara[ara.length-1]);endShape();};                      // volume of tet 
-	//note is tilted ellipse with stem (if  not whole note), and filled (if not whole or half note) and with flags (if 8th or smaller)
-	//type  == type of note (0 is whole, 1 is half, 2 is qtr, 3 is eighth, etc)
-	//nextNoteLoc is location of next note yikes.
-	//flags : 0 : isDotted, 1 : isTuple, 2 : isRest, 3 : isChord, 4 : drawStemUp,   5 : isConnected, 6 :showDisplacement msg (8va, etc), 7 : isInStaff, 8 : isFlipped(part of chord and close to prev note, put note on other side of stem),
-	//grpPos : 0 first in group of stem-tied notes, 1 : last in group of stemTied notes, otherwise neither 
-	public void drawNote(float noteW, myVector nextNoteLoc, int noteTypIdx, int grpPos, boolean[] flags, float numLedgerLines){
-		pushMatrix(); pushStyle(); 
-		//draw body
-		//noteIdx : -2,-1, 0, 1, 2, 3
-		rotate(QUARTER_PI,0,0,1);
-		strokeWeight(1);
-		setColorValFill(gui_Black, 255);
-		setColorValStroke(gui_Black, 255);
-		if(flags[myNote.isChord] && flags[myNote.isFlipped]){translate(-noteW,0,0);}		//only flip if close to note
-		//line(-noteW,0,0,noteW,0,0);//ledger lines, to help align the note
-		if(noteTypIdx <= -1){	strokeWeight(2);	noFill();	}
-		ellipse(0,0,noteW, .75f*noteW);
-		rotate(-QUARTER_PI,0,0,1);
-		if(flags[myNote.isDotted]){ellipse(1.5f*noteW,0,3,3);	}//is dotted
-		if(noteTypIdx > -2){//has stem and is not last in stemmed group
-			if(flags[myNote.drawStemUp]){	translate(-.5*noteW,0,0); line(0,0,0,0,-4*noteW,0);}//draw up
-			else {							translate(.5*noteW,0,0);line(0,0,0,0,4*noteW,0);}//drawDown
-			if((noteTypIdx > 0) && (1 != grpPos)){//has flag and is not last in group so draw flag
-				float flagW, flagH1;
-				if(flags[myNote.drawCnncted]){	//is tied,  TODO
-					flagW = (float)nextNoteLoc.x;
-					flagH1 = (float)nextNoteLoc.y;
-				} else{
-					flagW = 2 * noteW;
-					flagH1 = noteW;
-				}
-				float moveDir;//direction multiplier
-				if(flags[myNote.drawStemUp]){	 moveDir = noteW; translate(0,-4*noteW,0);}//draw up
-				else {			 moveDir = -noteW;translate(0,4*noteW,0);}//drawDown
-				float yVal = 0,flagH2 = - .5f*moveDir;;
-				for(int i =0; i<noteTypIdx;++i){ // noteIdx is # of flags to draw too
-					quad(0,yVal,flagW,yVal+flagH1,flagW,yVal+flagH1+flagH2,0,yVal + flagH2);
-					yVal += moveDir;
-				}
-			}			
-		}
-		if(numLedgerLines != 0.0f){ //draw ledger lines outside staff, either above or below (if negative # then below note, above staff)
-			translate(-noteW*.5f,0);
-			int mult;
-			if(numLedgerLines < 0 ){mult=1;} else {mult=-1;}
-			if(flags[myNote.isOnLdgrLine]){//put ledger line through middle of note
-				line(-noteW,0,noteW,0);					
-			} else {
-				line(-noteW,.5f*noteW,noteW,.5f*noteW);			
-			}
-			pushMatrix(); pushStyle(); 
-			if(abs(numLedgerLines) - (int)(abs(numLedgerLines)) != 0){translate(0,.5f*noteW);}
-			for(int i =0;i<abs(numLedgerLines);++i){
-				translate(0,mult*noteW);
-				line(-noteW,0,noteW,0);
-			}
-			popStyle(); popMatrix();
-			
-		}
-		popStyle(); popMatrix();
-	}//draw a note head
-
-	//flags : 0 : isDotted, 1 : drawUp, 2 : isFlipped(part of chord)
-	//durType vals : Whole(256),Half(128),Quarter(64),Eighth(32),Sixteenth(16),Thirtisecond(8); 
-	public void drawRest(float restW, int restIdx, boolean isDotted){
-		pushMatrix(); pushStyle(); 
-		//draw rest
-		//restIdx : -2,-1, 0, 1, 2, 3
-		if(restIdx > -1){//draw image
-			translate(restDisp[restIdx][0], restDisp[restIdx][1],0);		//center image of rest - move up 2 ledger lines
-			scale(1,1.2f,1);
-			image(restImgs[restIdx], 0,0);				
-		} else {//draw box
-			if(restIdx == -2){	translate(0,-.5f * restW,0);}//whole rest is above half rest
-			rect(-.5f * restW, 0, restW,.5f * restW);				
-		}
-		popStyle(); popMatrix();
-	}
 	
 	
 	public boolean intersectPl(myPoint E, myVector T, myPoint A, myPoint B, myPoint C, myPoint X) { // if ray from E along T intersects triangle (A,B,C), return true and set proposal to the intersection point
@@ -1601,21 +1446,7 @@ import ddf.minim.ugens.*;
 	public void rect(float[] a){rect(a[0],a[1],a[2],a[3]);}				//rectangle from array of floats : x, y, w, h
 	
 	
-/////////////////////
-///Misc utils
-/////////////////////
-	//array of naturals drecreased by a sharp in y on grid
-	public nValType[] hasSharps = new nValType[]{nValType.C, nValType.D, nValType.F,nValType.G,nValType.A};
-	//array of naturals drecreased by a flat in y on grid
-	public nValType[] hasFlats = new nValType[]{nValType.B, nValType.D, nValType.E,nValType.G,nValType.A};	
-	//array of all natural notes
-	public nValType[] isNaturalNotes = new nValType[]{nValType.A,nValType.B, nValType.C,nValType.D, nValType.E,nValType.F,nValType.G};	
-	public boolean chkHasSharps(nValType n){for(int i =0; i<hasSharps.length;++i){	if(hasSharps[i].getVal() == n.getVal()){return true;}}return false;}
-	public boolean chkHasFlats(nValType n){for(int i =0; i<hasFlats.length;++i){	if(hasFlats[i].getVal() == n.getVal()){return true;}}return false;}
-	public boolean isNaturalNote(nValType n){for(int i =0; i<isNaturalNotes.length;++i){	if(isNaturalNotes[i].getVal() == n.getVal()){return true;}}return false;}
-	public String getKeyNames(ArrayList<nValType> keyAra){String res = "";for(int i=0;i<keyAra.size();++i){res += "|i:"+i+" : val="+keyAra.get(i); }return res;}	
 
-	
 /////////////////////		
 ///color utils
 /////////////////////

@@ -5,7 +5,6 @@ import java.util.*;
 import javax.swing.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.myOcean;
@@ -14,6 +13,7 @@ import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.note.enums.nValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 //import com.jogamp.opengl.*;
@@ -23,7 +23,7 @@ import ddf.minim.analysis.*;
 import processing.core.PConstants;
 import ddf.minim.*;
 
-public class mySimWindow extends myDispWindow {
+public class mySimWindow extends myMusicSimWindow {
 	
 	myMP3SongHandler[] songs;
 	FFT fftSeqLog;
@@ -127,20 +127,18 @@ public class mySimWindow extends myDispWindow {
 		setSongsAndFFT();
 	}	
 	
+	/**
+	 * Build button descriptive arrays : each object array holds true label, false label, and idx of button in owning child class
+	 * this must return count of -all- booleans managed by privFlags, not just those that are interactive buttons (some may be 
+	 * hidden to manage booleans that manage or record state)
+	 * @param tmpBtnNamesArray ArrayList of Object arrays to be built containing all button definitions. 
+	 * @return count of -all- booleans to be managed by privFlags
+	 */
 	@Override
-	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
-		truePrivFlagNames = new String[]{								//needs to be in order of flags
-				//"Playing audio", 
-				"Vis : MP3->Seq","Turn Off PTX Comp ", "Showing Freq Domain"};
-		falsePrivFlagNames = new String[]{			//needs to be in order of flags
-			//	"Stopped audio",
-				"Vis : Seq->MP3","Turn On PTX Comp ", "Showing Time Domain"};
-		privModFlgIdxs = new int[]{//playVisIDX, 
-				useAudioForOceanIDX, forceCudaRecompIDX,showFreqDomainIDX};
-		numClickBools = privModFlgIdxs.length;
-		//maybe have call for 		initPrivBtnRects(0);	
-		initPrivBtnRects(0,numClickBools);
+	public final int initAllPrivBtns_Indiv(ArrayList<Object[]> tmpBtnNamesArray) {
+		
+		
+		return tmpBtnNamesArray.size();
 	}
 	
 	//init any extra ui objs
@@ -149,7 +147,7 @@ public class mySimWindow extends myDispWindow {
 
 
 	@Override
-	protected void initMe() {
+	protected void initMe_Indiv() {
 //		dispFlags[uiObjsAreVert] = true;
 		//init specific sim flags
 		dispFlags[plays] = true;						//this window responds to transport
@@ -185,15 +183,15 @@ public class mySimWindow extends myDispWindow {
 		switch(idx){
 		case oceanMadeIDX 			: {break;}			//any specific code for when ocean is made or cleared	
 		case playVisIDX				: { //turn play on/off
-			if(val){launchOceanVis(privFlags[useAudioForOceanIDX]);	}
-			else {	killOceanVis(privFlags[useAudioForOceanIDX]);	}
+			if(val){launchOceanVis(getPrivFlags(useAudioForOceanIDX));	}
+			else {	killOceanVis(getPrivFlags(useAudioForOceanIDX));	}
 			break;
 		}
 		case showFreqDomainIDX 		: {
 			fftOcean.setFlags(myOcean.performInvFFT, !val);
 			break;}
 		case useAudioForOceanIDX 	: {
-			if(privFlags[playVisIDX]){
+			if(getPrivFlags(playVisIDX)){
 				killOceanVis(!val);launchOceanVis(val);	//stop old vis, start new vis if playing
 			}
 			break;}			//any specific code for when we change from audio to mp3 and back				
@@ -323,7 +321,7 @@ public class mySimWindow extends myDispWindow {
 
 	
 	@Override
-	protected void setupGUIObjsAras(){
+	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){
 		//pa.outStr2Scr("setupGUIObjsAras in :"+ name);
 		guiMinMaxModVals = new double [][]{  
 			{0.0, songTitles.length-1, 1.0},	//song selected
@@ -413,7 +411,7 @@ public class mySimWindow extends myDispWindow {
 	
 	//if any ui values have a string behind them for display
 	@Override
-	protected String getUIListValStr(int UIidx, int validx) {
+	public String getUIListValStr(int UIidx, int validx) {
 		switch(UIidx){
 		case songSelIDX : {return songList[(validx % songList.length)]; }
 		case winSelIDX  : {return windowNames[(validx % windowNames.length)]; }
@@ -483,13 +481,16 @@ public class mySimWindow extends myDispWindow {
 		setSongTransInfo();
 	};
 
+	/**
+	 * Whether or not to force the cuda kernel to be recompiled
+	 * @return
+	 */
+	public boolean forceCUDARecomp() {return 
 	
 	@Override
 	protected void setScoreInstrValsIndiv(){}
 	@Override
-	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
-	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){}
+	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}
 	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){	return false;}
 	@Override

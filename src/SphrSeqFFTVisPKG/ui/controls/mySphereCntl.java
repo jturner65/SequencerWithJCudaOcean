@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
@@ -335,7 +336,8 @@ public class mySphereCntl {
 			if(tmp.flags[myNote.isChord]){										//tmp is a chord, add tmps notes to note's chord
 				tmp.flags[myNote.isChord] = false;
 				myChord tmpC = ((myChord)tmp);
-				for(int i = 1; i<tmpC.cnotes.size(); ++i){note.addNote(tmpC.cnotes.get(i));}
+				//for(int i = 1; i<tmpC.cnotes.size(); ++i){note.addNote(tmpC.cnotes.get(i));}
+				for(Entry<String, myNote> cNoteEntry : tmpC.cnotes.entrySet()){note.addNote(cNoteEntry.getValue());}
 			}
 		}		
 	}//addChord
