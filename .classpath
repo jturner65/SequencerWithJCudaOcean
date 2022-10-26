@@ -78,8 +78,6 @@
 	<classpathentry kind="lib" path="JCudaLibs/jnvgraph-natives-0.9.2-sources.jar"/>
 	<classpathentry kind="lib" path="JCudaLibs/jnvgraph-natives-0.9.2-windows-x86_64.jar"/>
 	<classpathentry kind="lib" path="JCudaLibs/jnvgraph-natives-0.9.2.jar"/>
-	<classpathentry kind="lib" path="libs/jblas-1.2.4.jar"/>
-	<classpathentry kind="lib" path="libs/jl1.0.1.jar"/>
 	<classpathentry kind="lib" path="libs/audio/jsminim.jar"/>
 	<classpathentry kind="lib" path="libs/audio/minim.jar"/>
 	<classpathentry kind="lib" path="libs/audio/mp3spi1.9.5.jar"/>
@@ -110,5 +108,8 @@
 	<classpathentry kind="lib" path="libs/processing/jogl-all-natives-windows-i586.jar"/>
 	<classpathentry kind="lib" path="libs/base_JavaProjTools_Math.jar"/>
 	<classpathentry kind="lib" path="libs/base_JavaProjTools_IRender.jar"/>
+	<classpathentry kind="lib" path="libs/audio/jl1.0.1.jar"/>
+	<classpathentry kind="lib" path="libs/base_JavaProjTools_UI.jar"/>
+	<classpathentry kind="lib" path="libs/base_JavaProjTools_Utils.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
