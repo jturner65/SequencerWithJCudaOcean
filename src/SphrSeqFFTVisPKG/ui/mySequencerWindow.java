@@ -4,9 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
-import SphrSeqFFTVisPKG.myVariStroke;
 import SphrSeqFFTVisPKG.clef.enums.clefType;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
@@ -19,6 +17,8 @@ import SphrSeqFFTVisPKG.staff.myTimeSig;
 import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.drawnObjs.myVariStroke;
 import ddf.minim.ugens.Waves;
 
 public class mySequencerWindow extends myMusicSimWindow {
@@ -116,13 +116,13 @@ public class mySequencerWindow extends myMusicSimWindow {
 		myNote oldClickNote = clickNote;
 		clickNote = _clkNote;
 		playClickNote = true;
-		//pa.glblOut.close();
+		//glblOut.close();
 		prlKeyboard.playSingleNote(clickNote);
 		prlKeyboard.stopSingleNote(oldClickNote);			//stop afterward to prevent patching/unpatching
-		//pa.glblOut = pa.getAudioOut();
-//		pa.glblOut.pauseNotes();
-//		playNote(pa.glblOut, 0, 1, clickNote.n.freq);
-//		pa.glblOut.resumeNotes();
+		//glblOut = pa.getAudioOut();
+//		glblOut.pauseNotes();
+//		playNote(glblOut, 0, 1, clickNote.n.freq);
+//		glblOut.resumeNotes();
 	}
 	@Override
 	//set flag values and execute special functionality for this sequencer
@@ -145,8 +145,8 @@ public class mySequencerWindow extends myMusicSimWindow {
 		//pa.outStr2Scr("setupGUIObjsAras in :"+ name);
 		//add components to every list to correspond to each UI list-box object
 		int staffNum = 0;
-		if(pa.score!=null){
-			staffNum = pa.score.staffs.size()-1;
+		if(score!=null){
+			staffNum = score.staffs.size()-1;
 		} 
 		if(staffNum < 0){staffNum = 0;}
 		guiMinMaxModVals = new double [][]{//min max mod values for each modifiable UI comp	
@@ -179,44 +179,44 @@ public class mySequencerWindow extends myMusicSimWindow {
 			setGlobalTempoVal(glblTempo);
 		}
 	}
-	//set current key signature, at time passed - for pa.score, set it at nearest measure boundary
+	//set current key signature, at time passed - for score, set it at nearest measure boundary
 	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time){
-		if(pa.score != null){
-			pa.score.setCurrentKeySig(time, lclKeySig, lclKeyNotesAra);
+		if(score != null){
+			score.setCurrentKeySig(time, lclKeySig, lclKeyNotesAra);
 		}
 	}//setCurrentKeySigVal//pbe.updateTimSigTempo(glblTempo, gridX,  glblTimeSig.getTicksPerBeat());
 	
-	//set time signature at time passed - for pa.score, set it at nearest measure boundary - global time sig need to be set by here
+	//set time signature at time passed - for score, set it at nearest measure boundary - global time sig need to be set by here
 	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){		
 		myTimeSig ts = new myTimeSig(pa, tsnum, tsdenom, _beatNoteType);	
-		if(pa.score != null){
-			pa.score.setCurrentTimeSig(time, ts);
+		if(score != null){
+			score.setCurrentTimeSig(time, ts);
 		}	
 		//pa.outStr2Scr("setCurrentTimeSigVal : " +glblTimeSigNum+ " over " + glblTimeSigDenom );
 	}//setCurrentTimeSigVal	
 
 	@Override
-	//set time signature at time passed - for pa.score, set it at nearest measure boundary
+	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setLocalTempoValIndiv(float tempo, float time){
 		
 	}//setLocalTempoValIndiv
 	
-	//set global key signature, at time passed - for pa.score, set it at nearest measure boundary
+	//set global key signature, at time passed - for score, set it at nearest measure boundary
 	protected void setGlobalKeySigValIndiv(int idx, float time){
 		//NOTE ! global key sig and key sig array need to be set before here
 		//glblKeySig  and glblKeyNotesAra
-		if(pa.score != null){
-			//pa.pa.score.setCurrentKeySig(time, glblKeySig, glblKeyNotesAra);
+		if(score != null){
+			//pa.score.setCurrentKeySig(time, glblKeySig, glblKeyNotesAra);
 			this.forceAllNotesInKey();
 		}
 
 	}//setCurrentKeySigVal//pbe.updateTimSigTempo(glblTempo, gridX,  glblTimeSig.getTicksPerBeat());
 	
-	//set time signature at time passed - for pa.pa.score, set it at nearest measure boundary - global time sig need to be set by here
+	//set time signature at time passed - for pa.score, set it at nearest measure boundary - global time sig need to be set by here
 	protected void setGlobalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){		
 		//NOTE ! global time sig need to be set by here		
-		if(pa.score != null){
-			//pa.score.setCurrentTimeSig(time, glblTimeSig);
+		if(score != null){
+			//score.setCurrentTimeSig(time, glblTimeSig);
 			forceAllNotesInTimeSig();
 		}
 		this.defaultNoteLength = _beatNoteType;
@@ -224,7 +224,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 		//pa.outStr2Scr("setCurrentTimeSigVal : " +glblTimeSigNum+ " over " + glblTimeSigDenom );
 	}//setCurrentTimeSigVal
 	
-	//set time signature at time passed - for pa.score, set it at nearest measure boundary
+	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setGlobalTempoValIndiv(float tempo, float time){
 		//tempoDurRatio = baseTempo/glblTempo;
 
@@ -238,11 +238,11 @@ public class mySequencerWindow extends myMusicSimWindow {
 		pa.outStr2Scr("click debug in "+name+" : btn : " + btnNum);
 		switch(btnNum){
 			case 0 : {
-				pa.score.staffs.get(scoreStaffNames[0]).debugAllNoteVals();
+				score.staffs.get(scoreStaffNames[0]).debugAllNoteVals();
 				break;
 			}
 			case 1 : {
-				pa.score.staffs.get(scoreStaffNames[0]).debugAllMeasVals();
+				score.staffs.get(scoreStaffNames[0]).debugAllMeasVals();
 				break;
 			}
 			case 2 : {
@@ -266,10 +266,10 @@ public class mySequencerWindow extends myMusicSimWindow {
 			mod = hndlPianoMseClkDrg(new int[] {mouseX, mouseY},true);// hndlPianoMseClick(mouseX, mouseY);
 		} else {
 			//need to handle displayed staff when piano roll is shown?
-			mod = pa.score.hndlMouseClick(mouseX, mouseY); 			
+			mod = score.hndlMouseClick(mouseX, mouseY); 			
 		}
 		if(mod){return mod;}
-		//other input here, if mod false ( not playing piano) or moding trajectory or clicking on buttons or modding pa.score or...
+		//other input here, if mod false ( not playing piano) or moding trajectory or clicking on buttons or modding score or...
 		
 		return checkUIButtons(mouseX, mouseY);
 	}//hndlMouseClickIndiv
@@ -280,7 +280,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 			mod = hndlPianoMseClkDrg(new int[] {mouseX, mouseY, pmouseX, pmouseY},false);//  hndlPianoMseDrag(mouseX, mouseY, pmouseX, pmouseY);
 		} else {
 			//need to handle displayed staff when piano roll is shown?
-			mod = pa.score.hndlMouseDrag(mouseX, mouseY);
+			mod = score.hndlMouseDrag(mouseX, mouseY);
 		}		
 		//other input here, if mod false ( not playing piano) or moding trajectory
 		
@@ -291,18 +291,18 @@ public class mySequencerWindow extends myMusicSimWindow {
 	public void setUIWinVals(int UIidx){
 		switch(UIidx){
 		case guiTrajToDraw 		: { curTrajAraIDX = (int)guiObjs[UIidx].getVal(); break;}
-		case noteDfltLen 		: {	defaultNoteLength = durType.getVal((int)guiObjs[UIidx].getVal() % noteValTypes.length);updateGridXandY(true);break;}
+		case noteDfltLen 		: {	defaultNoteLength = durType.getVal((int)guiObjs[UIidx].getVal());updateGridXandY(true);break;}
 		case trajRepeats		: { numTrajNoteRpts = (int)guiObjs[UIidx].getVal(); break;}
 		}		
 	}//setUIWinVals
 	//handle the display of UI objects backed by a list
-	@Override//pa.score.staffs.size()
+	@Override//score.staffs.size()
 	public String getUIListValStr(int UIidx, int validx){
 		//pa.outStr2Scr("getUIListValStr : " + UIidx+ " Val : " + validx + " inst len:  "+pa.InstrList.length+ " | "+pa.InstrList[(validx % pa.InstrList.length)].instrName );
-		switch(UIidx){//pa.score.staffs.size()
-			//case guiTrajToDraw 		: {return pa.InstrList[(validx % pa.score.staffs.size())].instrName; }
-			case guiTrajToDraw 		: {return pa.score.staffs.get(pa.score.staffDispOrder.get(validx % pa.score.staffs.size())).instrument.instrName; }
-			case noteDfltLen 		: {return noteVals[(validx % noteVals.length)];}
+		switch(UIidx){//score.staffs.size()
+			//case guiTrajToDraw 		: {return pa.InstrList[(validx % score.staffs.size())].instrName; }
+			case guiTrajToDraw 		: {return score.staffs.get(score.staffDispOrder.get(validx % score.staffs.size())).instrument.instrName; }
+			case noteDfltLen 		: {return durType.noteDurNames[validx];}
 		}
 		return "";
 	}//dispUIListObj
@@ -313,7 +313,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 		if(privFlags[prlShowPianoIDX]){
 			if(playClickNote){prlKeyboard.stopSingleNote(clickNote);	playClickNote = false; clickNote = null; clickNoteLoc = null;}// instrNoteOut.close();}		//playing directly on piano
 		} else {
-			//pa.score-related mouse release stuff
+			//score-related mouse release stuff
 		}		
 	}//hndlMseRelOnUIObj
 	@Override
@@ -353,12 +353,12 @@ public class mySequencerWindow extends myMusicSimWindow {
 	
     public void forceAllNotesInKey(){
     	//pa.outStr2Scr("Force notes to key : " + glblKeySig.key);
-    	pa.score.forceAllNotesToKey( glblKeySig,  glblKeyNotesAra,  pa.flags[pa.moveKeyNoteUp],  dispPiano);	
+    	score.forceAllNotesToKey( glblKeySig,  glblKeyNotesAra,  pa.flags[pa.moveKeyNoteUp],  dispPiano);	
 	}
     
     public void forceAllNotesInTimeSig(){
     	//pa.outStr2Scr("Force notes to time sig : " + glblTimeSig);
-    	pa.score.forceAllNotesToTime( glblTimeSig);	
+    	score.forceAllNotesToTime( glblTimeSig);	
     }
     
     //get a note from a location on the piano roll
@@ -382,7 +382,7 @@ public class mySequencerWindow extends myMusicSimWindow {
     public myNote getNoteFromStaffLoc(myPoint pt, int ticksPerDfltBeat){		//TODO
 		float[] noteRectDims = new float[4];
     	myNote newClickNote = null;
-//		newClickNote = pa.score.checkStaffArea((int)pts[i].x-(int)rectDim[0], (int)pts[i].y-(int)rectDim[1]);
+//		newClickNote = score.checkStaffArea((int)pts[i].x-(int)rectDim[0], (int)pts[i].y-(int)rectDim[1]);
 //		if(newClickNote == null){ pa.outStr2Scr("getNoteFromPrlLoc: loc of null pt = " + pt.toStrBrf()); return null;}
 //		newClickNote.setDurationPRL(1, ticksPerDfltBeat, false, false, 0);
 //		newClickNote.gridDims = noteRectDims;	//includes displacement for piano key display on piano roll	
@@ -444,10 +444,10 @@ public class mySequencerWindow extends myMusicSimWindow {
 	}
 	
 	public void addDrawnNotesToScore(int trajNum, boolean clearStaff, TreeMap<Integer,myNote> tmpdrawnPRollNotes){
-		if(clearStaff){pa.score.clearStaffNotes(scoreStaffNames[trajNum], trajNum);}
+		if(clearStaff){score.clearStaffNotes(scoreStaffNames[trajNum], trajNum);}
 		for(Entry<Integer, myNote> note : tmpdrawnPRollNotes.entrySet()) {
 			//pa.outStr2Scr("key: "+ note.getKey()+ "|"+note.getValue().toString(),true);
-			pa.score.addNoteToStaff(scoreStaffNames[trajNum], note.getValue());			
+			score.addNoteToStaff(scoreStaffNames[trajNum], note.getValue());			
 		}
 	}	
 	
@@ -538,9 +538,9 @@ public class mySequencerWindow extends myMusicSimWindow {
 		//need to calculate offset of reticle and use to determine accurate play time		
 		//replace this with individual instrument note playing in myStaff			
 		SortedMap<Integer, myNote> tmpNotes;
-		pa.glblOut.pauseNotes();
-		for(int i =0; i<pa.score.staffs.size(); ++i){	
-			myStaff staff = pa.score.staffs.get(scoreStaffNames[i]);
+		glblOut.pauseNotes();
+		for(int i =0; i<score.staffs.size(); ++i){	
+			myStaff staff = score.staffs.get(scoreStaffNames[i]);
 			if((!staff.stfFlags[myStaff.enabledIDX]) || (!staff.stfFlags[staff.hasNotesIDX])){continue;}
 			//tmpNotes = staff.getSubMapOfNotes(lastPBEQueryPlayTime, curPBEPlayTime);
 			tmpNotes = staff.getAllNotesAndClear(curPBEPlayTime, 1000000000, false);
@@ -548,7 +548,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 			//addTrajNoteToPlay(i,tmpNotes);
 			addTrajNoteToPlay(tmpNotes);
 		}
-		pa.glblOut.resumeNotes();
+		glblOut.resumeNotes();
 	}//playMe
 	//move current play position when playing mp3/sample (i.e. something not controlled by pbe reticle
 	@Override
@@ -567,7 +567,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 		
 		//need to move every note
 		for(int i =0; i<scoreStaffNames.length; ++i){
-			staff = pa.score.staffs.get(scoreStaffNames[i]);
+			staff = score.staffs.get(scoreStaffNames[i]);
 			for(Entry<Integer, myMeasure> measrEntry : staff.measures.entrySet()){
 				measrEntry.getValue().moveNoteForResize(scaleY, topOffY);
 			}
@@ -592,44 +592,44 @@ public class mySequencerWindow extends myMusicSimWindow {
 	protected void showMe() {}
 	private void drawPRLStuff(){
 		dispPiano.drawMe();
-		pa.pushMatrix();pa.pushStyle();	
+		pa.pushMatState();	
 		if((playClickNote) && (pa.mousePressed)){pa.show(clickNoteLoc, 4, ""+clickNote.n.nameOct, new myVector(5,5,0), SeqVisFFTOcean.gui_Magenta, dispFlags[trajPointsAreFlat]);}//clicking on piano
 		//draw vertical grid partition lines - done in piano
 		//draw squares corresponding to trajectory
-		for(int i =0; i<pa.score.staffs.size(); ++i){//			pa.setColorValFill((i==curDrnTrajStaffIDX ? pa.gui_Red : );
+		for(int i =0; i<score.staffs.size(); ++i){//			pa.setColorValFill((i==curDrnTrajStaffIDX ? pa.gui_Red : );
 			//pa.setColorValFill((i==curTrajAraIDX ? pa.gui_Red : drawTrajBoxFillClrs[i]));
 			pa.setFill((i==curTrajAraIDX ? pa.getClr(pa.gui_Red, 255) : drawTrajBoxFillClrs[i]));
-			pa.score.staffs.get(scoreStaffNames[i]).drawMeasPRL();
+			score.staffs.get(scoreStaffNames[i]).drawMeasPRL();
 		}
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		//pa.translate(xOff*2,dispPianoRect[1]+dispPianoRect[3]+(.3f*xOff));
 		pa.translate(xOff*2,dispPiano.pianoDim[1]+dispPiano.pianoDim[3] +(.3f*xOff));
-		pa.score.staffs.get(scoreStaffNames[curTrajAraIDX]).drawStaff();
-		pa.popStyle();pa.popMatrix();
+		score.staffs.get(scoreStaffNames[curTrajAraIDX]).drawStaff();
+		pa.popMatState();
 		//draw Staff corresponding to current trajectory
 		pa.translate(whiteKeyWidth, 0);
 		pbe.drawMe();
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 	}
 	
 	private void drawScoreStuff(){
-		pa.score.drawScore();		
-		pa.pushMatrix();pa.pushStyle();
+		score.drawScore();		
+		pa.pushMatState();
 		pa.translate(whiteKeyWidth, 0);
 		pbe.drawMe();			//TODO need to modify position at the start of every measure
-		pa.popStyle();pa.popMatrix();		
+		pa.popMatState();		
 	}	
 	
 	@Override
 	protected void drawMe(float animTimeMod) {
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		pa.translate(rectDim[0], rectDim[1]);//move to the edges of this window
 		
 		if(privFlags[prlShowPianoIDX]){drawPRLStuff();}
 		else {						drawScoreStuff();}		
 		//drawGUIObjs();
 		//drawClickableBooleans();
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 	}	
 	@Override
 	protected void endShiftKeyI() {}
@@ -645,7 +645,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 	protected void delSScrToWinIndiv(int idx) {}	
 	@Override
 	protected void delTrajToScrIndiv(int subScrKey, String newTrajKey) {}
-	@Override //code called when pa.score is made or changed
+	@Override //code called when score is made or changed
 	public void setScoreInstrValsIndiv(){
 		//initNoteOutIndiv();
 	}

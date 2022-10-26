@@ -54,9 +54,7 @@ public class myNote {
 	public float[] sphereDims;
 	public float sphereAlpha;
 	public int sphereDur;
-	public int sphereRing;
-	
-	
+	public int sphereRing;	
 	
 	//build note then set duration
 	public myNote(myMusicSimWindow _win, noteValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {

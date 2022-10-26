@@ -11,7 +11,7 @@ import java.util.Map;
 public enum durType {
 		Whole(1024),Half(512),Quarter(256),Eighth(128),Sixteenth(64),Thirtisecond(32); 
 		private int value; 
-		public final static String[] noteVals = new String[]{"Whole","Half","Quarter","Eighth","Sixteenth","Thirtisecond"};
+		public final static String[] noteDurNames = new String[]{"Whole","Half","Quarter","Eighth","Sixteenth","Thirtisecond"};
 		
 		private static Map<Integer, durType> map = new HashMap<Integer, durType>();
 	    static { for (durType enumV : durType.values()) { map.put(enumV.value, enumV);}}
