@@ -7,12 +7,12 @@ import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.myVariStroke;
-import SphrSeqFFTVisPKG.clef.enums.clefVal;
+import SphrSeqFFTVisPKG.clef.enums.clefType;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
@@ -100,7 +100,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 		
 		playClickNote = false;
 		//clickNoteOut = pa.getAudioOut();
-		prlKeyboard = new myInstrument(pa, "Pianoroll Click Keyboard", pa.clefs[clefVal.Treble.getVal()], pa.hSrsMult, Waves.SINE, false);
+		prlKeyboard = new myInstrument(pa, "Pianoroll Click Keyboard", pa.clefs[clefType.Treble.getVal()], pa.hSrsMult, Waves.SINE, false);
 		
 		//procInitOut(clickNoteOut);
 		setPrivFlags(prlShowPianoIDX,true);				//initially show piano roll
@@ -180,7 +180,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 		}
 	}
 	//set current key signature, at time passed - for pa.score, set it at nearest measure boundary
-	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<nValType> lclKeyNotesAra, float time){
+	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time){
 		if(pa.score != null){
 			pa.score.setCurrentKeySig(time, lclKeySig, lclKeyNotesAra);
 		}
@@ -291,7 +291,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 	public void setUIWinVals(int UIidx){
 		switch(UIidx){
 		case guiTrajToDraw 		: { curTrajAraIDX = (int)guiObjs[UIidx].getVal(); break;}
-		case noteDfltLen 		: {	defaultNoteLength = noteValTypes[(int)guiObjs[UIidx].getVal() % noteValTypes.length];updateGridXandY(true);break;}
+		case noteDfltLen 		: {	defaultNoteLength = durType.getVal((int)guiObjs[UIidx].getVal() % noteValTypes.length);updateGridXandY(true);break;}
 		case trajRepeats		: { numTrajNoteRpts = (int)guiObjs[UIidx].getVal(); break;}
 		}		
 	}//setUIWinVals
@@ -342,7 +342,7 @@ public class mySequencerWindow extends myMusicSimWindow {
 	}
 	
 	//force the passed note to be in the key passed, using the direction given 
-	public void forceNoteToKey(myKeySig _key, ArrayList<nValType> keyAra, myNote note, boolean moveUp){
+	public void forceNoteToKey(myKeySig _key, ArrayList<noteValType> keyAra, myNote note, boolean moveUp){
 		//pa.outStr2Scr("force note to key : " + pa.getKeyNames(keyAra));
 		if(keyAra.contains(note.n.name)){return;}
 		note.moveNoteHalfStep(_key, keyAra, moveUp);//, false, bkModY);		

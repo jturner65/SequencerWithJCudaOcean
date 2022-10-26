@@ -1,6 +1,6 @@
 package SphrSeqFFTVisPKG.instrument;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import ddf.minim.ugens.Oscil;
 import ddf.minim.ugens.Wavetable;
 import processing.core.PApplet;
@@ -11,7 +11,7 @@ import processing.core.PApplet;
  *
  */
 public class myInstrCmp {
-	public SeqVisFFTOcean p;
+	public myMusicSimWindow win;
 	public static int iCmpCnt = 0;
 	public int ID;
 	//public myInstr own;				//owning instrument
@@ -20,8 +20,8 @@ public class myInstrCmp {
 	public float harmFract=1.0f, volExp, vol, freq, baseFreq, origVol, origFreq;				//multiplier for this oscillator, exponent to describe volume inv multiplicative (mult) decrease for each harmonic
 	public Wavetable wTbl;
 	
-	public myInstrCmp(SeqVisFFTOcean _p, myNoteChannel _own, float _harmFract, Wavetable _wTbl){
-		p=_p;
+	public myInstrCmp(myMusicSimWindow _win, myNoteChannel _own, float _harmFract, Wavetable _wTbl){
+		win = _win;
 		ID = iCmpCnt++;
 		harmFract=_harmFract; own = _own; 
 		volExp = 1.0f;

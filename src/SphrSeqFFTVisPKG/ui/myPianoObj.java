@@ -2,7 +2,7 @@ package SphrSeqFFTVisPKG.ui;
 
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
@@ -54,13 +54,13 @@ public class myPianoObj{
 		for(int i =0; i < numWhiteKeys; ++i){
 			pianoWKeyDims[i] = new float[]{0,stY,wWide,wHigh};	
 			int iMod = i % 7;
-			pianoWNotes[i] = new NoteData(pa,pa.wKeyVals[iMod], octave);
-			if(pa.wKeyVals[iMod] == nValType.C){
+			pianoWNotes[i] = new NoteData(noteValType.wKeyVals[iMod], octave);
+			if(noteValType.wKeyVals[iMod] == noteValType.C){
 				octave--;
 			}
 			if((iMod != 4) && (iMod != 0) && (i != numWhiteKeys-1)&& (i != 0)){
 				pianoBKeyDims[blkKeyCnt] = new float[]{0,stY+(keyY-win.bkModY),bWide,bHigh};
-				pianoBNotes[blkKeyCnt] = new NoteData(pa,pa.bKeyVals[blkKeyCnt%5], octave);
+				pianoBNotes[blkKeyCnt] = new NoteData(noteValType.bKeyVals[blkKeyCnt%5], octave);
 				blkKeyCnt++;
 			}
 			stY +=keyY;
@@ -90,7 +90,7 @@ public class myPianoObj{
 		if(resIdx != -1){
 			//measure-less note to be played immediately
 			NoteData tmpa = ( keyType == 0 ? pianoWNotes[resIdx] : pianoBNotes[resIdx]);
-			res = new myNote(pa, tmpa.name, tmpa.octave, null, win.pa.score.staffs.get(win.getScoreStaffName(win.curTrajAraIDX)));
+			res = new myNote(win, tmpa.name, tmpa.octave, null, win.score.staffs.get(win.getScoreStaffName(win.curTrajAraIDX)));
 			snapClickLoc.set(xLoc,yLoc,0);			
 		}
 		//pa.outStr2Scr("Key x : " + keyClickX+ " Key y : "+keyClickY + " idx : "+resIdx+" Key Type : "+ keyType, true);
@@ -123,11 +123,11 @@ public class myPianoObj{
 			nrDims[0] =(((int)((x-win.whiteKeyWidth)/keyX)) * keyX)+win.whiteKeyWidth;
 			//pa.outStr2Scr("checkRollArea NRDIMS 0 : " + nrDims[0] + " orig x : " + x + " | " +  keyX);
 			NoteData tmpa = ( keyType == 0 ? pianoWNotes[resIdx] : pianoBNotes[resIdx]);
-			res = new myNote(pa, tmpa.name, tmpa.octave, null, win.pa.score.staffs.get(win.getScoreStaffName(win.curTrajAraIDX)));
+			res = new myNote(win, tmpa.name, tmpa.octave, null, win.score.staffs.get(win.getScoreStaffName(win.curTrajAraIDX)));
 			//pa.outStr2Scr("Note name in checkRollArea : " + res.n.name, true );
 			if(isNatural){//modify note grid dim so box doesn't overlap black keys
-				if (pa.chkHasSharps(res.n.name)){nrDims[1] += win.bkModY; nrDims[3] -= win.bkModY;}//increase y0, decrease y1 coord to make room for black key
-				if (pa.chkHasFlats(res.n.name) && (resIdx != pianoWKeyDims.length-1)){nrDims[3] -= win.bkModY;}//decrease y1 coord to make room for black key				
+				if (res.n.name.chkHasSharps()){nrDims[1] += win.bkModY; nrDims[3] -= win.bkModY;}//increase y0, decrease y1 coord to make room for black key
+				if (res.n.name.chkHasFlats() && (resIdx != pianoWKeyDims.length-1)){nrDims[3] -= win.bkModY;}//decrease y1 coord to make room for black key				
 			} 
 //			else if(isBlkKey){
 //				if (pa.chkHasSharps(res.n.name)){nrDims[1] -= bkModY; nrDims[3] += bkModY;}//increase y0, decrease y1 coord to make room for black key
@@ -146,14 +146,14 @@ public class myPianoObj{
 		float[] res = new float[4];
 		res[0]= xStOffset;
 		int resIdx = 0;;
-		if(pa.isNaturalNote(nd.name)){//check white keys
+		if(nd.name.isNaturalNote()){//check white keys
 			for(int i =0; i<pianoWNotes.length;++i){
 				if(nd.nameOct.equals(pianoWNotes[i].nameOct)){
 					res[1] = pianoWKeyDims[i][1]; res[2] = keyX;res[3] = pianoWKeyDims[i][3]; resIdx = i;break;
 				}
 			}
-			if (pa.chkHasSharps(nd.name)){res[1] += win.bkModY; res[3] -= win.bkModY;}//increase y0, decrease y1 coord to make room for black key
-			if (pa.chkHasFlats(nd.name) && (resIdx != pianoWKeyDims.length-1)){res[3] -= win.bkModY;}//decrease y1 coord to make room for black key				
+			if (nd.name.chkHasSharps()){res[1] += win.bkModY; res[3] -= win.bkModY;}//increase y0, decrease y1 coord to make room for black key
+			if (nd.name.chkHasFlats() && (resIdx != pianoWKeyDims.length-1)){res[3] -= win.bkModY;}//decrease y1 coord to make room for black key				
 
 		} else {				//check black keys
 			for(int i =0; i<pianoBNotes.length;++i){
@@ -166,48 +166,48 @@ public class myPianoObj{
 	}//getRectDimsFromRoll
 		
 	public void drawMe(){
-		pa.pushMatrix();pa.pushStyle();
-		pa.setColorValFill(SeqVisFFTOcean.gui_Red, 255);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
-		pa.strokeWeight(1.0f);
-		pa.rect(pianoDim);		//piano box
+		pa.pushMatState();
+		pa.setColorValFill(IRenderInterface.gui_Red, 255);	pa.setColorValStroke(IRenderInterface.gui_Black, 255);
+		pa.setStrokeWt(1.0f);
+		pa.drawRect(pianoDim);		//piano box
 		//white keys		
 		float[] lineYdim = new float[2];
 		for(int i =0; i<pianoWKeyDims.length;++i){
-			pa.pushMatrix();pa.pushStyle();
-			pa.setColorValFill(SeqVisFFTOcean.gui_OffWhite, 255);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
-			pa.strokeWeight(.5f);
-			pa.rect(pianoWKeyDims[i]);
+			pa.pushMatState();
+			pa.setColorValFill(IRenderInterface.gui_OffWhite, 255);	pa.setColorValStroke(IRenderInterface.gui_Black, 255);
+			pa.setStrokeWt(.5f);
+			pa.drawRect(pianoWKeyDims[i]);
 			lineYdim[0] = pianoWKeyDims[i][1]; lineYdim[1] = pianoWKeyDims[i][3];
 			if(i!= 0){
-				if (pa.chkHasSharps(pianoWNotes[i].name)){lineYdim[0] += win.bkModY; lineYdim[1] -= win.bkModY;}//increase y0, decrease y1 coord to make room for black key
-				if (pa.chkHasFlats(pianoWNotes[i].name) && (i != pianoWKeyDims.length-1)){lineYdim[1] -= win.bkModY;}//decrease y1 coord to make room for black key				
+				if (pianoWNotes[i].name.chkHasSharps()){lineYdim[0] += win.bkModY; lineYdim[1] -= win.bkModY;}//increase y0, decrease y1 coord to make room for black key
+				if (pianoWNotes[i].name.chkHasFlats() && (i != pianoWKeyDims.length-1)){lineYdim[1] -= win.bkModY;}//decrease y1 coord to make room for black key				
 			}
-			pa.rect(win.whiteKeyWidth,lineYdim[0],winDim[2],lineYdim[1]);	
+			pa.drawRect(win.whiteKeyWidth,lineYdim[0],winDim[2],lineYdim[1]);	
 
-			pa.setColorValFill(SeqVisFFTOcean.gui_Gray, 255);			
-			pa.text(""+pianoWNotes[i].nameOct, (wkOff_X+.05f)*win.whiteKeyWidth, pianoWKeyDims[i][1]+.85f*keyY);			
-			pa.popStyle();pa.popMatrix();		
+			pa.setColorValFill(IRenderInterface.gui_Gray, 255);			
+			pa.showText(""+pianoWNotes[i].nameOct, (wkOff_X+.05f)*win.whiteKeyWidth, pianoWKeyDims[i][1]+.85f*keyY);			
+			pa.popMatState();		
 		}
 		//black keys
 		for(int i =0; i<pianoBKeyDims.length;++i){
-			pa.pushMatrix();pa.pushStyle();
-			pa.setColorValFill(SeqVisFFTOcean.gui_Black, 255);	pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
-			pa.rect(pianoBKeyDims[i]);
-			pa.setColorValFill(SeqVisFFTOcean.gui_LightGray,512);
+			pa.pushMatState();
+			pa.setColorValFill(IRenderInterface.gui_Black, 255);	pa.setColorValStroke(IRenderInterface.gui_Black, 255);
+			pa.drawRect(pianoBKeyDims[i]);
+			pa.setColorValFill(IRenderInterface.gui_LightGray,512);
 			pa.noStroke();
-			pa.rect(win.whiteKeyWidth,pianoBKeyDims[i][1]+.1f*keyY,winDim[2],pianoBKeyDims[i][3]-.2f*keyY);			
-			pa.popStyle();pa.popMatrix();		
+			pa.drawRect(win.whiteKeyWidth,pianoBKeyDims[i][1]+.1f*keyY,winDim[2],pianoBKeyDims[i][3]-.2f*keyY);			
+			pa.popMatState();		
 		}
 		//vertical bars
-		pa.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
-		pa.strokeWeight(1.0f);
+		pa.setColorValStroke(IRenderInterface.gui_Black, 255);
+		pa.setStrokeWt(1.0f);
 		float startX = pianoDim[2] + pianoDim[0];
 		for(int i=0;i<numNotesWide;++i){
-			pa.line(startX,pianoDim[1], startX,pianoDim[1]+ pianoDim[3]);		//piano box, p2);
+			pa.drawLine(startX,pianoDim[1],0, startX,pianoDim[1]+ pianoDim[3],0);		//piano box, p2);
 			startX += keyX;
 		}
 		//pa.outStr2Scr("NumKeysDrawn : "+ keyCnt , true);
-		pa.popStyle();pa.popMatrix();		
+		pa.popMatState();		
 	}
 	
 	private void updateWinDim(float[] _winDim){	for(int i =0; i<_winDim.length; ++i){	winDim[i] = _winDim[i];}}

@@ -11,13 +11,13 @@ import com.jogamp.newt.opengl.GLWindow;
 import SphrSeqFFTVisPKG.clef.myClef;
 import SphrSeqFFTVisPKG.clef.myGrandClef;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
-import SphrSeqFFTVisPKG.clef.enums.clefVal;
+import SphrSeqFFTVisPKG.clef.enums.clefType;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.chordType;
 import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.score.myScore;
 import SphrSeqFFTVisPKG.ui.myInstEditWindow;
 import SphrSeqFFTVisPKG.ui.mySequencerWindow;
@@ -62,32 +62,7 @@ import ddf.minim.ugens.*;
 			
 	public String msClkStr = "";
 	
-	public PImage[] restImgs, clefImgs,sphereImgs, moonImgs; 			//array of images for rests, clefs and textures for spheres
-	public int numRestImges, numClefImgs, numSphereImgs;
-
-	//handles all transport controls
-	public final int pbeModAmt = 1;		//how many beats ffwd and rewind move crsr for playback engine
-	
-
-	// tools for playing music
-	public Minim minim;		
-	public AudioOutput glblOut;		
-	public Summer glblSum;	
-	public AudioRecorder recorder;	
-	public int OutTyp = Minim.STEREO;
-	
-	//global values for minim/audio stuff
-	public final int glbBufrSize = 1024;// * 16;
-//		/public float glbSampleRate;
-	
-	public float playPosition;		//
-	
 	public int glblStartPlayTime, glblLastPlayTime;
-	
-	public float[] hSrsMult;
-	public final int numHarms = 10;
-	
-	public myScore score;					//score being worked on - all windows reference same score
 	
 	/**
 	 * Precalculated cosine and sine values
@@ -96,28 +71,7 @@ import ddf.minim.ugens.*;
 	//constant values defined for cylinder wall angles
 	private final float deltaThet = MyMathUtils.TWO_PI_F/36.0f, 
 		finalThet = MyMathUtils.TWO_PI_F+deltaThet;
-	
-	//pxl displacements to draw rests
-	public float[][] restDisp = new float[][] {
-		new float[]{0,-20},
-		new float[]{0,-12},
-		new float[]{0,-12},
-		new float[]{0,-22},
-	};
-	
-	public Sampler[] drumSounds;		
-	public final int numDrumSnds = 8;
-//		drums0 : bd
-//		drums1 : hh1
-//		drums2 : hh2
-//		drums3 : snare1
-//		drums4 : snare2 (clap snare)
-//		drums5 : ride
-//		drums6 : crash
-//		drums7 : talk drum
-	
-	//sphere UI constants
-	public final float sphereRad = 50.0f;
+
 		
 	//CODE STARTS
 	public static void main(String[] passedArgs) {		
@@ -178,27 +132,27 @@ import ddf.minim.ugens.*;
 		focusTar = new myVector(sceneFcsVals[sceneIDX]);
 		loadAndSetImgs();					//load all images used : rest, clef, textures for spheres
 		clefs = new myClefBase[]{
-				new myClef(this, "Treble", clefVal.Treble, new NoteData(this, nValType.B, 4),clefImgs[0], new float[]{-5,0,40,50},0),   //Treble(0), Bass(1), Alto(2), Tenor(3), Piano(4), Drum(5); 
-				new myClef(this, "Bass", clefVal.Bass, new NoteData(this, nValType.D, 3),clefImgs[1], new float[]{0,-1,40,38},10),
-				new myClef(this, "Alto", clefVal.Alto, new NoteData(this, nValType.C, 4),clefImgs[2], new float[]{-10,-3,40,46},5),
-				new myClef(this, "Tenor", clefVal.Tenor, new NoteData(this, nValType.A, 3),clefImgs[3],new float[]{-10,-13,40,46},-5),
-				null,//replaced below
-				new myClef(this, "Drum", clefVal.Drum, new NoteData(this, nValType.B, 4),clefImgs[5], new float[]{0,0,40,40},0)				
+				new myClef(this, "Treble", clefType.Treble, new NoteData(this, noteValType.B, 4),clefImgs[0], new float[]{-5,0,40,50},0),   //Treble(0), Bass(1), Alto(2), Tenor(3), Piano(4), Drum(5); 
+				new myClef(this, "Bass", clefType.Bass, new NoteData(this, noteValType.D, 3),clefImgs[1], new float[]{0,-1,40,38},10),
+				new myClef(this, "Alto", clefType.Alto, new NoteData(this, noteValType.C, 4),clefImgs[2], new float[]{-10,-3,40,46},5),
+				new myClef(this, "Tenor", clefType.Tenor, new NoteData(this, noteValType.A, 3),clefImgs[3],new float[]{-10,-13,40,46},-5),
+				null,//replaced below (grand cleff)
+				new myClef(this, "Drum", clefType.Drum, new NoteData(this, noteValType.B, 4),clefImgs[5], new float[]{0,0,40,40},0)				
 		};
-		clefs[4] = new myGrandClef(this, "Piano", clefVal.Piano, new NoteData(this, nValType.B, 4),clefImgs[4], new float[]{0,0,40,40},0); 
+		clefs[clefType.Piano.getVal()] = new myGrandClef(this, "Piano", clefType.Piano, new NoteData(this, noteValType.B, 4),clefImgs[4], new float[]{0,0,40,40},0); 
 		InstrList = new myInstrument[]{//TODO set harmonic series
-				new myInstrument(this, "Guitar1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SAW, false),
-				new myInstrument(this, "Guitar2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
-				new myInstrument(this, "Bass", clefs[clefVal.Bass.getVal()], hSrsMult, Waves.TRIANGLE, false),
-				new myInstrument(this, "Vox1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SINE, false),
-				new myInstrument(this, "Vox2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SINE, false),
-				new myInstrument(this, "Synth1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
-				new myInstrument(this, "Synth2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
-				new myInstrument(this, "Synth3", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
-				new myInstrument(this, "Synth4", clefs[clefVal.Alto.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
-				new myInstrument(this, "Synth5", clefs[clefVal.Tenor.getVal()], hSrsMult,Waves.SAW, false),
-				new myInstrument(this, "Drums", clefs[clefVal.Drum.getVal()], hSrsMult,Waves.SINE, true),				//name of drum kits needs to be "Drums"
-				new myInstrument(this, "Drums2", clefs[clefVal.Drum.getVal()], hSrsMult,Waves.SINE, true)				//name of drum kits needs to be "Drums"
+				new myInstrument(this, "Guitar1", clefs[clefType.Treble.getVal()], hSrsMult,Waves.SAW, false),
+				new myInstrument(this, "Guitar2", clefs[clefType.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
+				new myInstrument(this, "Bass", clefs[clefType.Bass.getVal()], hSrsMult, Waves.TRIANGLE, false),
+				new myInstrument(this, "Vox1", clefs[clefType.Treble.getVal()], hSrsMult,Waves.SINE, false),
+				new myInstrument(this, "Vox2", clefs[clefType.Treble.getVal()], hSrsMult,Waves.SINE, false),
+				new myInstrument(this, "Synth1", clefs[clefType.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
+				new myInstrument(this, "Synth2", clefs[clefType.Treble.getVal()], hSrsMult,Waves.SQUARE, false),
+				new myInstrument(this, "Synth3", clefs[clefType.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
+				new myInstrument(this, "Synth4", clefs[clefType.Alto.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
+				new myInstrument(this, "Synth5", clefs[clefType.Tenor.getVal()], hSrsMult,Waves.SAW, false),
+				new myInstrument(this, "Drums", clefs[clefType.Drum.getVal()], hSrsMult,Waves.SINE, true),				//name of drum kits needs to be "Drums"
+				new myInstrument(this, "Drums2", clefs[clefType.Drum.getVal()], hSrsMult,Waves.SINE, true)				//name of drum kits needs to be "Drums"
 		};
 	
 		jtFace = loadImage("data/picJT.jpg"); 
@@ -218,15 +172,6 @@ import ddf.minim.ugens.*;
 		initVisProg();				//always first
 		drawCount = 0;
 	}//initProgram
-
-	//build audio specific constructs
-	public void initAudio(){		
-		minim = new Minim(this); 		// Declares minim which we use for sounds
-		glblSum = new Summer();
-		glblSum.setSampleRate(88200.0f);
-		resetAudioOut();
-		//glblSum.patch(glblOut);
-	}
 
 	public void draw(){	
 		animCntr = (animCntr + (baseAnimSpd )*animModMult) % maxAnimCntr;						//set animcntr - used only to animate visuals		
@@ -325,7 +270,7 @@ import ddf.minim.ugens.*;
 	}
 	public void loadAndSetImgs(){
 		numRestImges = durType.getNumVals() - 2;
-		numClefImgs = clefVal.getNumVals();			
+		numClefImgs = clefType.getNumVals();			
 		numSphereImgs = 18;
 		
 		restImgs = new PImage[numRestImges];			
@@ -574,41 +519,9 @@ import ddf.minim.ugens.*;
 			}			
 		}		
 	}//handleGlobalVals
-//		
-//		//handle distributing modified UI values to windows
-//		public void setEnumValAllWins(int uiIdx, int[] newVals){
-//			switch(uiIdx){
-//				case mySideBarMenu.gIDX_GlblKeySig : {break;}
-//				case mySideBarMenu.gIDX_GlblTimeSigNum : 
-//				case mySideBarMenu.gIDX_GlblTimeSigDenom : {break;}
-//				case mySideBarMenu.gIDX_GlblTempo : {break;}
-//			}	
-//		}//setEnumValAllWins
+
 	
-	public durType getDurTypeForNote(int _noteType){
-		switch (_noteType){
-		case 1 : {return durType.Whole;}
-		case 2 : {return durType.Half;}
-		case 4 : {return durType.Quarter;}
-		case 8 : {return durType.Eighth;}
-		case 16 : {return durType.Sixteenth;}
-		case 32 : {return durType.Thirtisecond;}
-		}
-		return durType.Quarter;
-	}
-	
-	//instance an audio out
-	public void resetAudioOut(){
-		glblOut = minim.getLineOut(OutTyp,glbBufrSize, 44100.0f);	
-		//glblOut.setVolume(.5f);
-		float tmpTempo = 1;
-		if(myMusicSimWindow.glblTempo <1){		tmpTempo = 120.0f;}			
-		else{			tmpTempo = myMusicSimWindow.glblTempo;		}
-		glblOut.setTempo(tmpTempo);			
-		glblSum.patch(glblOut);
-		outStr2Scr("Out tempo set to   " + tmpTempo);
-	}
-	
+
 	public void initDispWins(){
 		float InstEditWinHeight = InstEditWinYMult * height;		//how high is the InstEdit window when shown
 		//instanced window dimensions when open and closed - only showing 1 open at a time
@@ -642,7 +555,7 @@ import ddf.minim.ugens.*;
 			myMusicSimWindow win = ((myMusicSimWindow) dispWinFrames[i]);
 			win.setGlobalTempoVal(120);		//set for right now
 			win.setGlobalKeySigVal(0);		//set for right now
-			win.setGlobalTimeSigVal(4,4,getDurTypeForNote(4));		//set for right now
+			win.setGlobalTimeSigVal(4,4,durType.getDurTypeForNote(4));		//set for right now
 			win.dispFlags[myMusicSimWindow.is3DWin] = dispWinIs3D[i];
 			//win.setTrajColors(winTrajFillClrs[i], winTrajStrkClrs[i]);
 		}	

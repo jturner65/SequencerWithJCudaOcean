@@ -1,7 +1,7 @@
 package SphrSeqFFTVisPKG.instrument;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.myNote;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import ddf.minim.ugens.Summer;
 import ddf.minim.ugens.Wavetable;
 
@@ -11,7 +11,7 @@ import ddf.minim.ugens.Wavetable;
  *
  */
 public class myNoteChannel {
-	public SeqVisFFTOcean p;
+	public myMusicSimWindow win;
 	public static int iNCCnt = 0;
 	public int ID;
 		
@@ -30,8 +30,8 @@ public class myNoteChannel {
 	public float volAmt;
 	public Summer sum;
 	public  Wavetable wTbl;
-	public myNoteChannel(SeqVisFFTOcean _p, myInstrument _own, float[] _waveAmpMult, Wavetable _wTbl){
-		p=_p;
+	public myNoteChannel(myMusicSimWindow _win, myInstrument _own, float[] _waveAmpMult, Wavetable _wTbl){
+		win = _win;
 		ID = iNCCnt++;
 		own=_own;
 		sum = new Summer();
@@ -44,7 +44,7 @@ public class myNoteChannel {
 		cmpFracts = new float[_waveAmpMult.length];
 		for(int i = 0; i< _waveAmpMult.length; ++i){
 			cmpFracts[i]=_waveAmpMult[i];
-			cmps[i] = new myInstrCmp(p,this, cmpFracts[i], wTbl); 
+			cmps[i] = new myInstrCmp(win,this, cmpFracts[i], wTbl); 
 			cmps[i].osc.patch(sum);
 //			/p.outStr2Scr("in myNoteChannelctor : " + ID + " cmp : " + i + " cmp : " + cmps[i].toString());
 		}//build oscills and patch into sum
@@ -99,8 +99,8 @@ public class myNoteChannel {
 	//public void setHarmFract(int idx, float val){cmpFracts[idx]=val;	cmps[idx].setHarmFract(val);}
 
 	//set oscil values if they change
-	public void setWaveForm(Wavetable wf){wTbl = wf;for(int i = 0; i<p.numHarms; ++i){cmps[i].setWave(wTbl);}}
-	public void setVolume(float _volAmt){volAmt = _volAmt;for(int i = 0; i<p.numHarms; ++i){cmps[i].setVol(volAmt);}}
+	public void setWaveForm(Wavetable wf){wTbl = wf;for(int i = 0; i<win.numHarms; ++i){cmps[i].setWave(wTbl);}}
+	public void setVolume(float _volAmt){volAmt = _volAmt;for(int i = 0; i<win.numHarms; ++i){cmps[i].setVol(volAmt);}}
 	public void setPan(float _pan){panAmt = _pan;}
 	public String toString(){
 		String res = "ID : " + ID + " Vol : "+ volAmt+ " pan : " +panAmt + " # Comps :  "+cmps.length+" : \n";

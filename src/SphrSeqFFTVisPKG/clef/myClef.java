@@ -1,25 +1,22 @@
 package SphrSeqFFTVisPKG.clef;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
-import SphrSeqFFTVisPKG.clef.enums.clefVal;
+import SphrSeqFFTVisPKG.clef.enums.clefType;
 import SphrSeqFFTVisPKG.note.NoteData;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_UI_Objects.my_procApplet;
 import processing.core.PImage;
 
 public class myClef extends myClefBase{
 
-	public myClef(SeqVisFFTOcean _p, String _name, clefVal _clef, NoteData _mdNote, PImage _img, float[] _drawDim, float _ocf) {
-		super(_p, _name, _clef, _mdNote, _img, _drawDim, _ocf);
-		lowNote = new NoteData(midNote);
-		int[] dispAmts = p.getNoteDisp(lowNote, -7);
-		lowNote.editNoteVal(nValType.getVal(dispAmts[0]), dispAmts[1]);
-		highNote = new NoteData(midNote);
-		dispAmts = p.getNoteDisp(highNote, 7);
-		highNote.editNoteVal(nValType.getVal(dispAmts[0]), dispAmts[1]);
-		c4LocMultForClef = p.getC4LocMultClef(clef, false);
+	public myClef(myMusicSimWindow _win, String _name, clefType _clef, NoteData _mdNote, PImage _img, float[] _drawDim, float _ocf) {
+		super(_win, _name, _clef, _mdNote, _img, _drawDim, _ocf);
 	}
-	public myClef(myClefBase _c){this(_c.p,_c.name,_c.getClef(),new NoteData(_c.getMidNote()), _c.clefImage, _c.drawDim, _c.occsOffset);}
+	public myClef(myClef _c){
+		super(_c);		
+	}
+	
 
 	@Override
 	public boolean isAboveMiddle(NoteData _note) 	{
@@ -36,10 +33,10 @@ public class myClef extends myClefBase{
 	}
 	
 	@Override
-	public void drawMe(float offset) {
-		p.pushMatrix();p.pushStyle();//draw image	
-		p.image(clefImage, drawDim[0] + offset,drawDim[1], drawDim[2],drawDim[3]);		
-		p.popStyle();p.popMatrix();	
+	public void drawMe(IRenderInterface p, float offset) {
+		p.pushMatState();//draw image	
+		((my_procApplet) p).image(clefImage, drawDim[0] + offset,drawDim[1], drawDim[2],drawDim[3]);		
+		p.popMatState();	
 	}
 	
 	@Override

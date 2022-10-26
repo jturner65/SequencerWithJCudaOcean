@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.myClef;
 import SphrSeqFFTVisPKG.clef.myGrandClef;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myStaff;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 
 
 /**
@@ -20,7 +20,7 @@ import SphrSeqFFTVisPKG.staff.myStaff;
  * @author john
  */
 public class myInstrument {
-	public SeqVisFFTOcean p;
+	public myMusicSimWindow win;
 	public static int instCnt = 0;
 	public int ID;
 	public String instrName;
@@ -63,15 +63,15 @@ public class myInstrument {
 //	public AudioOutput out;
 	public Wavetable wTbl;					//waveform for this instrument
 	//TODO build instruments using minim
-	public myInstrument(SeqVisFFTOcean _p, String _nm, myClefBase _clef, float[] _waveAmpMult, Wavetable _wTbl, boolean isDrums) {
-		p = _p;
+	public myInstrument(myMusicSimWindow _win, String _nm, myClefBase _clef, float[] _waveAmpMult, Wavetable _wTbl, boolean isDrums) {
+		win = _win;
 		ID = instCnt++;
 		instrName = _nm;
 		wTbl = _wTbl;
 		initFlags();
 		instFlags[isDrumTrackIDX] = isDrums;
-		if(_clef.isGrandStaff){	clef = new myGrandClef(_clef);	}
-		else {			clef = new myClef(_clef);		}
+		if(_clef.isGrandStaff){	clef = new myGrandClef((myGrandClef) _clef);	}
+		else {			clef = new myClef((myClef) _clef);		}
 //		out = p.minim.getLineOut(p.OutTyp,p.glbBufrSize);	
 //		out.setTempo(120);
 		sumMstr = new Summer();
@@ -79,13 +79,13 @@ public class myInstrument {
 		noteChans = new myNoteChannel[numNoteChans];
 		oscilFracts = new float[_waveAmpMult.length];
 		for(int i =0; i<_waveAmpMult.length; ++i){oscilFracts[i]=_waveAmpMult[i];}		//same oscil mults for all notes in this instrument
-		for(int i =0; i<noteChans.length; ++i){	noteChans[i] = new myNoteChannel(p,this,oscilFracts, wTbl);	}
+		for(int i =0; i<noteChans.length; ++i){	noteChans[i] = new myNoteChannel(win,this,oscilFracts, wTbl);	}
 		initChanDeques();
 //		adsrMults = new float[]{1.0f, 0.01f, 0.05f, 0.5f, 0.5f};//5 component multipliers for adsr : max amplitude, aTime, dTime, suslevel, rTime
 //		adsr = new ADSR( adsrMults[0], adsrMults[1], adsrMults[2], adsrMults[3], adsrMults[4]);
 //		adsr.setSampleRate(88200.0f);
 		if(instFlags[isDrumTrackIDX]){
-			for(int i =0; i<p.drumSounds.length;++i){	p.drumSounds[i].patch(sumMstr);	}
+			for(int i =0; i<win.drumSounds.length;++i){	win.drumSounds[i].patch(sumMstr);	}
 //		/	out.setTempo(60.0f);
 		}
 		
@@ -100,7 +100,7 @@ public class myInstrument {
 	}	
 	
 	public void patchMstrOut(){
-		//p.outStr2Scr("instr ID : " + ID + " Attempt to patch to output : flag : " + instFlags[mstOutPtchIDX] );		
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " Attempt to patch to output : flag : " + instFlags[mstOutPtchIDX] );		
 		if(instFlags[mstOutPtchIDX]){return;}//already patched
 		//out.pauseNotes();
 		if(instFlags[isDrumTrackIDX]){
@@ -109,27 +109,27 @@ public class myInstrument {
 //			out.setTempo(120);
 //			adsr.noteOn();
 //			adsr.patch(p.glblSum);
-			sumMstr.patch(p.glblSum);
+			sumMstr.patch(win.glblSum);
 		}
 		else {
-			sumMstr.patch(p.glblSum);
+			sumMstr.patch(win.glblSum);
 		}
 		//adsr.patch(p.glblSum);
 		//out.resumeNotes();
 		instFlags[mstOutPtchIDX] = true;
 	}
 	public void unPatchMstrOut(){
-		//p.outStr2Scr("instr ID : " + ID + " Attempt to unpatch output : flag : " + instFlags[mstOutPtchIDX]);
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " Attempt to unpatch output : flag : " + instFlags[mstOutPtchIDX]);
 		if(!instFlags[mstOutPtchIDX]){return;}//already unpatched
 		if(instFlags[isDrumTrackIDX]){
 //			adsr.noteOff();
 //			adsr.unpatchAfterRelease(p.glblSum);
-			sumMstr.unpatch(p.glblSum);
+			sumMstr.unpatch(win.glblSum);
 //			p.glblOut.close();
 //			p.resetAudioOut();
 			//adsr.unpatchAfterRelease(p.glblSum);
 		} else {
-			sumMstr.unpatch(p.glblSum);
+			sumMstr.unpatch(win.glblSum);
 		}
 		instFlags[mstOutPtchIDX] = false;	
 	}
@@ -148,7 +148,8 @@ public class myInstrument {
 		switch (idx){
 			case volCntlIDX 	: {setVolume(val/100.0f);return;}
 			case panCntlIDX 	: {setPanAmt(val);return;}
-			case waveCntlIDX	: {if(wf==null){p.outStr2Scr("setInstCntlVals : Null wf sent to instrument: " +ID +":"+this.instrName); return;}setWaveForm(wf);return;}
+			case waveCntlIDX	: {if(wf==null){
+				win.getMsgObj().dispInfoMessage("myInstrument","xxx","setInstCntlVals : Null wf sent to instrument: " +ID +":"+this.instrName); return;}setWaveForm(wf);return;}
 			default 			: {return;}
 		}		
 	}//setInstCntlVals
@@ -160,43 +161,43 @@ public class myInstrument {
 	public myNoteChannel getAvailNtChan(int nID){
 		if(chansAvail.size() == 0){return null;}
 		myNoteChannel nc = chansAvail.removeFirst(); 
-		if(null == nc){//p.outStr2Scr("instr ID : " + ID + " ERROR : No more channels available to play note!");		
+		if(null == nc){//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " ERROR : No more channels available to play note!");		
 			return null;}
-		//p.outStr2Scr("instr ID : " + ID + " getAvailNtChan NT Channel retreived :\n" + nc.toString() + "\nfor note ID : " + nID); 
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " getAvailNtChan NT Channel retreived :\n" + nc.toString() + "\nfor note ID : " + nID); 
 		chansPlaying.put(nID,nc);
 		return nc;}
 	
 	public myNoteChannel relPlayingNtChan(int nID){
 		if(chansPlaying.size() == 0){return null;}
 		myNoteChannel nc = chansPlaying.get(nID); 
-		if(null == nc){//p.outStr2Scr("instr ID : " + ID + " ERROR : Specified note id " + nID + " not playing!");	
+		if(null == nc){//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " ERROR : Specified note id " + nID + " not playing!");	
 			return null;} 
-		//p.outStr2Scr("instr ID : " + ID + " relPlaying NT Channel release :\n" + nc.toString()); 
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " relPlaying NT Channel release :\n" + nc.toString()); 
 		chansAvail.addLast(nc); 
 		return nc;}
 
 	//ret 1 if success, -1 if fail, 0 if no notes
 	public int playSingleSphNote(myNote note){
-		if(null==note){		//p.outStr2Scr("instr ID : " + ID + " play single note : null");
+		if(null==note){		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " play single note : null");
 			return -1;}
-		//p.outStr2Scr("instr ID : " + ID + " play single note : "+ note.toString());
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " play single note : "+ note.toString());
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return startSphDrumNote(note);}
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		if(!instFlags[mstOutPtchIDX]){patchMstrOut();}
 		myNoteChannel _nc = getAvailNtChan(note.ID);		
 		if(_nc == null){return -1;}
 		_nc.setCurNoteAndPlay(note);
-		//p.outStr2Scr("Playing Note instID : " + ID + " note channel : " + _nc.ID);
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","Playing Note instID : " + ID + " note channel : " + _nc.ID);
 		numNotesPlaying++;
 		return 1;		
 	}
 	//ret 1 if success, -1 if fail, 0 if no notes
 	public int stopSingleSphNote(myNote note){
-		if(null==note){	//p.outStr2Scr("instr ID : " + ID + " stop single note : null");
+		if(null==note){	//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " stop single note : null");
 			return -1;}
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return stopSphDrumNote(note);}
-		//p.outStr2Scr("instr ID : " + ID + " stop single note : "+ note.toString());
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " stop single note : "+ note.toString());
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		myNoteChannel _nc = relPlayingNtChan(note.ID);
 		if(_nc == null){return -1;}
 		_nc.clearCurNoteAndStop(note);
@@ -206,13 +207,17 @@ public class myInstrument {
 		return 2;
 	}	
 	
+	private void triggerDrumSounds(int idx) {
+		win.drumSounds[(idx % win.drumSounds.length)].trigger();
+	}
+	
 	public int startSphDrumNote(myNote note){//note ring / 4 is drum sound to play (approx)
 		int idx = (36 - note.sphereRing-1)/4;			//TODO
 		numNotesPlaying++;
 		//int idx = (note.sphereRing/4)-1;			
-		//p.outStr2Scr("Play Drum Note : ring :  (36 - 1 -" + note.sphereRing + ")/4 idx :  " + idx);
-		p.drumSounds[(idx % p.drumSounds.length)].trigger();
-		//p.outStr2Scr("Play Drum Note : ring :  " + note.sphereRing + "/4 idx :  " + idx);
+		//win.getMsgObj().dispInfoMessage("myInstrument","startSphDrumNote","Play Drum Note : ring :  (36 - 1 -" + note.sphereRing + ")/4 idx :  " + idx);
+		triggerDrumSounds(idx);
+		//win.getMsgObj().dispInfoMessage("myInstrument","startSphDrumNote","Play Drum Note : ring :  " + note.sphereRing + "/4 idx :  " + idx);
 		
 		return 1;
 	}
@@ -221,9 +226,9 @@ public class myInstrument {
 		int idx = note.n.octave;			//just use note octave for drum
 		numNotesPlaying++;
 		//int idx = (note.sphereRing/4)-1;			//TODO
-		//p.outStr2Scr("Play Drum Note : ring :  (36 - 1 -" + note.sphereRing + ")/4 idx :  " + idx);
-		p.drumSounds[(idx % p.drumSounds.length)].trigger();
-		//p.outStr2Scr("Play Drum Note : ring :  " + note.sphereRing + "/4 idx :  " + idx);
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","Play Drum Note : ring :  (36 - 1 -" + note.sphereRing + ")/4 idx :  " + idx);
+		triggerDrumSounds(idx);
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","Play Drum Note : ring :  " + note.sphereRing + "/4 idx :  " + idx);
 		
 		return 1;
 	}	
@@ -246,7 +251,7 @@ public class myInstrument {
 		for(SortedMap.Entry<Integer, myNote> note : tmpNotes.entrySet()) {
 			int retCode = playSingleSphNote(note.getValue());
 			if(retCode == 0){continue;}
-			if(retCode == -1){p.outStr2Scr("instr ID : " + ID + " bad note channel");return -1;}
+			if(retCode == -1){win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " bad note channel");return -1;}
 			if(retCode == 2){}//drum note
 //			if(note.getValue().n.name == nValType.rest){continue;}			//don't add or remove rests
 //			_n = note.getValue();							//start time doesn't matter - sequencer handles it
@@ -272,7 +277,7 @@ public class myInstrument {
 				myNote note = nAra.get(i);
 				int retCode = stopSingleSphNote(note);
 				if(retCode == 0){continue;}
-				if(retCode == -1){p.outStr2Scr("instr ID : " + ID + " bad note channel");return -1;}
+				if(retCode == -1){win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " bad note channel");return -1;}
 				if(retCode == 2){}//drum note
 				
 //				if(note.n.name == nValType.rest){continue;}		//don't add or remove rests				
@@ -289,26 +294,26 @@ public class myInstrument {
 	
 	//ret 1 if success, -1 if fail, 0 if no notes
 	public int playSingleNote(myNote note){
-		if(null==note){		//p.outStr2Scr("instr ID : " + ID + " play single note : null");
+		if(null==note){		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " play single note : null");
 			return -1;}
-		//p.outStr2Scr("instr ID : " + ID + " play single note : "+ note.toString());
+		//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " play single note : "+ note.toString());
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return startDrumNote(note);}
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		if(!instFlags[mstOutPtchIDX]){patchMstrOut();}
 		myNoteChannel _nc = getAvailNtChan(note.ID);		
 		if(_nc == null){return -1;}
 		_nc.setCurNoteAndPlay(note);
-		p.outStr2Scr("Playing Note instID : " + ID + " note channel : " + _nc.ID);
+		win.getMsgObj().dispInfoMessage("myInstrument","xxx","Playing Note instID : " + ID + " note channel : " + _nc.ID);
 		numNotesPlaying++;
 		return 1;		
 	}
 	//ret 1 if success, -1 if fail, 0 if no notes
 	public int stopSingleNote(myNote note){
-		if(null==note){	//p.outStr2Scr("instr ID : " + ID + " stop single note : null");
+		if(null==note){	//win.getMsgObj().dispInfoMessage("myInstrument","xxx","instr ID : " + ID + " stop single note : null");
 			return -1;}
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return stopDrumNote(note);}
-		//p.outStr2Scr("instr ID : " + ID + " stop single note : "+ note.toString());
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		//win.getMsgObj().dispInfoMessage("myInstrument","stopSingleNote","instr ID : " + ID + " stop single note : "+ note.toString());
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		myNoteChannel _nc = relPlayingNtChan(note.ID);
 		if(_nc == null){return -1;}
 		_nc.clearCurNoteAndStop(note);

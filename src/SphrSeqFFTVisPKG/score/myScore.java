@@ -4,19 +4,20 @@ import java.util.ArrayList;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
 import SphrSeqFFTVisPKG.ui.myPianoObj;
 import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 
 public class myScore {
-	public static SeqVisFFTOcean pa;
-	public myMusicSimWindow w;
+	public static IRenderInterface pa;
+	public myMusicSimWindow win;
 	public static int sngCnt = 0;
 	public int ID;
 	public String songName;	
@@ -39,9 +40,9 @@ public class myScore {
 	//distance between staffs
 	public static final float stOff = 90, boxStX = 0, boxStY = 10;
 	
-	public myScore(SeqVisFFTOcean _p, myMusicSimWindow _w,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstrument> _inst) {
-		pa=_p;
-		w=_w;
+	public myScore(IRenderInterface _pa, myMusicSimWindow _win,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstrument> _inst) {
+		pa=_pa;
+		win=_win;
 		ID = sngCnt++;
 		songName = _name;
 		scoreDim = new float[_scoreDim.length];
@@ -56,8 +57,8 @@ public class myScore {
 		initScrFlags();
 	}	
 
-	public myScore(SeqVisFFTOcean _p,myMusicSimWindow _w, String _name, float[] _scoreDim) {
-		this(_p,_w,_name,_scoreDim,new ArrayList<String>(),new ArrayList<myInstrument>());
+	public myScore(IRenderInterface _pa,myMusicSimWindow _win, String _name, float[] _scoreDim) {
+		this(_pa,_win,_name,_scoreDim,new ArrayList<String>(),new ArrayList<myInstrument>());
 	}		
 	public void initScrFlags(){		scrFlags = new boolean[numScrFlags];for(int i=0;i<numScrFlags;++i){scrFlags[i]=false;}	}
 	
@@ -74,7 +75,7 @@ public class myScore {
 			  yVal;
 		for(int i = 0; i < staffDispOrder.size(); ++i){
 			yVal = (float)(boxStY + scoreDim[1]) + (i*stOff);
-			if(pa.ptInRange(mouseX, mouseY, xVal, yVal, xVal+10, yVal+10)){
+			if(MyMathUtils.ptInRange(mouseX, mouseY, xVal, yVal, xVal+10, yVal+10)){
 				String stfName = staffDispOrder.get(i);
 				//need to make the current staff the staff that is clicked
 				staffSelList.put(stfName, !staffSelList.get(stfName));
@@ -97,7 +98,7 @@ public class myScore {
 	public void addStaff(String name, myInstrument _inst){
 		//pa.outStr2Scr("adding staff name : " + name + " for inst : " + _inst.ID);
 		instruments.put(name,_inst);
-		myStaff tmp = new myStaff(pa,this, _inst, name);
+		myStaff tmp = new myStaff(pa, win,this, _inst, name);
 		staffSelList.remove(name);
 		staffSelList.put(name, true);
 		staffs.put(name, tmp);
@@ -105,13 +106,13 @@ public class myScore {
 	}
 	//clear out staff of all notes
 	public void clearStaffNotes(String staffName, int idx){
-		if(idx == 0){pa.outStr2Scr(" clear all staff notes : ");}
+		if(idx == 0){win.getMsgObj().dispInfoMessage("myScore","clearStaffNotes","Clear all staff notes : ");}
 		myStaff oldStaff = staffs.get(staffName);
 		SortedMap<Integer,myNote> dmmyAllNotes = oldStaff.getAllNotesAndClear(-1,100000000, true);
 	}//clearStaffNotes
 
 	//overrides all key settings set in measures :  forceNotesSetKey(myKeySig _key, ArrayList<nValType> glblKeyNotesAra, boolean moveUp, myPianoObj dispPiano){			
-	public void forceAllNotesToKey(myKeySig _key, ArrayList<nValType> glblKeyNotesAra, boolean moveUp, myPianoObj dispPiano){		
+	public void forceAllNotesToKey(myKeySig _key, ArrayList<noteValType> glblKeyNotesAra, boolean moveUp, myPianoObj dispPiano){		
 		for(int i =0; i<staffDispOrder.size(); ++i){	
 			staffs.get(staffDispOrder.get(i)).forceNotesSetKey( _key,  glblKeyNotesAra,  moveUp,  dispPiano);				
 		}
@@ -125,7 +126,7 @@ public class myScore {
 	}
 	
 	//send out key sig info to every staff setKeySigAtTime(float stTime, myKeySig newKey){
-	public void setCurrentKeySig(float timeToSet, myKeySig ks, ArrayList<nValType> glblKSNoteVals){
+	public void setCurrentKeySig(float timeToSet, myKeySig ks, ArrayList<noteValType> glblKSNoteVals){
 		for(int i =0; i<staffDispOrder.size(); ++i){	
 			staffs.get(staffDispOrder.get(i)).setKeySigAtTime(timeToSet, ks);				
 		}		
@@ -163,7 +164,7 @@ public class myScore {
 
 	//display pa.score in window
 	public void drawScore(){
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		pa.translate(scoreDim[0],scoreDim[1]);		
 		for(int i =0; i<staffDispOrder.size(); ++i){
 			String stfName = staffDispOrder.get(i);
@@ -172,7 +173,7 @@ public class myScore {
 			pa.translate(0, stOff);
 		}
 //		}
-		pa.popStyle();pa.popMatrix();		
+		pa.popMatState();		
 	}
 	
 //	//play all note data - should this be on measure by measure basis?

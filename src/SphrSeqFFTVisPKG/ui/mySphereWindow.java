@@ -2,12 +2,11 @@ package SphrSeqFFTVisPKG.ui;
 
 import java.util.*;
 
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
@@ -16,6 +15,7 @@ import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_UI_Objects.GUI_AppManager;
+import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
 import processing.core.PApplet;
 
 public class mySphereWindow extends myMusicSimWindow {
@@ -102,7 +102,7 @@ public class mySphereWindow extends myMusicSimWindow {
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){	
-		//pa.outStr2Scr("setupGUIObjsAras in :"+ name);
+		//msgObj.dispInfoMessage("mySphereWin","setupGUIObjsAras","setupGUIObjsAras in :"+ name);
 		guiMinMaxModVals = new double [][]{{}};					//min max mod values for each modifiable UI comp		
 		guiStVals = new double[]{};								//starting value
 		guiObjNames = new String[]{};							//name/label of component		
@@ -141,7 +141,7 @@ public class mySphereWindow extends myMusicSimWindow {
 		int cnt = 0, numBalls = instrs.size(), numCols = (int)(Math.sqrt(numBalls-1))+1, numRows = (int)(numBalls/numCols);
 		initPrivFlags(numPrivFlags);
 		sphereCntls = new TreeMap<String, mySphereCntl>();
-		float offset = pa.sphereRad * 4.5f;
+		float offset = mySphereCntl.radius * 4.5f;
 		int[][] clrAra = new int[][]{ 
 				new int[]{255,255,255},
 				new int[]{100,100,100},
@@ -171,13 +171,13 @@ public class mySphereWindow extends myMusicSimWindow {
 			//int idx = (int)( pa.random(cnt + 5)-5);
 			//ctr =  new myPoint(((int)(cnt % numCols))*offset,((int)(cnt/numCols))*offset,0); 
 			//ctr =  new myPoint(ctrVec.x+(orbitRads[ringRadIDX] * pa.sin(rotAngle)), ctrVec.y+(orbitRads[ringRadIDX] * pa.cos(rotAngle)),ctrVec.z);
-			//mySphereCntl tmpSph = new mySphereCntl(pa, this, entry, scoreStaffNames[i], pa.sphereRad, ctr, orbitRads[ringRadIDX], rotAngle, 
-			mySphereCntl tmpSph = new mySphereCntl(pa, this, entry, scoreStaffNames[i], pa.sphereRad, orbitRads[ringRadIDX], rotAngle, 
+			//mySphereCntl tmpSph = new mySphereCntl(pa, this, entry, scoreStaffNames[i], mySphereCntl.radius, ctr, orbitRads[ringRadIDX], rotAngle, 
+			mySphereCntl tmpSph = new mySphereCntl(pa, this, entry, scoreStaffNames[i], orbitRads[ringRadIDX], rotAngle, 
 					ringRadIDX,
 					pa.sphereImgs[cnt%pa.sphereImgs.length],//,pa.sphereImgs[(idx +1 + pa.sphereImgs.length)%pa.sphereImgs.length],pa.sphereImgs[(idx +2 + pa.sphereImgs.length)%pa.sphereImgs.length]},
 					clrAra);
 			if(scoreStaffNames[i].toLowerCase().contains("drums")){
-				//pa.outStr2Scr("Drums are set to be a drumkit");
+				//msgObj.dispInfoMessage("mySphereWin","setScoreInstrValsIndiv","Drums are set to be a drumkit");
 				tmpSph.setFlag(mySphereCntl.isDrumKitIDX, true);
 				//tmpSph.isDrumKit=true;
 			}
@@ -199,13 +199,13 @@ public class mySphereWindow extends myMusicSimWindow {
 	//static int plIterStatic = 0, stIterStatic;
 	//place holder to stop notes
 	public void addSphereNoteToStopNow(myInstrument instr, SortedMap<Integer,ArrayList<myNote>> tmpNotes){
-		//pa.outStr2Scr("Iter : " + plIterStatic++ + " Play ");
+		//msgObj.dispInfoMessage("mySphereWin","addSphereNoteToStopNow","Iter : " + plIterStatic++ + " Play ");
 		int retCode = instr.addSphNotesToStop(tmpNotes);
 		
 	}//addSphereNoteToStopNow
 	//static int iterStatic = 0;
 	public void addSphereNoteToPlayNow(myInstrument instr, SortedMap<Integer, myNote> tmpNotes, float durMult, int stTime){
-		//pa.outStr2Scr("Iter : " + stIterStatic++ + " Stop ");
+		//msgObj.dispInfoMessage("mySphereWin","addSphereNoteToPlayNow","Iter : " + stIterStatic++ + " Stop ");
 		int retCode = instr.addSphNotesToPlay(tmpNotes,stTime);
 		this.dispFlags[myMusicSimWindow.notesLoaded] = true;
 	}//addTrajNoteToPlay
@@ -218,7 +218,7 @@ public class mySphereWindow extends myMusicSimWindow {
 //			myNote _n = note.getValue();
 //			noteSt =  0;
 //			noteDur = _n.sphereDur * durMult;
-//			pa.outStr2Scr("Iter : " + iterStatic + " Play note : "+ _n.n.nameOct + " start : "+ noteSt + " dur: " + noteDur);
+//			msgObj.dispInfoMessage("mySphereWin","addSphereNoteToPlayNow","Iter : " + iterStatic + " Play note : "+ _n.n.nameOct + " start : "+ noteSt + " dur: " + noteDur);
 //			playNote(pa.glblOut, noteSt,noteDur, _n.n.freq);
 //			if(_n.flags[myNote.isChord]){
 //				for(Entry<String, myNote> cnote : ((myChord)(_n)).cnotes.entrySet()){
@@ -226,7 +226,7 @@ public class mySphereWindow extends myMusicSimWindow {
 //					if(_n.ID != chrdN.ID){
 //						noteSt = 0;		//now
 //						noteDur = chrdN.sphereDur * durMult;
-//						//pa.outStr2Scr("Play note of chord : "+ chrdN.n.nameOct + " start : "+ noteSt + " dur: " + noteDur);
+//						//msgObj.dispInfoMessage("mySphereWin","addSphereNoteToPlayNow","Play note of chord : "+ chrdN.n.nameOct + " start : "+ noteSt + " dur: " + noteDur);
 //						playNote(pa.glblOut, noteSt, noteDur, chrdN.n.freq);
 //					}
 //				}
@@ -245,34 +245,34 @@ public class mySphereWindow extends myMusicSimWindow {
 	//overrides function in base class mseClkDisp
 	@Override
 	public void drawTraj3D(float animTimeMod,myPoint trans){
-		//pa.outStr2Scr("mySphereUI.drawTraj3D() : I am overridden in 3d instancing class", true);
+		//msgObj.dispInfoMessage("mySphereWin","drawTraj3D","mySphereUI.drawTraj3D() : I am overridden in 3d instancing class", true);
 		if(!((privFlags[sphereSelIDX]) && (curSelSphere!=""))){return;}
-		pa.pushMatrix();pa.pushStyle();	
+		pa.pushMatState();	
 		pa.translate(0,0,1);
 		mySphereCntl tmp = sphereCntls.get(curSelSphere);
 		if(null != tmpDrawnTraj){tmp.drawTrajPts(tmpDrawnTraj, animTimeMod);}
 		if(privFlags[showTrajIDX]){
 		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
 			if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
-				//pa.outStr2Scr("MATCh : cur sel : " + curSelSphere + " cur instr : " + instrs.get(getTrajAraKeyStr(i)).instrName + " key : " + getTrajAraKeyStr(i));
+				//msgObj.dispInfoMessage("mySphereWin","drawTraj3D","MATCh : cur sel : " + curSelSphere + " cur instr : " + instrs.get(getTrajAraKeyStr(i)).instrName + " key : " + getTrajAraKeyStr(i));
 				ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
 				if(null!=tmpAra){	
 					for(int j =0; j<tmpAra.size();++j){tmp.drawTrajPts(tmpAra.get(j),animTimeMod);}
 				}	
 			}
 		}
-		pa.popStyle();pa.popMatrix();		
+		pa.popMatState();		
 	}//drawTraj3D
 	
 	//draw tardis tunnel skeeeeeoooooooooo woooeeeooooo weeeoooeeeeee weeeoooo oooo weee oo ooooooo eee ooooo
 	private static final float tcYConst = - 3325.0f/ 650.0f;	//precalc constant disp val
 	public void drawTunnel(){
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 		pa.noFill();
-		pa.stroke(255,255,255,255);
-		pa.strokeWeight(1);
+		pa.setStroke(255,255,255,255);
+		pa.setStrokeWt(1);
 		float fc = (float)pa.frameCount, a, tcScl,r; 
-		float tunnelRad = pa.sphereRad * 150;
+		float tunnelRad = mySphereCntl.radius * 150;
 		for (int i = 0; i < numTunnelCircles; i++) { 
 			tunnelCrcls[i].z += zStep; 
 			tcScl = PApplet.map((float)(tunnelCrcls[i].z), zMin, zMax, 6,0) * .25f;
@@ -280,15 +280,15 @@ public class mySphereWindow extends myMusicSimWindow {
 			a = PApplet.map((float)(tunnelCrcls[i].z), zMin, zMax, 111,255); 
 			tunnelCrcls[i].x = (pa.noise((float)((fc - tunnelCrcls[i].z) / 650.0f) - .5f) * rectDim[2] * tcScl); 
 			tunnelCrcls[i].y = (pa.noise((float)((fc + tunnelCrcls[i].z) / 650.0f) - tcYConst) * rectDim[3]* tcScl); 
-			pa.stroke(0,a*.5f,a, a); 
-			pa.strokeWeight(2.0f);
-			pa.pushMatrix(); 
+			pa.setStroke(0,a*.5f,a, a); 
+			pa.setStrokeWt(2.0f);
+			pa.pushMatState();
 			pa.translate(tunnelCrcls[i].x, tunnelCrcls[i].y, tunnelCrcls[i].z); 
-			pa.ellipse(0, 0, r, r); 
-			pa.popMatrix(); 
+			pa.drawEllipse2D(0, 0, r, r); 
+			pa.popMatState();	
 			if (tunnelCrcls[i].z > zMax) {				tunnelCrcls[i].z = zMin;			} 
 		} 
-		pa.popStyle();pa.popMatrix();		
+		pa.popMatState();		
 	}//drawTunnel
 
 	@Override
@@ -297,14 +297,14 @@ public class mySphereWindow extends myMusicSimWindow {
 		drawTunnel();
 		curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);			//needs to be here - used for determination of whether a sphere is hit or not
 		curMseLoc3D = pa.getMseLoc(pa.sceneCtrVals[pa.sceneIDX]);
-		//pa.outStr2Scr("Current mouse loc in 3D : " + curMseLoc3D.toStrBrf() + "| scenectrvals : " + pa.sceneCtrVals[pa.sceneIDX].toStrBrf() +"| current look-at vector from mouse point : " + curMseLookVec.toStrBrf());
-		pa.pushMatrix();pa.pushStyle();
+		//msgObj.dispInfoMessage("mySphereWin","drawMe","Current mouse loc in 3D : " + curMseLoc3D.toStrBrf() + "| scenectrvals : " + pa.sceneCtrVals[pa.sceneIDX].toStrBrf() +"| current look-at vector from mouse point : " + curMseLookVec.toStrBrf());
+		pa.pushMatState();
 		pa.noLights();
 		setLights();
 		drawSpheres(animTimeMod);
 		pa.noLights();
 		pa.lights();
-		pa.popStyle();pa.popMatrix();
+		pa.popMatState();
 		if(pa.flags[pa.playMusic]){playAllNotes();}				//need to build better mechanism to be draw-driven instead of 1-shot for play
 	}
 
@@ -322,7 +322,7 @@ public class mySphereWindow extends myMusicSimWindow {
 	}
 	
 	private void drawSpheres(float animTimeMod){	
-		//pa.outStr2Scr("anim time mod:"  + animTimeMod);//varies between .01 and .02, mostly .01-.015 - driven by proc time of other functionality, to keep animations smooth
+		//msgObj.dispInfoMessage("mySphereWin","drawSpheres","anim time mod:"  + animTimeMod);//varies between .01 and .02, mostly .01-.015 - driven by proc time of other functionality, to keep animations smooth
 		if(privFlags[sphereSelIDX]){	//a sphere has been fixed for input
 			for(mySphereCntl cntl : sphereCntls.values()){
 				boolean isCurSelSphere = curSelSphere.equals(cntl.name);
@@ -343,7 +343,7 @@ public class mySphereWindow extends myMusicSimWindow {
 				} else if (curSelSphere.equals(cntl.name)){					//this one is focus sphere, check if still focus
 					//check if still focus sphere
 					double hit = cntl.hitMe(rayPt, curMseLookVec);
-					//pa.outStr2Scr("hit for cntl : " + cntl.ID + " == " + hit);
+					//msgObj.dispInfoMessage("mySphereWin","drawSpheres","hit for cntl : " + cntl.ID + " == " + hit);
 					if(hit >=0 ){//still focus sphere
 						cntl.drawMe(animTimeMod, 0, true);
 					} else {//no longer hit, not focus sphere anymore
@@ -390,7 +390,7 @@ public class mySphereWindow extends myMusicSimWindow {
 		if(null != tmpDrawnTraj){	tmpDrawnTraj.dbgPrintAllPoints();}
 		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
 		if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
-			pa.outStr2Scr("cur sel sphere: " + curSelSphere);
+			msgObj.dispInfoMessage("mySphereWin","dbgShowTrajLocs","cur sel sphere: " + curSelSphere);
 			ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
 			if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){tmpAra.get(j).dbgPrintAllPoints();}	}	
 		}		
@@ -398,13 +398,13 @@ public class mySphereWindow extends myMusicSimWindow {
 	
 	public void dbgNoteDispVals(){		
 		for(Map.Entry<Integer,myNote> noteVal : sphereCntls.get(curSelSphere).notes.entrySet()){
-			pa.outStr2Scr(noteVal.getValue().toString());
+			msgObj.dispInfoMessage("mySphereWin","dbgNoteDispVals",noteVal.getValue().toString());
 		}
 	}
 	
 	@Override
 	public void clickDebug(int btnNum){
-		pa.outStr2Scr("click debug in "+name+" : btn : " + btnNum);
+		msgObj.dispInfoMessage("mySphereWin","clickDebug","click debug in "+name+" : btn : " + btnNum);
 		switch(btnNum){
 			case 0 : {//note vals
 				dbgShowTrajLocs();
@@ -424,8 +424,8 @@ public class mySphereWindow extends myMusicSimWindow {
 		}		
 	}
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
-		pa.outStr2Scr("Process traj in sphere ui");
+	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
+		msgObj.dispInfoMessage("mySphereWin","processTrajIndiv","Process traj in sphere ui");
 		sphereCntls.get(curSelSphere).processTrajIndiv(drawnNoteTraj);
 		//traj processing
 	}
@@ -447,7 +447,7 @@ public class mySphereWindow extends myMusicSimWindow {
 	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {
 		boolean res = checkUIButtons(mouseX, mouseY);
 		if(res) {return res;}
-		//pa.outStr2Scr("sphere ui click in world : " + mseClckInWorld.toStrBrf());
+		//msgObj.dispInfoMessage("mySphereWin","hndlMouseClickIndiv","sphere ui click in world : " + mseClckInWorld.toStrBrf());
 		if((!privFlags[sphereSelIDX]) && (curSelSphere!="")){			//set flags to fix sphere
 			res = true;
 			setPrivFlags(sphereSelIDX,true);			
@@ -466,9 +466,9 @@ public class mySphereWindow extends myMusicSimWindow {
 	@Override
 	protected boolean hndlMouseDragIndiv(int mouseX, int mouseY, int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld, int mseBtn) {
 		boolean res = false;
-		//pa.outStr2Scr("hndlMouseDragIndiv sphere ui drag in world mouseClickIn3D : " + mouseClickIn3D.toStrBrf() + " mseDragInWorld : " + mseDragInWorld.toStrBrf());
+		//msgObj.dispInfoMessage("mySphereWin","hndlMouseDragIndiv","hndlMouseDragIndiv sphere ui drag in world mouseClickIn3D : " + mouseClickIn3D.toStrBrf() + " mseDragInWorld : " + mseDragInWorld.toStrBrf());
 		if((privFlags[sphereSelIDX]) && (curSelSphere!="")){//pass drag through to selected sphere
-			//pa.outStr2Scr("sphere ui drag in world mouseClickIn3D : " + mouseClickIn3D.toStrBrf() + " mseDragInWorld : " + mseDragInWorld.toStrBrf());
+			//msgObj.dispInfoMessage("mySphereWin","hndlMouseDragIndiv","sphere ui drag in world mouseClickIn3D : " + mouseClickIn3D.toStrBrf() + " mseDragInWorld : " + mseDragInWorld.toStrBrf());
 			res = sphereCntls.get(curSelSphere).hndlMouseDragIndiv(mouseX, mouseY, pmouseX, pmouseY, mouseClickIn3D,curMseLookVec, mseDragInWorld);
 		}
 		return res;
@@ -485,7 +485,7 @@ public class mySphereWindow extends myMusicSimWindow {
 	protected void setGlobalTempoValIndiv(float tempo, float time){	}//setCurrentTimeSigVal
 	@Override
 	//set local at-time key signature, at time passed - for score, set it at nearest measure boundary
-	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<nValType> lclKeyNotesAra, float time){}
+	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time){}
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){}

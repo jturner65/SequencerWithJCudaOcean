@@ -4,15 +4,17 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.score.myScore;
 import SphrSeqFFTVisPKG.ui.myPianoObj;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 import java.util.SortedMap;
 
@@ -22,7 +24,8 @@ import java.util.SortedMap;
  *
  */
 public class myStaff {
-	public static SeqVisFFTOcean p;
+	public static IRenderInterface p;
+	public myMusicSimWindow win;
 	public static int sCnt = 0;
 	public int ID;
 	public String name;
@@ -54,28 +57,28 @@ public class myStaff {
 	
 	public static float[][] stfSelBoxRect = new float[][]{{0,0,0,0},{0,0,0,0}};
 	
-	private float lOff,			//ledger offset in pxls - dist between lines
-				stfHght;			//staff height
+	private final float lOff;			//ledger offset in pxls - dist between lines
+	private float stfHght;			//staff height
 	
 	public String hdrDispString;		//display string for header over staff
 		
-	public myStaff(SeqVisFFTOcean _p,myScore _song, myInstrument _instr, String _nm) {
-		p=_p;
+	public myStaff(IRenderInterface _p,myMusicSimWindow _win,myScore _song, myInstrument _instr, String _nm) {
+		p=_p;win=_win;
 		ID = sCnt++;
 		song = _song;
-		lOff = song.boxStY;  //8.5f*lOff,-lOff,10, 10
+		lOff = myScore.boxStY;  //8.5f*lOff,-lOff,10, 10
 		stfSelBoxRect[0] = new float[]{7.5f*lOff,-lOff,10, 10};
 		stfSelBoxRect[1] = new float[]{21.5f*lOff,-lOff,10, 10};
 		instrument = _instr;
 		topLeftCrnr = new float[]{0,lOff*3.0f};
 		name =_nm;
 		initAllStructs();
-		//p.outStr2Scr("call ctor in mystaff id : " + ID);		
-		putValsInTreemaps(0, 0, new myTimeSig(p, 4,4, p.getDurTypeForNote(4)),  new myKeySig(p,keySigVals.CMaj), instrument.clef, true, null); 		//initialize time sig and key sig
+		//win.getMsgObj().dispInfoMessage("myStaff","ctor","call ctor in mystaff id : " + ID);		
+		putValsInTreemaps(0, 0, new myTimeSig(p, 4,4, durType.getDurTypeForNote(4)),  new myKeySig(p,keySigVals.CMaj), instrument.clef, true, null); 		//initialize time sig and key sig
 		initStaffFlags();
 		//initial measure of staff
 		stfFlags[enabledIDX]=true;		//every staff is initially enabled
-		stfHght = song.stOff;			//base height of staff is defined in song file
+		stfHght = myScore.stOff;			//base height of staff is defined in song file
 		hdrDispString = instrument.toString();
 	}
 	public void initStaffFlags(){	stfFlags = new boolean[numStfFlags]; for(int i =0;i<numStfFlags;++i){stfFlags[i]=false;}}
@@ -103,16 +106,16 @@ public class myStaff {
 		if(firstMeas == null){
 			putValsInTreemaps(0, 0, this.timeSigs.get(0),this.keySigs.get(0), this.clefs.get(0), true, null); 
 		} else {
-			putValsInTreemaps(firstMeas.m.seqNum,firstMeas.m.stTime, firstMeas.m.ts, firstMeas.m.ks, instrument.clef, true, firstMeas);
+			putValsInTreemaps(firstMeas.msrData.seqNum,firstMeas.msrData.stTime, firstMeas.msrData.ts, firstMeas.msrData.ks, instrument.clef, true, firstMeas);
 		}
-		stfHght = 2*(song.stOff);	
+		stfHght = 2*(myScore.stOff);	
 	}
 	
 	//get current last measure  measures.floorEntry(_n.n.stTime).getValue();
 	public myMeasure getCurMeasure(int measNum){if(measNum!= -1) {return measures.get(seqNumToTime.get(measNum));} else {return measures.lastEntry().getValue();}}	
 	//
 	public void putValsInTreemaps(int seqNum, int stTime, myTimeSig ts, myKeySig keyVal, myClefBase newClef, boolean addMeasure, myMeasure _meas){ 
-		//if(ID==0){p.outStr2Scr("===\tputValsInTreemaps seqNum : "+seqNum+" stTime : "+stTime);}
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","putValsInTreemaps","===\tputValsInTreemaps seqNum : "+seqNum+" stTime : "+stTime);}
 		addNewTimeSeq(seqNum, stTime);
 		addTSIfNew(seqNum, ts);
 		addKSIfNew(seqNum,keyVal);
@@ -121,7 +124,7 @@ public class myStaff {
 		if(_meas != null){
 			measures.put(stTime,_meas);				
 		} else {
-			myMeasure tmp = new myMeasure(p, seqNum, seqNumToTime.get(seqNum), this);	
+			myMeasure tmp = new myMeasure(win, seqNum, seqNumToTime.get(seqNum), this);	
 			measures.put(stTime,tmp);	
 		}
 	}//putValsInTreemaps
@@ -141,7 +144,7 @@ public class myStaff {
 	}
 	
 	private void addNoteToMeasure(myNote _n, int timeToAddNote, myMeasure meas){
-		//if(ID==0){p.outStr2Scr("addNoteToMeasure : " + _n.n.nameOct+"\ttimeToAddNote :"+timeToAddNote+"meas to add :"+meas);}
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","addNoteToMeasure","" + _n.n.nameOct+"\ttimeToAddNote :"+timeToAddNote+"meas to add :"+meas);}
 		myNote addNewNote = meas.addNote(_n, timeToAddNote);			//addNewNote is note that needs to be added past this measure's bounds
 		if(null != addNewNote){addNoteAtNoteTime(addNewNote);}	
 		else {stfFlags[hasNotesIDX] = true;}
@@ -151,9 +154,9 @@ public class myStaff {
 	public void addNoteAtNoteTime(myNote _n){
 		int noteStTime = _n.n.stTime;
 		if(measures.isEmpty()){	addMeasure();	}//add a new measure if empty
-		while(measures.get(measures.lastKey()).m.endTime <= noteStTime ){	addMeasure();	}//add measures until we have the measure corresponding with the measure being added
+		while(measures.get(measures.lastKey()).msrData.endTime <= noteStTime ){	addMeasure();	}//add measures until we have the measure corresponding with the measure being added
 		myMeasure meas = measures.floorEntry(_n.n.stTime).getValue();
-		//p.outStr2Scr("addNoteAtNoteTime : note : "+_n.toString() + "\n meas seqNum : " +seqNum+ " : meas : "+meas.toString());
+		//win.getMsgObj().dispInfoMessage("myStaff","addNoteAtNoteTime","addNoteAtNoteTime : note : "+_n.toString() + "\n meas seqNum : " +seqNum+ " : meas : "+meas.toString());
 		addNoteToMeasure(_n, _n.n.stTime, meas);
 	}
 	
@@ -162,16 +165,16 @@ public class myStaff {
 		//get sequence number corresponding to start time -> verify that stTime == endTime of last measure or == 0 from last measure in list
 		myMeasure lastM = measures.get(measures.lastKey());
 		if(lastM == null){
-			//p.outStr2Scr("addMeasure : measures is empty, adding new measure");		//no measures in list, so first measure			
+			//win.getMsgObj().dispInfoMessage("myStaff","addMeasure","measures is empty, adding new measure");		//no measures in list, so first measure			
 			putValsInTreemaps(0, 0, this.timeSigs.get(0),this.keySigs.get(0), this.clefs.get(0), true, null); 		//initialize time sig and key sig			
 		} else {
-			//p.outStr2Scr("addMeasure : adding new measure next to last measure -->"+lastM.toString());			
-			myMeasure m = new myMeasure(lastM, lastM.m.endTime, lastM.m.seqNum + 1);
+			//win.getMsgObj().dispInfoMessage("myStaff","addMeasure","adding new measure next to last measure -->"+lastM.toString());			
+			myMeasure m = new myMeasure(lastM, lastM.msrData.endTime, lastM.msrData.seqNum + 1);
 			addMeasure(m);				
 		}
 	}	
 	private void addMeasure(myMeasure m){
-		putValsInTreemaps(m.m.seqNum,m.m.stTime, m.m.ts, m.m.ks, m.m.clef, true, m);
+		putValsInTreemaps(m.msrData.seqNum,m.msrData.stTime, m.msrData.ts, m.msrData.ks, m.msrData.clef, true, m);
 	}	
 	
 	//return an array of keys in measure struct corresponding to st time and end time
@@ -188,29 +191,29 @@ public class myStaff {
 	public void debugAllNoteVals(){
 		SortedMap<Integer,myNote> allNotes = getAllNotesAndClear(-1,100000000, false);
 		for(Map.Entry<Integer,myNote> noteVal : allNotes.entrySet()) {
-			p.outStr2Scr("Key value in allNotes : " + noteVal.getKey() + "\nNote : " + noteVal.getValue().toString()+ "\n");
+			win.getMsgObj().dispInfoMessage("myStaff","debugAllNoteVals","Key value in allNotes : " + noteVal.getKey() + "\nNote : " + noteVal.getValue().toString()+ "\n");
 		}	
 	}
 	
 	public void debugAllMeasVals(){
 		SortedMap<Integer,myMeasure> measureSubMap = getAllMeasures(-1, 100000000);		
 		for(Map.Entry<Integer,myMeasure> msrVals : measureSubMap.entrySet()) {
-			p.outStr2Scr("Key in measureSubMap : " + msrVals.getKey() + "\nMeasure : " + msrVals.getValue().toString() + "\n");
+			win.getMsgObj().dispInfoMessage("myStaff","debugAllMeasVals","Key in measureSubMap : " + msrVals.getKey() + "\nMeasure : " + msrVals.getValue().toString() + "\n");
 		}
-		p.outStr2Scr("Print out seqNumToTime : \n");
+		win.getMsgObj().dispInfoMessage("myStaff","debugAllMeasVals","Print out seqNumToTime : \n");
 		for(Map.Entry<Integer,Integer> timeVal : seqNumToTime.entrySet()) {
-			p.outStr2Scr("Key value in seqNumToTime : " + timeVal.getKey() + "\nValue : " + timeVal.getValue().toString()+ "\n");
+			win.getMsgObj().dispInfoMessage("myStaff","debugAllMeasVals","Key value in seqNumToTime : " + timeVal.getKey() + "\nValue : " + timeVal.getValue().toString()+ "\n");
 		}	
-		p.outStr2Scr("Print out timeToSeqNum : \n");
+		win.getMsgObj().dispInfoMessage("myStaff","debugAllMeasVals","Print out timeToSeqNum : \n");
 		for(Map.Entry<Integer,Integer> seqVal : timeToSeqNum.entrySet()) {
-			p.outStr2Scr("Key value in timeToSeqNum : " + seqVal.getKey() + "\nValue : " + seqVal.getValue().toString()+ "\n");
+			win.getMsgObj().dispInfoMessage("myStaff","debugAllMeasVals","Key value in timeToSeqNum : " + seqVal.getKey() + "\nValue : " + seqVal.getValue().toString()+ "\n");
 		}	
 	}
 	
 	//get all measures between a specific start and end time
 	public SortedMap<Integer,myMeasure> getAllMeasures(float stTime, float endTime){
 		int[] keys = getMsrTimeKeys (stTime, endTime);
-		//if(ID==0){p.outStr2Scr("\nStart getAllMeasures : " + ID + " between times : " + stTime +"," + endTime +" derived keys :  "+ keys[0] + "|" + keys[1]);}
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","getAllMeasures","\nStart " + ID + " between times : " + stTime +"," + endTime +" derived keys :  "+ keys[0] + "|" + keys[1]);}
 		SortedMap<Integer,myMeasure> res = measures.subMap(keys[0],keys[1]);
 		return res;
 	}	
@@ -224,7 +227,7 @@ public class myStaff {
 			allNotes.putAll(tmpMap);
 		}				
 		if(clear){
-			//if(ID==0){p.outStr2Scr("\tgetAllNotesAndClear : reset all measures");}
+			//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","getAllNotesAndClear","\t reset all measures");}
 			for(Map.Entry<Integer,myMeasure> msrVals : measureSubMap.entrySet()) {	
 				msrVals.getValue().buildRestAndEndTime();
 			}		
@@ -233,15 +236,15 @@ public class myStaff {
 	}//getAllNotesAndClear
 	//get all notes from measures and re-add them
 	private void reAddAllNotes(){
-		//if(ID==0){p.outStr2Scr("Start reAddAllNotes in staff : " + ID);}
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","reAddAllNotes","Start reAddAllNotes in staff : " + ID);}
 		//get all notes in staff - should clear out all measures
 		SortedMap<Integer,myNote> allNotes = getAllNotesAndClear(-1,100000000, true);
 		//re-add all notes into existing staff structure
-		//if(ID==0){p.outStr2Scr("start to readd all notes in staff : " + ID + " with # notes : " + allNotes.size());}
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","reAddAllNotes","start to readd all notes in staff : " + ID + " with # notes : " + allNotes.size());}
 		for(Map.Entry<Integer,myNote> note : allNotes.entrySet()) {
 			addNoteAtNoteTime(note.getValue());
 		}	
-		//if(ID==0){p.outStr2Scr("end readd all notes in staff : " + ID + " with # notes : " + allNotes.size());	}	
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","reAddAllNotes","end readd all notes in staff : " + ID + " with # notes : " + allNotes.size());	}	
 	}//reAddAllNotes
 	//use measures directly to rebuild  TimeToSeq ara and measures array with new start times
 	private void rebuildTimeToSeqNumMsrsMaps(){
@@ -252,13 +255,13 @@ public class myStaff {
 		TreeMap<Integer,myMeasure> tmpMsrMap = new TreeMap<Integer,myMeasure>();
 		for(Map.Entry<Integer,myMeasure> msrVals : measures.entrySet()){
 			myMeasure meas = msrVals.getValue();
-			tmpMsrMap.put(meas.m.stTime,meas);
+			tmpMsrMap.put(meas.msrData.stTime,meas);
 		}
 		measures = tmpMsrMap;
 	}
 	
 	//forces all notes to be in specified key, overrides existing key settings for every measure	
-	public void forceNotesSetKey(myKeySig _key, ArrayList<nValType> keyNotesAra, boolean moveUp, myPianoObj dispPiano){				
+	public void forceNotesSetKey(myKeySig _key, ArrayList<noteValType> keyNotesAra, boolean moveUp, myPianoObj dispPiano){				
 		for(Map.Entry<Integer,myMeasure> measure : measures.entrySet()) {
 			measure.getValue().forceNotesToKey( new myKeySig(_key), keyNotesAra, moveUp, dispPiano);
 		}	
@@ -271,9 +274,9 @@ public class myStaff {
 		int newStTime = 0;
 		for(Map.Entry<Integer,myMeasure> msrVals : measures.entrySet()) {
 			myMeasure msr = msrVals.getValue();
-			Integer oldTime = seqNumToTime.put(msr.m.seqNum, newStTime);
+			Integer oldTime = seqNumToTime.put(msr.msrData.seqNum, newStTime);
 			newStTime = msr.setTimeSig(new myTimeSig(_ts),newStTime);
-			//if(ID==0){p.outStr2Scr("new start time : " + newStTime);}
+			//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","forceNotesSetTimeSig","new start time : " + newStTime);}
 		}
 		rebuildTimeToSeqNumMsrsMaps();		//rebuild this map with new times for each seq num from seqNumToTime map	
 		//get rid of all timesigs formerly specified
@@ -292,14 +295,14 @@ public class myStaff {
 			endKeyTime = seqNumToTime.get(seqNumToTime.ceilingKey(endSeqNum));		//these are the measures that must be changed			
 		
 		SortedMap<Integer,myMeasure> measureSubMap = getAllMeasures(stKeyTime,endKeyTime+1);
-		//if(ID==0){p.outStr2Scr("\nStart setTimeSigAtTime all notes in staff : " + ID + " ts : " + newTS + " at key time : " + stKeyTime + " to time : " + endKeyTime + " size of msrs : " + measureSubMap.size() );}
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","setTimeSigAtTime","\nStart setTimeSigAtTime all notes in staff : " + ID + " ts : " + newTS + " at key time : " + stKeyTime + " to time : " + endKeyTime + " size of msrs : " + measureSubMap.size() );}
 		int newStTime = stKeyTime;
-		//if(ID==0){p.outStr2Scr("first new start time : " + newStTime);}
+		//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","setTimeSigAtTime","first new start time : " + newStTime);}
 		for(Map.Entry<Integer,myMeasure> msrVals : measureSubMap.entrySet()) {
 			myMeasure msr = msrVals.getValue();
-			Integer oldTime = seqNumToTime.put(msr.m.seqNum, newStTime);
+			Integer oldTime = seqNumToTime.put(msr.msrData.seqNum, newStTime);
 			newStTime = msr.setTimeSig(new myTimeSig(newTS),newStTime);
-			//if(ID==0){p.outStr2Scr("new start time : " + newStTime);}
+			//if(ID==0){win.getMsgObj().dispInfoMessage("myStaff","setTimeSigAtTime","new start time : " + newStTime);}
 		}
 		rebuildTimeToSeqNumMsrsMaps();		//rebuild this map with new times for each seq num from seqNumToTime map		
 		putValsInTreemaps(stSeqNum,stKeyTime, newTS, keySigs.get(stSeqNum), clefs.get(stSeqNum), false, null);
@@ -317,7 +320,7 @@ public class myStaff {
 			endKeyTime = seqNumToTime.get(seqNumToTime.ceilingKey(endSeqNum));		//these are the measures that must be changed		
 			
 		SortedMap<Integer,myMeasure> measureSubMap = getAllMeasures(stKeyTime,endKeyTime+1);
-		//p.outStr2Scr("Start setKeySigAtTime all notes in staff : " + ID + " ts : " + newKey + " at key time : " + stKeyTime + " to time : " + endKeyTime + " size of msrs : " + measureSubMap.size() );
+		//win.getMsgObj().dispInfoMessage("myStaff","setKeySigAtTime","Start setKeySigAtTime all notes in staff : " + ID + " ts : " + newKey + " at key time : " + stKeyTime + " to time : " + endKeyTime + " size of msrs : " + measureSubMap.size() );
 		for(Map.Entry<Integer,myMeasure> msrVals : measureSubMap.entrySet()) {
 			msrVals.getValue().setKeySig(new myKeySig(newKey));
 		}
@@ -332,15 +335,15 @@ public class myStaff {
 		int endSeqNum = (tmp2 == null? timeToSeqNum.get(measures.lastKey()): tmp2),
 			endKeyTime = seqNumToTime.get(seqNumToTime.ceilingKey(endSeqNum));		//these are the measures that must be changed			
 		SortedMap<Integer,myMeasure> measureSubMap = getAllMeasures(stKeyTime,endKeyTime+1);
-		//p.outStr2Scr("Start setClefAtTime all notes in staff : " + ID + " ts : " + newClef + " at key time : " + stKeyTime + " to time : " + endKeyTime + " size of msrs : " + measureSubMap.size() );
+		//win.getMsgObj().dispInfoMessage("myStaff","setClefAtTime","Start setClefAtTime all notes in staff : " + ID + " ts : " + newClef + " at key time : " + stKeyTime + " to time : " + endKeyTime + " size of msrs : " + measureSubMap.size() );
 		for(Map.Entry<Integer,myMeasure> msrVals : measureSubMap.entrySet()) {
-			msrVals.getValue().m.setClef(newClef);
+			msrVals.getValue().msrData.setClef(newClef);
 		}
 		putValsInTreemaps(stSeqNum,stKeyTime, timeSigs.get(stSeqNum), keySigs.get(stSeqNum), newClef, false, null);	
 	}//setClefAtTime
 	
 	//should return largest time/seqnum earlier than passed time/seqnum, whether measure exists there or not.  if no measure exists, at checked time, will have same values as last set time
-	public Integer getSeqNumAtTime(float time){if(time < 0){p.outStr2Scr("myStaff : neg time at getSeqNumAtTime : " + time ); time = 0;}return this.timeToSeqNum.get(timeToSeqNum.floorKey((int)time));}				//list of sequence numbers (key) of measures to their start time in milliseconds
+	public Integer getSeqNumAtTime(float time){if(time < 0){win.getMsgObj().dispInfoMessage("myStaff","getSeqNumAtTime","neg time at getSeqNumAtTime : " + time ); time = 0;}return this.timeToSeqNum.get(timeToSeqNum.floorKey((int)time));}				//list of sequence numbers (key) of measures to their start time in milliseconds
 	public Integer getTimeAtSeqNum (int seqNum){return this.seqNumToTime.get(seqNumToTime.floorKey(seqNum));}			//list of start times (key) corresponding to specific measure sequence #s		
 	public myTimeSig getTimeSigAtSeqNum(int seqNum){return this.timeSigs.get(timeSigs.floorKey(seqNum));}				//all the time sigs in this staff, keyed by measure seq#
 	public myKeySig getKeySigsAtSeqNum(int seqNum){return this.keySigs.get(keySigs.floorKey(seqNum));}				//all the key sigs of this staff, keyed by measure seq#
@@ -354,53 +357,53 @@ public class myStaff {
 
 	//draw staff lines
 	public void drawLdgrLines(){
-		p.pushMatrix();p.pushStyle();
-			for(int i =0; i<5; ++i){p.line(0,0,p.width -p.menuWidth,0);	p.translate(0, lOff);	}	
-		p.popMatrix();
+		p.pushMatState();
+			for(int i =0; i<5; ++i){p.drawLine(0,0,0,win.getRectDim(2),0,0);	p.translate(0, lOff);	}	
+		p.popMatState();
 		//leading staff bar
-		p.pushMatrix();
-			p.strokeWeight(2);
-			p.line(0,0,0, 0,lOff*4,0);
-		p.popStyle();p.popMatrix();	
+		p.pushMatState();
+			p.setStrokeWt(2);
+			p.drawLine(0,0,0, 0,lOff*4,0);
+		p.popMatState();	
 	}
 	
 	public void drawGrandStaffLdgrLines(){
-		p.pushMatrix();p.pushStyle();
-			for(int i =0; i<5; ++i){p.line(0,0,p.width -p.menuWidth,0);	p.translate(0, lOff);	}	
+		p.pushMatState();
+			for(int i =0; i<5; ++i){p.drawLine(0,0,0,win.getRectDim(2),0,0);	p.translate(0, lOff);	}	
 			p.translate(0, lOff*2.0f);
-			for(int i =0; i<5; ++i){p.line(0,0,p.width -p.menuWidth,0);	p.translate(0, lOff);	}	
-		p.popMatrix();
-		p.pushMatrix();
-			p.strokeWeight(2);
-			p.line(0,0, 0,lOff*10);
-		p.popStyle();p.popMatrix();	
+			for(int i =0; i<5; ++i){p.drawLine(0,0,0,win.getRectDim(2),0,0);	p.translate(0, lOff);	}	
+		p.popMatState();
+		p.pushMatState();
+			p.setStrokeWt(2);
+			p.drawLine(0,0,0, 0,lOff*10,0);
+		p.popMatState();	
 	}
 	public void drawGrandClefKey(){
 		
 	}
 	private void drawStfSelBox(int idx){
-		p.pushMatrix();p.pushStyle();
-		p.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
-		p.text(stfBtnLbls[idx], stfSelBoxRect[idx][0]+ 1.5f*lOff, 0);
-		p.setColorValFill((stfFlags[idx] ? SeqVisFFTOcean.gui_LightGreen : SeqVisFFTOcean.gui_LightRed), 255);
-	    p.rect(stfSelBoxRect[idx]);
-		p.popStyle();p.popMatrix();	
+		p.pushMatState();
+		p.setColorValFill(IRenderInterface.gui_Black, 255);
+		p.showText(stfBtnLbls[idx], stfSelBoxRect[idx][0]+ 1.5f*lOff, 0);
+		p.setColorValFill((stfFlags[idx] ? IRenderInterface.gui_LightGreen : IRenderInterface.gui_LightRed), 255);
+	    p.drawRect(stfSelBoxRect[idx]);
+		p.popMatState();	
 	}	
 	
 	private void drawHeader(){	
-		p.pushMatrix();p.pushStyle();
+		p.pushMatState();
 		//p.text(name, 0, 0);
-		p.text(""+name+ "|" + this.hdrDispString, 0, 0);
+		p.showText(""+name+ "|" + this.hdrDispString, 0, 0);
 		p.translate(((name.length() + this.hdrDispString.length()) * .7f * lOff), 0);
 		drawStfSelBox(0);
 		drawStfSelBox(1);
-		p.popStyle();p.popMatrix();	
+		p.popMatState();	
 	}
 
 	//draw all measures' notes for piano roll
-	public void drawMeasPRL(){		for(Map.Entry<Integer,myMeasure> measure : measures.entrySet()) {measure.getValue().drawNotesPRL();}}
+	public void drawMeasPRL(){		for(Map.Entry<Integer,myMeasure> measure : measures.entrySet()) {measure.getValue().drawNotesPRL(p);}}
 	public void drawMeasures(){
-		p.pushMatrix();p.pushStyle();
+		p.pushMatState();
 		//need to go through key, time, etc values
 		float ksTsClfOffset = 0, measStOffset = 0;//TODO this is the initial offset required because of new keysig, timesig, or clef
 		myTimeSig ts;
@@ -410,11 +413,11 @@ public class myStaff {
 		for(Map.Entry<Integer,myMeasure> measure : measures.entrySet()) {
 			ksTsClfOffset = 0;
 			myMeasure meas = measure.getValue();
-			ts = timeSigs.get(meas.m.seqNum);
-			ks = keySigs.get(meas.m.seqNum);	
-			clf = clefs.get(meas.m.seqNum);	
+			ts = timeSigs.get(meas.msrData.seqNum);
+			ks = keySigs.get(meas.msrData.seqNum);	
+			clf = clefs.get(meas.msrData.seqNum);	
 			if(null != clf){
-				clf.drawMe(ksTsClfOffset);
+				clf.drawMe(p,ksTsClfOffset);
 				dftlClef = clf;
 				ksTsClfOffset += clf.drawDim[2];//add width of clef to offset width
 			}
@@ -427,19 +430,19 @@ public class myStaff {
 				ksTsClfOffset += ts.drawDim[2];//add width of time sig to offset width
 			}
 						
-			meas.drawMe(measStOffset + ksTsClfOffset);
+			meas.drawMe(p,measStOffset + ksTsClfOffset);
 			p.translate(meas.dispWidth+ ksTsClfOffset, 0);	//translate to next measure
 			//measStOffset += meas.dispWidth;
 		}	
-		p.popStyle();p.popMatrix();	
+		p.popMatState();	
 	}//drawMeasures
 
 	//draw staff here
 	public void drawStaff(){
-		p.pushMatrix();p.pushStyle();
-			p.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
-			p.setColorValStroke(SeqVisFFTOcean.gui_Black, 255);
-			p.strokeWeight(1);
+		p.pushMatState();
+			p.setColorValFill(IRenderInterface.gui_Black, 255);
+			p.setColorValStroke(IRenderInterface.gui_Black, 255);
+			p.setStrokeWt(1);
 			p.translate(0, lOff);
 			drawHeader();
 			p.translate(0, lOff*2);
@@ -450,7 +453,7 @@ public class myStaff {
 				drawLdgrLines();
 			}
 			drawMeasures();			
-		p.popStyle();p.popMatrix();	
+		p.popMatState();	
 		
 	}
 	//playback - returns all notedata for all notes and chords in this measure sorted by start time

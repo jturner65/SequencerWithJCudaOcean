@@ -8,13 +8,27 @@ import java.util.Map;
  * @author 7strb
  *
  */
-public	enum durType {
+public enum durType {
 		Whole(1024),Half(512),Quarter(256),Eighth(128),Sixteenth(64),Thirtisecond(32); 
 		private int value; 
-		private static Map<Integer, durType> map = new HashMap<Integer, durType>(); 
+		public final static String[] noteVals = new String[]{"Whole","Half","Quarter","Eighth","Sixteenth","Thirtisecond"};
+		
+		private static Map<Integer, durType> map = new HashMap<Integer, durType>();
 	    static { for (durType enumV : durType.values()) { map.put(enumV.value, enumV);}}
 		private durType(int _val){value = _val;} 
 		public int getVal(){return value;}
+		/**
+		 * Using given time sig denominator, return corresponding note durType
+		 * @param _noteType time sig denominator
+		 * @return
+		 */
+		public static durType getDurTypeForNote(int _noteType) {
+			//Find duration type based on note type.
+			int newVal = Whole.value/_noteType;
+			if (map.containsKey(newVal)){return getVal(newVal);}
+			//if not in map, return default value
+			return Quarter;
+		}
 		public static durType getVal(int idx){return map.get(idx);}
 		public static int getNumVals(){return map.size();}						//get # of values in enum
 }

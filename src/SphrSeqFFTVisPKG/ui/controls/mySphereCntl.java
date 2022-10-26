@@ -6,19 +6,18 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
-import SphrSeqFFTVisPKG.myVariStroke;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
 import SphrSeqFFTVisPKG.ui.mySphereWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
+import base_UI_Objects.windowUI.drawnObjs.myVariStroke;
 import ddf.minim.AudioOutput;
-import processing.core.PApplet;
-import processing.core.PConstants;
 import processing.core.PImage;
 import processing.core.PShape;
 
@@ -28,7 +27,7 @@ import processing.core.PShape;
  *
  */
 public class mySphereCntl {
-	public SeqVisFFTOcean pa;
+	public IRenderInterface pa;
 	public static int sphCntl = 0;
 	public int ID;
 	
@@ -51,8 +50,11 @@ public class mySphereCntl {
 	//needs texture to map on sphere, and color settings for sphere and display
 
 	public final int numNoteRings = 36;	//# of note rings to draw -> changing this will force a change to the drum machine
-	public float radius, invRadius,
-		ballSpeedMult;					//multiplier for playback time for this instrument, to speed up or slow down ball rolling
+	
+	public static final float radius = 50.0f, invRadius = 1.0f/radius;
+	
+	
+	public float ballSpeedMult;					//multiplier for playback time for this instrument, to speed up or slow down ball rolling
 	public final float ringRad = 4;			//for ray cast calc, ringrad==radius difference between drawn note rings
 	public myPoint ctr, drawCtr;
 	public int[] specClr, ambClr, emissiveClr;
@@ -102,22 +104,20 @@ public class mySphereCntl {
 	
 	//private boolean resendNotes;
 	
-	public mySphereCntl(SeqVisFFTOcean _pa, mySphereWindow _win, myInstrument _instr, String _name, float _rad, /**myPoint _ctr,**/ float _orbitRad, float _initAngle, int _UIRingIDX, PImage _txtr, int[][] _clrs){
+	public mySphereCntl(IRenderInterface _pa, mySphereWindow _win, myInstrument _instr, String _name, float _orbitRad, float _initAngle, int _UIRingIDX, PImage _txtr, int[][] _clrs){
 		pa = _pa;
 		ID = sphCntl++;
 		win = _win;
 		instr = _instr;
 		UIRingIDX = _UIRingIDX;
 		name = _name;
-		radius = _rad;
 		initThet = _initAngle;
 		orbitRad = _orbitRad;
 		initFlags();
-		panAxis = pa.getUScrUpInWorld();
-		rotAxis = pa.getUScrRightInWorld();
+		panAxis = win.AppMgr.getUScrUpInWorld();
+		rotAxis = win.AppMgr.getUScrRightInWorld();
 		cntlRotAxis = myVector._cross(panAxis, rotAxis)._normalize();
 		radarBarEndPt = new myVector();
-		invRadius = 1.0f/radius;
 		ctr = new myPoint();
 		setCtr(initThet, 0);
 		//ctr=pa.P(_ctr);
@@ -138,41 +138,42 @@ public class mySphereCntl {
 //		cWiseBIDX = 1,				//whether this control increases in the cwise dir
 //		expValBIDX = 2;				//whether this control's value is exponential or linear
 //
+		float miniSphereRad = radius*.2f;
+		cntls[0] = new myMiniSphrCntl(win, this, myInstrument.volCntlIDX, new myVector[]{panAxis,rotAxis,cntlRotAxis,new myVector(0,-2.0f*radius,0)},
+				"Volume",
+				win.buildSphere(0, miniSphereRad, ambClr, specClr, emissiveClr, shininess),
+				new float[]{100.0f,0,100.0f,MyMathUtils.QUARTER_PI_F,MyMathUtils.QUARTER_PI_F,2.0f*MyMathUtils.THIRD_PI_F}, 
+				new boolean[]{false,false,false},new int[]{255,255,255,255}, miniSphereRad);
 		
-		cntls[0] = new myMiniSphrCntl(pa,this, myInstrument.volCntlIDX, new myVector[]{panAxis,rotAxis,cntlRotAxis,new myVector(0,-2.0f*radius,0)},
-				"Volume",pa.moonImgs[0], shininess, new float[]{100.0f,0,100.0f,PConstants.QUARTER_PI,PConstants.QUARTER_PI,2.0f*PConstants.THIRD_PI}, 
-				new boolean[]{false,false,false}, specClr,  ambClr,  emissiveClr, new int[]{255,255,255,255}, radius*.2f);
+		cntls[1] = new myMiniSphrCntl(win, this, -1, new myVector[]{panAxis,rotAxis,cntlRotAxis,new myVector(0,-2.0f*radius,0)},
+				"Speed",
+				win.buildSphere(1, miniSphereRad, ambClr, specClr, emissiveClr, shininess),				
+				new float[]{1.0f, 0.001f,2.0f, 3.0f*MyMathUtils.HALF_PI_F, 4.0f*MyMathUtils.THIRD_PI_F,7.0f*MyMathUtils.QUARTER_PI_F}, 
+				new boolean[]{false,true,true}, new int[]{255,255,255,255}, radius*.2f);
 		
-		cntls[1] = new myMiniSphrCntl(pa,this, -1, new myVector[]{panAxis,rotAxis,cntlRotAxis,new myVector(0,-2.0f*radius,0)},
-				"Speed",pa.moonImgs[1], shininess,new float[]{1.0f, 0.001f,2.0f, 3.0f*PConstants.HALF_PI, 4.0f*PConstants.THIRD_PI,7.0f*PConstants.QUARTER_PI}, 
-				new boolean[]{false,true,true},specClr,  ambClr,  emissiveClr, new int[]{255,255,255,255}, radius*.2f);
-		
-		cntls[2] = new myMiniSphrCntl(pa,this,myInstrument.panCntlIDX, new myVector[]{panAxis,rotAxis,cntlRotAxis,new myVector(0,-2.0f*radius,0)},
-				"Pan",pa.moonImgs[2], shininess,new float[]{0.0f, -1.0f, 1.0f, PConstants.PI, 3.0f*PConstants.QUARTER_PI,5.0f*PConstants.QUARTER_PI}, 
-				new boolean[]{true,false,false},specClr,  ambClr,  emissiveClr, new int[]{255,255,255,255}, radius*.2f);
+		cntls[2] = new myMiniSphrCntl(win, this,myInstrument.panCntlIDX, new myVector[]{panAxis,rotAxis,cntlRotAxis,new myVector(0,-2.0f*radius,0)},
+				"Pan",
+				win.buildSphere(2, miniSphereRad, ambClr, specClr, emissiveClr, shininess),		
+				new float[]{0.0f, -1.0f, 1.0f, MyMathUtils.PI_F, 3.0f*MyMathUtils.QUARTER_PI_F,5.0f*MyMathUtils.QUARTER_PI_F}, 
+				new boolean[]{true,false,false}, new int[]{255,255,255,255}, radius*.2f);
 		
 				
-		mySphere = pa.createShape(PConstants.SPHERE, radius); 
-		mySphere.setTexture(_txtr);	
-		mySphere.beginShape(PConstants.SPHERE);
-		mySphere.noStroke();
-		mySphere.ambient(ambClr[0],ambClr[1],ambClr[2]);		
-		mySphere.specular(specClr[0],specClr[1],specClr[2]);
-		mySphere.emissive(emissiveClr[0],emissiveClr[1],emissiveClr[2]);
-		mySphere.shininess(shininess);
-		mySphere.endShape(PConstants.CLOSE);
+		mySphere = win.buildSphere(_txtr, radius, ambClr, specClr, emissiveClr, shininess);
+	
 		//set up note structure
 		clearNotes();		
 		clickOnCntl = -1;
 //		resendNotes = true;
 		setFlag(isDrumKitIDX, instr.instFlags[myInstrument.isDrumTrackIDX]);
 		//isDrumKit = instr.instFlags[instr.isDrumTrackIDX];//		drumkit has special layout
-	//	if(isDrumKit){pa.outStr2Scr("Made a drum kit sphere : " + ID);}
+	//	if(isDrumKit){win.getMsgObj().dispInfoMessage("mySphereCntl","ctor","Made a drum kit sphere : " + ID);}
 	}
+	
+	
 	//allow rotAngle to vary around some initial amount
 	public void setCtr(float rotAngle, float thumpAmt){	
 		float orbMult = orbitRad + thumpAmt;
-		ctr.set(win.ctrVec.x+(orbMult * PApplet.sin(rotAngle)), win.ctrVec.y+(orbMult * PApplet.cos(rotAngle)),win.ctrVec.z);
+		ctr.set(win.ctrVec.x+(orbMult * Math.sin(rotAngle)), win.ctrVec.y+(orbMult * Math.cos(rotAngle)),win.ctrVec.z);
 	}
 	
 	//clear all notes for this control
@@ -206,12 +207,12 @@ public class mySphereCntl {
 
 	public boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, myVector mseClickRayDir){
 		boolean mod = false;
-		//pa.outStr2Scr("Click in sphere : " + ID + " mseClckInWorld : " + mseClckInWorld.toStrBrf());
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","hndlMouseClickIndiv","Click in sphere : " + ID + " mseClckInWorld : " + mseClckInWorld.toStrBrf());
 		myPoint clickLocInRings = getMouseLoc3D(mouseX, mouseY);
 		myVector clickVec =  getClickVec(mouseX, mouseY);
 		int clickRing = getClickRing(clickVec);		
 		if(clickLocInRings != null){				
-			pa.outStr2Scr("hndlMouseClickIndiv sphere ID : " + ID + " clickLocInRings not null : sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   
+			win.getMsgObj().dispInfoMessage("mySphereCntl","hndlMouseClickIndiv","sphere ID : " + ID + " clickLocInRings not null : sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   
 					+  " \tPick Res (clickLoc) : " + clickLocInRings.toStrBrf() 
 			+ "\n\tClick from ctr : " + clickLocInRings.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() + " Clicked ring : " + clickRing 
 			+ "\n\tVec from ring ctr to click : " +clickVec.toStrBrf() + " | mseClkDisp : "+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
@@ -222,14 +223,14 @@ public class mySphereCntl {
 			if(clickRing <= 0){//clear out trajectories
 				win.clearAllTrajectories();
 				clearNotes();
-//				pa.outStr2Scr("hndlMouseClickIndiv clear traj sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY  + " curTrajAraIDX :" + win.curTrajAraIDX + " instr ID : " + instr.ID
+//				win.getMsgObj().dispInfoMessage("mySphereCntl","hndlMouseClickIndiv","hndlMouseClickIndiv clear traj sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY  + " curTrajAraIDX :" + win.curTrajAraIDX + " instr ID : " + instr.ID
 ////						+  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf() 
 ////				+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() 
 //				+ " Clicked ring :\t" + clickRing 
 //				+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 			}
 			
-			pa.outStr2Scr("hndlMouseClickIndiv outside note circles sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   +  " \tclickVec : " + clickVec.toStrBrf()
+			win.getMsgObj().dispInfoMessage("mySphereCntl","hndlMouseClickIndiv","outside note circles sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   +  " \tclickVec : " + clickVec.toStrBrf()
 			+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() + " Clicked ring :\t" + clickRing 
 			+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 //			myVector curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);
@@ -250,8 +251,8 @@ public class mySphereCntl {
 		if(-1 != clickOnCntl){//modify mini control with drag either + or 
 			myVector // clickVec =  getClickVec(mouseX, mouseY), oldVec = getClickVec(pmouseX, pmouseY), 
 					dispVec = new myVector(mouseX-pmouseX, mouseY-pmouseY, 0);
-			//pa.outStr2Scr("Mod obj : " + clickOnCntl + " in sphere: "+ID + " by dispVec : " + dispVec.toStrBrf());// + " mseClickRayDir : " + mseDragInWorld.toStrBrf());
-			//cntls[clickOnCntl].modValAmt((clickOnCntl<2?-.5f:1)* modAmt, .75f*PConstants.QUARTER_PI + (clickOnCntl/2)*.25f*PConstants.QUARTER_PI);
+			//win.getMsgObj().dispInfoMessage("mySphereCntl","hndlMouseDragIndiv","Mod obj : " + clickOnCntl + " in sphere: "+ID + " by dispVec : " + dispVec.toStrBrf());// + " mseClickRayDir : " + mseDragInWorld.toStrBrf());
+			//cntls[clickOnCntl].modValAmt((clickOnCntl<2?-.5f:1)* modAmt, .75f*MyMathUtils.QUARTER_PI_F + (clickOnCntl/2)*.25f*MyMathUtils.QUARTER_PI_F);
 			cntls[clickOnCntl].modValAmt((float)dispVec.x *.005f, (float)dispVec.y * -.005f);
 			mod = true;
 		}			
@@ -259,7 +260,7 @@ public class mySphereCntl {
 	}
 	
 	public void hndlMouseRelIndiv() {
-		pa.outStr2Scr("release in sphere : " + ID);
+		win.getMsgObj().dispInfoMessage("mySphereCntl","hndlMouseRelIndiv","release in sphere : " + ID);
 		clickOnCntl = -1;
 	}
 	protected myPoint getClickLoc(int mouseX, int mouseY){
@@ -272,7 +273,7 @@ public class mySphereCntl {
 				clickFromCtr = myPoint._sub(clickLoc,mseClkDisp);
 		myVector clickVec = new myVector(ctrOfNotes,clickFromCtr);
 		int clickRing = getClickRing(clickVec);							//ring clicked in - corresponds to note
-		pa.outStr2Scr("sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY  +  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf()// + " cur depth : " + curDepth
+		win.getMsgObj().dispInfoMessage("mySphereCntl","getClickVec","sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY  +  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf()// + " cur depth : " + curDepth
 		+ "\n\tRing disp vec (ntRngDispVec) : " + ntRngDispVec.toStrBrf() + " Click ring : " + clickRing
 		+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ mySphereWindow.fcsCtr.toStrBrf() 
 		+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf()		
@@ -292,7 +293,7 @@ public class mySphereCntl {
 	//single entrypoint to notes and staff.notesGlblLoc structs
 	public myNote putNoteInAra(int stTime, myNote note){
 		myNote tmp = notes.put(stTime, note);				//if collision at this time
-		int totClicks = getTickFromAlpha(PConstants.TWO_PI);	//total ticks in a circle
+		int totClicks = getTickFromAlpha(MyMathUtils.TWO_PI_F);	//total ticks in a circle
 		int endTime = (stTime + note.sphereDur)%totClicks;
 		ArrayList<myNote> tmpAra = noteEndLocs.get(endTime);
 		if(tmpAra==null){			
@@ -315,7 +316,7 @@ public class mySphereCntl {
 				//p.outStr2Scr("Add Note tmp ! chord: Tmp : " +tmp.toString()+":\tNote :" +note.toString());
 				if(!tmp.equals(note)){				//if tmp!=note then make tmp a chord, and add note to temp
 					//CAProject5 _p, float _alphaSt, float _alphaEnd, int _ring, mySphereCntl _sphrOwn
-					myChord tmpChord = new myChord(tmp.p, tmp.sphereDims[0], tmp.sphereDims[1], tmp.sphereRing, tmp.sphrOwn);					
+					myChord tmpChord = new myChord(win, tmp.sphereDims[0], tmp.sphereDims[1], tmp.sphereRing, tmp.sphrOwn);					
 					tmpChord.addNote(note);
 					putNoteInAra(noteAddTime, tmpChord);
 				}
@@ -347,44 +348,45 @@ public class mySphereCntl {
 		for(int i =0; i<drawnNotes.size();++i){	myNote n = drawnNotes.get(i); addSphereNote(n, getTickFromAlpha(n.sphereAlpha));}
 	}	
 	
-	
+	private final static float tickScale = 4 * durType.Whole.getVal() * 1.0f/(MyMathUtils.DEG_TO_RAD_F * 360.0f);
 	//return integer key for notes for map - degrees? 
-	public int getTickFromAlpha(float alpha){ return (int)(alpha * (PConstants.RAD_TO_DEG/360.0f) * 4 * durType.Whole.getVal());}		//convert from alpha to ticks - one whole circle is 4 whole notes
+	//public int getTickFromAlpha(float alpha){ return (int)(alpha * (PConstants.RAD_TO_DEG/360.0f) * 4 * durType.Whole.getVal());}		//convert from alpha to ticks - one whole circle is 4 whole notes
+	public int getTickFromAlpha(float alpha){ return (int)(alpha * tickScale);}		//convert from alpha to ticks - one whole circle is 4 whole notes
 	//return the note corresponding to the passed point
 	public myNote getNoteFromSphereLoc(myPoint pt){
 		myVector ptDirCtrVec = new myVector(pt);
+		double clickDist = ptDirCtrVec.magn;
 		int clickRing = getClickRing(ptDirCtrVec);		
 		ptDirCtrVec._normalize();
-		double clickDist = pa.P()._dist(pt);
 		//int clickRing = (int)(clickDist/(ringRad*.5f));						//ring clicked in - corresponds to note
 		if(clickDist > .5*(ringRad * (numNoteRings+1))){
-			pa.outStr2Scr("Bad Note value - outside ring bounds : " + clickRing + " loc : " + pt.toStrBrf());
+			win.getMsgObj().dispInfoMessage("mySphereCntl","getNoteFromSphereLoc","Bad Note value - outside ring bounds : " + clickRing + " loc : " + pt.toStrBrf());
 			return null;
 		}	
-		float alphaSt = (float)pa.angle(noteAlphaSt, ptDirCtrVec); 	//measure angles from straight up from center of sphere
-		//pa.outStr2Scr("getNoteFromSphereLoc sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
-		myNote res = new myNote(pa, alphaSt, (alphaSt + noteAlphaWidth), clickRing, this);		
-		//pa.outStr2Scr("New sphere note : " + res.toString());
+		float alphaSt = (float)myVector._angleBetween_Xprod(noteAlphaSt, ptDirCtrVec); 	//measure angles from straight up from center of sphere
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","getNoteFromSphereLoc","sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
+		myNote res = new myNote(win, alphaSt, (alphaSt + noteAlphaWidth), clickRing, this);		
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","getNoteFromSphereLoc","New sphere note : " + res.toString());
 		return res;
 	}
 	
 	//return the drum sample "note" corresponding to the passed point
 	public myNote getDrumNoteFromSphereLoc(myPoint pt){
 		myVector ptDirCtrVec = new myVector(pt);
+		double clickDist = ptDirCtrVec.magn;
 		int noteSphereRing = getClickRing(ptDirCtrVec);		
 		ptDirCtrVec._normalize();
-		double clickDist = pa.P()._dist(pt); 
 		//int noteSphereRing = (int)(clickDist/(ringRad*.5f));
 		int clickRing = numNoteRings -(4*((numNoteRings-noteSphereRing)/4));						//ring clicked in - corresponds to note
-		//pa.outStr2Scr("click ring in getDrum note : " + clickRing + "  original noteSphrRing : " + noteSphereRing );
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","getDrumNoteFromSphereLoc","click ring in getDrum note : " + clickRing + "  original noteSphrRing : " + noteSphereRing );
 		if(clickDist > .5*(ringRad * (numNoteRings+1))){
-			pa.outStr2Scr("Bad Note value - outside ring bounds : " + clickRing + " loc : " + pt.toStrBrf());
+			win.getMsgObj().dispInfoMessage("mySphereCntl","getDrumNoteFromSphereLoc","Bad Note value - outside ring bounds : " + clickRing + " loc : " + pt.toStrBrf());
 			return null;
 		}	
-		float alphaSt = (float)pa.angle(noteAlphaSt, ptDirCtrVec); 	//measure angles from straight up from center of sphere
-		//pa.outStr2Scr("getNoteFromSphereLoc sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
-		myNote res = new myNote(pa, alphaSt, (alphaSt + noteAlphaWidth), clickRing, this);		
-		//pa.outStr2Scr("New sphere note : " + res.toString());
+		float alphaSt = (float)myVector._angleBetween_Xprod(noteAlphaSt, ptDirCtrVec); //measure angles from straight up from center of sphere
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","getDrumNoteFromSphereLoc","getNoteFromSphereLoc sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
+		myNote res = new myNote(win, alphaSt, (alphaSt + noteAlphaWidth), clickRing, this);		
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","getDrumNoteFromSphereLoc","New sphere note : " + res.toString());
 		return res;
 	}
 			
@@ -411,7 +413,7 @@ public class mySphereCntl {
 				}
 			}			
 		}//for each point
-		addDrawnNotesToStruct(pa.flags[pa.clearStaffNewTraj],tmpDrawnSphereNotes);
+		addDrawnNotesToStruct(win.clearStaffTrajOnDraw(),tmpDrawnSphereNotes);
 	}
 	private void convTrajToNotes(myDrawnSmplTraj drawnNoteTraj){
 		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
@@ -438,7 +440,7 @@ public class mySphereCntl {
 				}
 			}			
 		}//for each point
-		addDrawnNotesToStruct(pa.flags[pa.clearStaffNewTraj],tmpDrawnSphereNotes);
+		addDrawnNotesToStruct(win.clearStaffTrajOnDraw(),tmpDrawnSphereNotes);
 	}//convTrajToNotes	
 	
 	//convert points in drawnNoteTraj to notes : convert traj notes to actual notes on sphere 
@@ -451,19 +453,19 @@ public class mySphereCntl {
 	private float totTick = 0.0f;
 	public void calcDispVals(float tick, float focusZoom){
 		totTick += tick;
-		//pa.outStr2Scr("tot tick : " + totTick);
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","calcDispVals","tot tick : " + totTick);
 		//setCtr(initThet + (pa.sin(totTick*1000.0f/orbitRad) * 100.0f/orbitRad));//oscillates 
-		setCtr(initThet + (totTick * 100.0f/orbitRad), .1f * orbitRad * PApplet.sin(2.0f * cntls[speedIDX].vals[myMiniSphrCntl.valIDX]*totTick + orbitRad ));			//modify to use tempo in place of totTickMult
+		setCtr(initThet + (totTick * 100.0f/orbitRad), (float) (.1f * orbitRad * Math.sin(2.0f * cntls[speedIDX].vals[myMiniSphrCntl.valIDX]*totTick + orbitRad )));			//modify to use tempo in place of totTickMult
 		
 		lastPlayAlpha = curSwpRotAmt;
 		curSwpRotAmt += tick * cntls[speedIDX].vals[myMiniSphrCntl.valIDX];		//value of speed of sweep
-		curSwpRotAmt = curSwpRotAmt % PConstants.TWO_PI;
-		//pa.outStr2Scr("Cur swp rot amt : " + curSwpRotAmt);
+		curSwpRotAmt = curSwpRotAmt % MyMathUtils.TWO_PI_F;
+		//win.getMsgObj().dispInfoMessage("mySphereCntl","calcDispVals","Cur swp rot amt : " + curSwpRotAmt);
 		if(lastPlayAlpha > curSwpRotAmt){
-			lastPlayAlpha -= PConstants.TWO_PI;
+			lastPlayAlpha -= MyMathUtils.TWO_PI_F;
 		}
 		
-		hasFocusVec = pa.V(ctr,mySphereWindow.fcsCtr);							//	 unit vector toward eye from non-displaced ctr	
+		hasFocusVec = new myVector(ctr,mySphereWindow.fcsCtr);							//	 unit vector toward eye from non-displaced ctr	
 		ntRngDispVec = myVector._mult(cntlRotAxis, 1.1f*radius );
 		rollAmt += tick * ballSpeedMult;		
 		if(focusZoom == 0){//not zooming any more - either decay or never had focus
@@ -471,7 +473,7 @@ public class mySphereCntl {
 			curFcsZoom *= fcsDecay;	
 			if(curFcsZoom < .000001f){
 				curFcsZoom = 0;
-				myVector tmp = pa.U(pa.U(hasFocusVec),.5f,cntlRotAxis);					//vector 1/2 way between these two unit vectors
+				myVector tmp = myVector._unit(myVector._unit(hasFocusVec),.5f,cntlRotAxis);					//vector 1/2 way between these two unit vectors
 				ntRngDispVec = myVector._mult(tmp, 1.1f*radius );		
 				drawCtr.set(ctr);
 			} else {
@@ -486,7 +488,7 @@ public class mySphereCntl {
 //		radarBarEndPt = new myVector(0,-(50+(focusZoom * (radarBarLen-50))),0);			//sweeping radar bar showing notes that are playing
 		//drawCtr = myPoint._add(ctr, hasFocusVec._mult(curFcsZoom));	
 		//mseClkDisp = myPoint._add(myPoint._add(ntRngDispVec,drawCtr), pa.sceneCtrVals[pa.sceneIDX]);
-		mseClkDisp = myPoint._add(myPoint._add(ntRngDispVec,drawCtr), myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar));
+		mseClkDisp = myPoint._add(myPoint._add(ntRngDispVec,drawCtr), win.getScreenLocation());
 		//mseClkDisp = myPoint._add(ntRngDispVec,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar));
 	}
 
@@ -499,11 +501,11 @@ public class mySphereCntl {
 		//if((subMapPlay == null) || (subMapPlay.size() <= 0)){return;}
 		int stTime = 0;
 		if(!((subMapPlay == null) || (subMapPlay.size() <= 0))){
-			//pa.outStr2Scr("ID : " + ID + " play Submap has notes : Cur swp rot amt : " + curSwpRotAmt + " last play alpha : " + lastPlayAlpha + " from key, to key : " + fromKey + ","+toKey);
+			//win.getMsgObj().dispInfoMessage("mySphereCntl","sendNotesToPlayAndStop","ID : " + ID + " play Submap has notes : Cur swp rot amt : " + curSwpRotAmt + " last play alpha : " + lastPlayAlpha + " from key, to key : " + fromKey + ","+toKey);
 			win.addSphereNoteToPlayNow(instr,subMapPlay, durMod,stTime);
 		}
 		if(!((subMapStop == null) || (subMapStop.size() <= 0))){
-//			/pa.outStr2Scr("ID : " + ID + " stop Submap has notes : Cur swp rot amt : " + curSwpRotAmt + " last play alpha : " + lastPlayAlpha + " from key, to key : " + fromKey + ","+toKey);
+//			/win.getMsgObj().dispInfoMessage("mySphereCntl","sendNotesToPlayAndStop","ID : " + ID + " stop Submap has notes : Cur swp rot amt : " + curSwpRotAmt + " last play alpha : " + lastPlayAlpha + " from key, to key : " + fromKey + ","+toKey);
 			win.addSphereNoteToStopNow(instr,subMapStop);
 		}
 	}
@@ -512,7 +514,7 @@ public class mySphereCntl {
 //		int fromKey = getTickFromAlpha(lastPlayAlpha), toKey = getTickFromAlpha(curSwpRotAmt);		
 //		SortedMap<Integer,ArrayList<myNote>> subMap = noteEndLocs.subMap(fromKey, toKey);
 //		if((subMap == null) || (subMap.size() <= 0)){return;}
-//		pa.outStr2Scr("ID : " + ID + " stop Submap has notes : Cur swp rot amt : " + curSwpRotAmt + " last play alpha : " + lastPlayAlpha + " from key, to key : " + fromKey + ","+toKey);
+//		win.getMsgObj().dispInfoMessage("mySphereCntl","sendNotesToStop","ID : " + ID + " stop Submap has notes : Cur swp rot amt : " + curSwpRotAmt + " last play alpha : " + lastPlayAlpha + " from key, to key : " + fromKey + ","+toKey);
 //		win.addSphereNoteToStopNow(instr,subMap);
 //	}
 	
@@ -520,13 +522,13 @@ public class mySphereCntl {
 	//animate and draw this instrument in sphere UI
 //	public void drawMe(float tick, float focusZoom){
 //		calcDispVals(tick,focusZoom);
-//		pa.pushMatrix();pa.pushStyle();
+//		pa.pushMatState();
 //			pa.translate(drawCtr);		//either ctr or displaced position
 //			drawMainSphere();
-//			pa.pushMatrix();pa.pushStyle();
+//			pa.pushMatState();
 //				pa.translate(0,(isFocus ? 1.5f : 0)*radius,(isFocus ? 0 : 1.5f)*radius);
 //				drawName();
-//			pa.popStyle();pa.popMatrix();	
+//			pa.popMatState();	
 //			if(isFocus){drawNoteCircle();}
 //			drawAllNotes();
 //			drawNotePlayBar();
@@ -534,36 +536,36 @@ public class mySphereCntl {
 //				cntls[i].drawMini(isFocus);
 //			}
 //
-//		pa.popStyle();pa.popMatrix();	
+//		pa.popMatState();	
 //	}
 	public void drawMe(float tick, float focusZoom, boolean hasFocus){
 		calcDispVals(tick,focusZoom);
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 			pa.translate(drawCtr);		//either ctr or displaced position
 			drawMainSphere();
 			if(hasFocus){drawMeFocus(tick,focusZoom);} else {drawMeNoFocus(tick,focusZoom);}
-		pa.popStyle();pa.popMatrix();	
+		pa.popMatState();	
 	}
 	//draw for focus
 	public void drawMeFocus (float tick, float focusZoom){
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 			pa.translate(0,1.5f *radius,0);
 			drawName();
-		pa.popStyle();pa.popMatrix();	
+		pa.popMatState();	
 		drawNoteCircle();
 		drawAllNotes();
 		drawNotePlayBar();
-		for(int i=0;i<3;++i){				cntls[i].drawMiniLocked();			}
+		for(int i=0;i<3;++i){				cntls[i].drawMiniLocked(pa);			}
 	}//
 	
 	public void drawMeNoFocus(float tick, float focusZoom){
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 			pa.translate(0,0, radius);
 			drawName();
-		pa.popStyle();pa.popMatrix();	
+		pa.popMatState();	
 		drawAllNotes();
 		drawNotePlayBar();
-		for(int i=0;i<3;++i){				cntls[i].drawMini();			}
+		for(int i=0;i<3;++i){				cntls[i].drawMini(pa);			}
 	}//drawMeNoFocus
 	public void stopAllNotes(){
 		win.addSphereNoteToStopNow(instr,noteEndLocs);
@@ -571,82 +573,83 @@ public class mySphereCntl {
 	
 	public void drawAllNotes(){
 		//draw all notes
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 			pa.translate(ntRngDispVec.x,ntRngDispVec.y,ntRngDispVec.z+.01f);			
 			for(Map.Entry<Integer,myNote> noteVal : notes.entrySet()){
 				myNote note = noteVal.getValue();
-				note.drawMeSphere();
+				note.drawMeSphere(pa);
 			}
-		pa.popStyle();pa.popMatrix();	
+		pa.popMatState();	
 	}
 	
 	public void drawTrajPts(myDrawnSmplTraj traj, float animTimeMod){
-		pa.pushMatrix();pa.pushStyle();
+		pa.pushMatState();
 			pa.translate(drawCtr);		//either ctr or displaced position		
 			pa.translate(ntRngDispVec.x,ntRngDispVec.y,ntRngDispVec.z-1.0f);
-			traj.drawMe( animTimeMod);
-		pa.popStyle();pa.popMatrix();	
+			traj.drawMe(pa, animTimeMod);
+		pa.popMatState();	
 	}
 	
 	//draw concentric rings of notes "staff"
 	public void drawNoteCircle(){
-		pa.pushMatrix();pa.pushStyle();
-		pa.fill(255,255,255,5);
-		pa.stroke(0,0,0,255);
-		pa.strokeWeight(1);
+		pa.pushMatState();
+		pa.setFill(255,255,255,5);
+		pa.setStroke(0,0,0,255);
+		pa.setStrokeWt(1);
 		pa.translate(ntRngDispVec);
 		//note rings - fewer & wider for drums
 		int ringStep = getFlag(isDrumKitIDX) ? 4 : 1;
-		for(int i =0; i<numNoteRings; i+=ringStep){	pa.circle(myPoint.ZEROPT, (i+1)*ringRad);	}		
-		pa.popStyle();pa.popMatrix();			
+		for(int i =0; i<numNoteRings; i+=ringStep){	pa.drawEllipse2D(myPoint.ZEROPT, (i+1)*ringRad);	}		
+		pa.popMatState();			
 	}//drawNoteCircle()
 	
 	public void drawNotePlayBar(){
-		pa.pushMatrix();pa.pushStyle();
-		pa.fill(255,255,255,5);
+		pa.pushMatState();
+		pa.setFill(255,255,255,5);
 		pa.translate(ntRngDispVec.x,ntRngDispVec.y,ntRngDispVec.z-.1f);
 		pa.rotate(lastPlayAlpha, cntlRotAxis);
 		//pa.rotate(curSwpRotAmt, cntlRotAxis);
-		pa.stroke(0,0,0,255);
-		pa.strokeWeight(3);
-		pa.line(myPoint.ZEROPT, radarBarEndPt);
-		pa.stroke(255,255,0,255);
-		pa.strokeWeight(1.5f);
-		pa.line(myPoint.ZEROPT, radarBarEndPt);
-		pa.stroke(255,0,0,255);
-		pa.strokeWeight(1);
-		pa.line(myPoint.ZEROPT, radarBarEndPt);
-		pa.translate(pa.P(radarBarEndPt)._mult(1.1));
+		pa.setStroke(0,0,0,255);
+		pa.setStrokeWt(3);
+		pa.drawLine(myPoint.ZEROPT, radarBarEndPt);
+		pa.setStroke(255,255,0,255);
+		pa.setStrokeWt(1.5f);
+		pa.drawLine(myPoint.ZEROPT, radarBarEndPt);
+		pa.setStroke(255,0,0,255);
+		pa.setStrokeWt(1);
+		pa.drawLine(myPoint.ZEROPT, radarBarEndPt);
+		pa.translate(myPoint._mult(radarBarEndPt, 1.1));
 		pa.rotate(-lastPlayAlpha, cntlRotAxis);
 		//pa.rotate(-curSwpRotAmt, cntlRotAxis);
-		pa.setColorValFill(SeqVisFFTOcean.gui_Black, 255);
+		pa.setColorValFill(IRenderInterface.gui_Black, 255);
 		
-		//pa.text(""+curSwpRotAmt, 0, -0);
-		pa.popStyle();pa.popMatrix();			
+		//pa.showText(""+curSwpRotAmt, 0, -0);
+		pa.popMatState();			
 	}	
 		
 	private void drawName(){
-		pa.setColorValFill(SeqVisFFTOcean.gui_DarkGray, 255);
+		pa.setColorValFill(IRenderInterface.gui_DarkGray, 255);
 		pa.translate(-2*name.length(),0,0);
-		pa.rect(-10,-11,name.length()*8 + 10,15);
-		pa.setColorValFill(SeqVisFFTOcean.gui_White, 255);
-		pa.text(name, 0, 0);	
+		pa.drawRect(-10,-11,name.length()*8 + 10,15);
+		pa.setColorValFill(IRenderInterface.gui_White, 255);
+		pa.showText(name, 0, 0);	
 	}
 	
 	private void drawMainSphere(){
-		pa.pushMatrix();pa.pushStyle();
-		//pa.stroke(255,0,0,255);
-		//pa.line(myPoint.ZEROPT, pa.P(panAxis)._mult(100));		//axis of rot lines
+		pa.pushMatState();
+		//pa.setStroke(255,0,0,255);
+		//pa.drawLine(myPoint.ZEROPT, pa.P(panAxis)._mult(100));		//axis of rot lines
 		pa.rotate(cntls[panIDX].vals[myMiniSphrCntl.rotAmtIDX],panAxis);
-		//pa.stroke(111,0,110,255);
-		//pa.line(myPoint.ZEROPT, pa.P(rotAxis)._mult(100));		//axis of rot lines
+		//pa.setStroke(111,0,110,255);
+		//pa.drawLine(myPoint.ZEROPT, pa.P(rotAxis)._mult(100));		//axis of rot lines
 		pa.rotate(-rollAmt, rotAxis);
-		pa.shape(mySphere);
-		pa.popStyle();pa.popMatrix();			
+		win.drawShape(mySphere);	
+		pa.popMatState();			
 	}
 //	//return distance along pt + unit ray where this ray hits target note disc
 	public double hitNoteDisc(myPoint pt, myVector ray){
-		return (pa.V(pt,ctrOfNotes)._dot(cntlRotAxis))/(ray._dot(cntlRotAxis));	
+		myVector tmp = new myVector(pt,ctrOfNotes); 
+		return (tmp._dot(cntlRotAxis))/(ray._dot(cntlRotAxis));	
 	}
 	
 	public double hitMe(myPoint pt, myVector ray){return hitMe(pt,ray, ctr, invRadius);	}	 
@@ -663,9 +666,9 @@ public class mySphereCntl {
 	    	//quadratic equation
 	    	double discr1 = Math.pow(discr,.5), t1 = (-b + discr1)/(2*a), t2 = (-b - discr1)/(2*a);
 	    	tVal = Math.min(t1,t2);
-	        if (tVal < pa.feps){//if min less than 0 then that means it intersects behind the viewer.  pick other t
+	        if (tVal < MyMathUtils.EPS_F){//if min less than 0 then that means it intersects behind the viewer.  pick other t
 	        	tVal = Math.max(t1,t2);
-	        	if (tVal < pa.feps){tVal = -1;}//if both t's are less than 0 then don't paint anything
+	        	if (tVal < MyMathUtils.EPS_F){tVal = -1;}//if both t's are less than 0 then don't paint anything
 	        }//if the min t val is less than 0
 	    }		
 		return tVal;		

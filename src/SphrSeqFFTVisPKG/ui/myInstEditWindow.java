@@ -2,16 +2,18 @@ package SphrSeqFFTVisPKG.ui;
 import java.util.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.GUI_AppManager;
+import base_UI_Objects.windowUI.drawnObjs.myDrawnSmplTraj;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
@@ -27,12 +29,12 @@ public class myInstEditWindow extends myMusicSimWindow {
 						
 	public final int numGUIObjs = 1;	
 	
-	public myInstEditWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
-		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
+	public myInstEditWindow(IRenderInterface _p, GUI_AppManager _AppMgr, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
+		super(_p,_AppMgr, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt);
 		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;		
 		
 		
-		super.initThisWin(_canDrawTraj, false);
+		super.initThisWin(false);
 	}
 	/**
 	 * Build button descriptive arrays : each object array holds true label, false label, and idx of button in owning child class
@@ -72,7 +74,7 @@ public class myInstEditWindow extends myMusicSimWindow {
 	//initialize structure to hold modifiable menu regions
 	@Override
 	protected void setupGUIObjsAras(TreeMap<Integer, Object[]> tmpUIObjArray, TreeMap<Integer, String[]> tmpListObjVals){	
-		//pa.outStr2Scr("setupGUIObjsAras in :"+ name);
+		//msgObj.dispInfoMessage("myInstEditWindow","xxx","setupGUIObjsAras in :"+ name);
 		int numInstrs = 0;
 		if(pa.score!=null){
 			numInstrs = pa.score.staffs.size()-1;
@@ -101,7 +103,7 @@ public class myInstEditWindow extends myMusicSimWindow {
 	//if any ui values have a string behind them for display
 	@Override
 	public String getUIListValStr(int UIidx, int validx) {
-		//pa.outStr2Scr("getUIListValStr : " + UIidx+ " Val : " + validx + " inst len:  "+pa.InstrList.length+ " | "+pa.InstrList[(validx % pa.InstrList.length)].instrName );
+		//msgObj.dispInfoMessage("myInstEditWindow","xxx","getUIListValStr : " + UIidx+ " Val : " + validx + " inst len:  "+pa.InstrList.length+ " | "+pa.InstrList[(validx % pa.InstrList.length)].instrName );
 		switch(UIidx){//pa.score.staffs.size()
 			case instToEditIDX 		: {return pa.score.staffs.get(pa.score.staffDispOrder.get(validx % pa.score.staffs.size())).instrument.instrName; }
 		}
@@ -141,7 +143,7 @@ public class myInstEditWindow extends myMusicSimWindow {
 	}
 	@Override
 	public void clickDebug(int btnNum){
-		pa.outStr2Scr("click debug in "+name+" : btn : " + btnNum);
+		msgObj.dispInfoMessage("myInstEditWindow","clickDebug","click debug in "+name+" : btn : " + btnNum);
 		switch(btnNum){
 			case 0 : {//note vals
 				break;
@@ -191,7 +193,7 @@ public class myInstEditWindow extends myMusicSimWindow {
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc){}//not a snap-to window
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
+	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
 		
 		//traj processing
 	}
@@ -208,7 +210,7 @@ public class myInstEditWindow extends myMusicSimWindow {
 	protected void setGlobalTempoValIndiv(float tempo, float time){	}//setCurrentTimeSigVal
 	@Override
 	//set current key signature, at time passed - for score, set it at nearest measure boundary
-	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<nValType> lclKeyNotesAra, float time){}
+	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time){}
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){}

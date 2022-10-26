@@ -1,17 +1,14 @@
 package SphrSeqFFTVisPKG.measure;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
-
 /**
  * convenience class to hold the important info for a measure (time sig, key sig, clef, c4 disp location, etc.
  * @author 7strb
  *
  */
 public class MeasureData implements Comparable<MeasureData>{//comparison by measure seq #
-	public SeqVisFFTOcean p;
 	public int seqNum,
 				stTime, 
 				endTime;		//start time of measure from beginning of sequence in millis; end time in millis - notes after this need to go in new measure	
@@ -22,8 +19,7 @@ public class MeasureData implements Comparable<MeasureData>{//comparison by meas
 	public myClefBase clef;
 	public float c4DispLoc;	
 	
-	public MeasureData(SeqVisFFTOcean _p,int _seqNum, int _stTime, myMeasure _meas, myTimeSig _ts, myKeySig _ks, myClefBase _clef, float _c4DispLoc){
-		p = _p;
+	public MeasureData(int _seqNum, int _stTime, myMeasure _meas, myTimeSig _ts, myKeySig _ks, myClefBase _clef, float _c4DispLoc){
 		seqNum = _seqNum;		
 		c4DispLoc = _c4DispLoc;			//may be overridden based on notes in this measure
 		//key = _key;
@@ -32,12 +28,7 @@ public class MeasureData implements Comparable<MeasureData>{//comparison by meas
 		stTime = _stTime;
 		clef = _clef;		
 	}
-	public MeasureData(MeasureData _m){	this( _m.p, _m.seqNum,  _m.stTime,  _m.meas, _m.ts, _m.ks, _m.clef,_m.c4DispLoc);	}//copy ctor
-//	
-//	public void setMeasure(myMeasure _meas){
-//		meas = _meas;
-//		meas.processNewMeasureData();
-//	}
+	public MeasureData(MeasureData _m){	this(_m.seqNum,  _m.stTime,  _m.meas, _m.ts, _m.ks, _m.clef,_m.c4DispLoc);	}//copy ctor
 	
 	public void setAllVals(myTimeSig _timeSig,myKeySig _ks,myClefBase _clf,float _c4DispLoc){
 		setKeySig(_ks);
@@ -64,4 +55,4 @@ public class MeasureData implements Comparable<MeasureData>{//comparison by meas
 		return res;
 	}
 	
-}
+}//class MeasureData

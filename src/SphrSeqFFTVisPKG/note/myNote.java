@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
@@ -59,7 +59,7 @@ public class myNote {
 	
 	
 	//build note then set duration
-	public myNote(myMusicSimWindow _win, nValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
+	public myNote(myMusicSimWindow _win, noteValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
 		win=_win;
 		ID = nCnt++;	
 		meas = _measure;
@@ -76,7 +76,7 @@ public class myNote {
 		
 		flags = new boolean[numFlags];
 		initFlags();
-		if (n.name == nValType.rest){	setRest();}
+		if (n.name == noteValType.rest){	setRest();}
 		setDispMsgVals(owningStaff.getC4DistForClefsAtTime(n.stTime));
 		//not every note has an owning measure, but every note has an owning staff
 		flags[isInStaff] = (owningStaff.getClefsAtTime(n.stTime).isOnStaff(n) == 0);
@@ -113,7 +113,7 @@ public class myNote {
 		sphereRing = _note.sphereRing;
 		flags = new boolean[numFlags];
 		for(int i =0; i<numFlags;++i){	flags[i]=_note.flags[i];}
-		if (n.name == nValType.rest){	setRest();}
+		if (n.name == noteValType.rest){	setRest();}
 		setDispMsgVals(owningStaff.getC4DistForClefsAtTime(_note.n.stTime));
 		flags[isInStaff] = (owningStaff.getClefsAtTime(_note.n.stTime).isOnStaff(n) == 0);
 	}	
@@ -143,7 +143,7 @@ public class myNote {
 			if(numNotesDisp < -12){numNotesDisp += 12; n.editNoteVal(n.name, n.octave-1);}
 		}
 		int[] indNDisp = win.getNoteDisp(n, numNotesDisp);		
-		this.n.editNoteVal(nValType.getVal(indNDisp[0]), indNDisp[1]);
+		this.n.editNoteVal(noteValType.getVal(indNDisp[0]), indNDisp[1]);
 		//p.outStr2Scr("new note : "+ n.toString() + " #rings : "+sphereRing + " notes disp : " +numNotesDisp);
 	}
 	
@@ -162,8 +162,8 @@ public class myNote {
 		}		
 		calcDispYVal(c4DspLc);
 	}
-	public void moveNoteHalfStep(myKeySig _key, ArrayList<nValType> keyAra, boolean up){moveNoteHalfStepPriv(_key,keyAra,up);}
-	protected void moveNoteHalfStepPriv(myKeySig _key, ArrayList<nValType> keyAra, boolean up){
+	public void moveNoteHalfStep(myKeySig _key, ArrayList<noteValType> keyAra, boolean up){moveNoteHalfStepPriv(_key,keyAra,up);}
+	protected void moveNoteHalfStepPriv(myKeySig _key, ArrayList<noteValType> keyAra, boolean up){
 		//p.outStr2Scr("Before move:  " + n.toString());
 		if(flags[isRest]){return;}
 		if(!keyAra.contains(n.name)){

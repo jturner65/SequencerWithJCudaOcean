@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
-import SphrSeqFFTVisPKG.clef.enums.clefVal;
+import SphrSeqFFTVisPKG.clef.enums.clefType;
 import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.NoteData;
@@ -12,7 +12,8 @@ import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.chordType;
 import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
+import SphrSeqFFTVisPKG.score.myScore;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
 import SphrSeqFFTVisPKG.ui.controls.myPlaybackEngine;
@@ -21,9 +22,16 @@ import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_UI_Objects.GUI_AppManager;
+import base_UI_Objects.my_procApplet;
 import base_UI_Objects.windowUI.base.myDispWindow;
 import ddf.minim.AudioOutput;
+import ddf.minim.AudioRecorder;
+import ddf.minim.Minim;
+import ddf.minim.ugens.Sampler;
+import ddf.minim.ugens.Summer;
 import processing.core.PConstants;
+import processing.core.PImage;
+import processing.core.PShape;
 
 /**
  * abstract class to hold base code for a menu/display window (2D for gui, etc), to handle 
@@ -40,11 +48,44 @@ public abstract class myMusicSimWindow extends myDispWindow {
 	public static float glblTempo;
 	public static myTimeSig glblTimeSig;
 	public static durType glblBeatNote;
-	public static ArrayList<nValType> glblKeyNotesAra;					//notes in the current key -- used to force notes to key
-
+	public static ArrayList<noteValType> glblKeyNotesAra;					//notes in the current key -- used to force notes to key
 	
-	public int pFlagIdx;					//the flags idx in the PApplet that controls this window - use -1 for none	
-	public boolean[] dispFlags;
+	public PImage[] restImgs, clefImgs,sphereImgs, moonImgs; 			//array of images for rests, clefs and textures for spheres
+	public int numRestImges, numClefImgs, numSphereImgs;
+
+	//handles all transport controls
+	public final int pbeModAmt = 1;		//how many beats ffwd and rewind move crsr for playback engine
+	
+	public int curTrajAraIDX;
+
+	// tools for playing music
+	public Minim minim;		
+	public AudioOutput glblOut;		
+	public Summer glblSum;	
+	public AudioRecorder recorder;	
+	public int OutTyp = Minim.STEREO;
+	
+	//global values for minim/audio stuff
+	public final int glbBufrSize = 1024;// * 16;
+//		/public float glbSampleRate;
+	
+	public float playPosition;		//
+	
+	/**
+	 * score being worked on in this window
+	 */	
+	public myScore score;
+	
+	public Sampler[] drumSounds;		
+	public final int numDrumSnds = 8;
+//		drums0 : bd
+//		drums1 : hh1
+//		drums2 : hh2
+//		drums3 : snare1
+//		drums4 : snare2 (clap snare)
+//		drums5 : ride
+//		drums6 : crash
+//		drums7 : talk drum
 	
 	public static final int 
 			
@@ -63,15 +104,11 @@ public abstract class myMusicSimWindow extends myDispWindow {
 
 	public float[] vsblStLoc;							//pxl location of first visisble note on the left of the screen - idx0 for piano
 	public int[] seqVisStTime;							//seq time of first note visible in sequence window
-			
 
-		public final String[] keySigs = new String[]{"CMaj - 0 #'s","GMaj - 1 #","DMaj - 2 #'s","Amaj - 3 #'s","EMaj - 4 #'s","BMaj - 5 #'s","FsMaj - 6 #'s",
-			"CsMaj - 5 b's","GsMaj - 4 b's","DsMaj - 3 b's","AsMaj - 2 b's","Fmaj - 1 b"};
-	
+	public float[] hSrsMult;
+	public final int numHarms = 10;
+
 	public final int[] timeSigDenom = new int[]{1,2,4,8,16,32};
-	
-	public final String[] noteVals = new String[]{"Whole","Half","Quarter","Eighth","Sixteenth","Thirtisecond"};
-	public final durType[] noteValTypes = new durType[]{durType.Whole,durType.Half,durType.Quarter,durType.Eighth,durType.Sixteenth,durType.Thirtisecond};
 	
 	//score - related values
 	//protected myScore score;									//score being displayed
@@ -94,18 +131,18 @@ public abstract class myMusicSimWindow extends myDispWindow {
 	public myInstrument[] InstrList;
 	////idx's of instruments available
 	public static final int 
-	Guit1InstIDX 		= 0,
-	Guit2InstIDX 		= 1,
-	BassInstIDX 		= 2,
-	Vox1InstIDX 		= 3,
-	Vox2InstIDX 		= 4,
-	Synth1InstIDX 		= 5,
-	Synth2InstIDX 		= 6,
-	Synth3InstIDX 		= 7,
-	Synth4InstIDX 		= 8,
-	Synth5InstIDX 		= 9,
-	drumsInstIDX		= 10,
-	drums2InstIDX		= 11;
+			Guit1InstIDX 		= 0,
+			Guit2InstIDX 		= 1,
+			BassInstIDX 		= 2,
+			Vox1InstIDX 		= 3,
+			Vox2InstIDX 		= 4,
+			Synth1InstIDX 		= 5,
+			Synth2InstIDX 		= 6,
+			Synth3InstIDX 		= 7,
+			Synth4InstIDX 		= 8,
+			Synth5InstIDX 		= 9,
+			drumsInstIDX		= 10,
+			drums2InstIDX		= 11;
 	public static final int numInstsAvail = 12;	
 
 	
@@ -128,12 +165,34 @@ public abstract class myMusicSimWindow extends myDispWindow {
 	
 	@Override
 	protected final void initMe() {
-		C4 = new NoteData(nValType.C, 4);
+		C4 = new NoteData(noteValType.C, 4);
 		
 		initMe_Indiv();
 	}//initMe()
 	
 	protected abstract void initMe_Indiv();
+	
+	//build audio specific constructs
+	public void initAudio(){		
+		minim = new Minim(this); 		// Declares minim which we use for sounds
+		glblSum = new Summer();
+		glblSum.setSampleRate(88200.0f);
+		resetAudioOut();
+		//glblSum.patch(glblOut);
+	}
+
+	
+	//instance an audio out
+	public void resetAudioOut(){
+		glblOut = minim.getLineOut(OutTyp,glbBufrSize, 44100.0f);	
+		//glblOut.setVolume(.5f);
+		float tmpTempo = 1;
+		if(myMusicSimWindow.glblTempo <1){		tmpTempo = 120.0f;}			
+		else{			tmpTempo = myMusicSimWindow.glblTempo;		}
+		glblOut.setTempo(tmpTempo);			
+		glblSum.patch(glblOut);
+		msgObj.dispInfoMessage("myMusicSimWindow ("+className+")","resetAudioOut","Out tempo set to   " + tmpTempo);
+	}
 	
 	
 	
@@ -184,12 +243,7 @@ public abstract class myMusicSimWindow extends myDispWindow {
 		else if(newNVal > newNValNoMod) {	octModAmt--;}		//if newVal is > newVal without mod then wrapped around negatively while subtracting			
 		return res;			
 	}
-	
-	
-	
-	
-	
-	
+		
 	
 	//when score is set up or modified, use this to distribute references to all windows of current score
 	public void setScoreInstrVals(TreeMap<String,myInstrument> _instrs, String[] _scoreStaffNames){
@@ -199,7 +253,7 @@ public abstract class myMusicSimWindow extends myDispWindow {
 			setScoreStaffName(i, _scoreStaffNames[i]);
 			drawTrajBoxFillClrs[i] = pa.getRndClr();
 		}	
-		instrs = pa.score.getInstrumentList();
+		instrs = score.getInstrumentList();
 
 		numSubScrInWin = 2;						//# of subscreens in a window.  will generally be 1, but with sequencer will have at least 2 (piano roll and score view)
 		numTrajInSubScr = new int[]{scoreStaffNames.length, scoreStaffNames.length};	
@@ -243,9 +297,9 @@ public abstract class myMusicSimWindow extends myDispWindow {
 //	}
 	public void setGlobalTempoVal(float tempo){
 		glblTempo = tempo;	
-		pa.glblOut.pauseNotes();
-		pa.glblOut.setTempo(tempo);
-		pa.glblOut.resumeNotes();	
+		glblOut.pauseNotes();
+		glblOut.setTempo(tempo);
+		glblOut.resumeNotes();	
 //		if(score != null){
 //			for(int i =0; i<score.staffs.size(); ++i){
 //				//drawnPRollNotes[i] = new TreeMap<Integer,myNote>();
@@ -264,8 +318,8 @@ public abstract class myMusicSimWindow extends myDispWindow {
 			ks = new myKeySig(pa, keySigVals.getVal(idx));	
 		}
 		else {	ks = new myKeySig(pa, keySigVals.CMaj);	
-		msgObj.dispInfoMessage("ks not correctly set @ idx : " + idx + " : " + ks.toString());}	
-		ArrayList<nValType> keyNotesAra = ks.getKeyNotesAsList();
+		msgObj.dispInfoMessage("myMusicSimWindow (" +className+")","setLocalKeySigVal","ks not correctly set @ idx : " + idx + " : " + ks.toString());}	
+		ArrayList<noteValType> keyNotesAra = ks.getKeyNotesAsList();
 		
 		setLocalKeySigValIndiv(ks,keyNotesAra, pbe.getCurrentTime());	
 	}	
@@ -280,8 +334,58 @@ public abstract class myMusicSimWindow extends myDispWindow {
 	}
 	
 	//displays point with a name
-	public void showKeyPt(myPoint a, String s, float rad){	pa.show(a,rad, s, new myVector(10,-5,0), pa.gui_Cyan, dispFlags[trajPointsAreFlat]);	}	
+	public void showKeyPt(myPoint a, String s, float rad){	pa.showPtWithText(a,rad, s, new myVector(10,-5,0), IRenderInterface.gui_Cyan, dispFlags[trajPointsAreFlat]);	}	
 
+	/**
+	 * Whether or not to clear staff on trajectory draw
+	 * @return
+	 */
+	public boolean clearStaffTrajOnDraw() {return pa.flags[pa.clearStaffNewTraj];}
+	
+	/**
+	 * Create a textured sphere of given radius as a PShape, use this for mini-sphere controls
+	 * 
+	 * @param _txtrIdx index 
+	 * @param _radius
+	 * @param _ambClr
+	 * @param _specClr
+	 * @param _emissiveClr
+	 * @param _shn
+	 * @return
+	 */
+	public PShape buildSphere(int _txtrIdx, float _radius, int[] _ambClr, int[] _specClr, int[] _emissiveClr, float _shn) {
+		return buildSphere(moonImgs[_txtrIdx], _radius, _ambClr, _specClr, _emissiveClr, _shn);
+	}
+
+	
+	/**
+	 * Create a textured sphere of given radius as a PShape
+	 * @param _txtr
+	 * @param _radius
+	 * @param _ambClr
+	 * @param _specClr
+	 * @param _emissiveClr
+	 * @param _shn
+	 * @return
+	 */
+	public PShape buildSphere(PImage _txtr, float _radius, int[] _ambClr, int[] _specClr, int[] _emissiveClr, float _shn) {
+		PShape sh = ((my_procApplet) pa).createShape(PConstants.SPHERE, _radius); 
+		sh.setTexture(_txtr);	
+		sh.beginShape(PConstants.SPHERE);
+		sh.noStroke();
+		sh.ambient(_ambClr[0],_ambClr[1],_ambClr[2]);		
+		sh.specular(_specClr[0],_specClr[1],_specClr[2]);
+		sh.emissive(_emissiveClr[0]*2,_emissiveClr[1]*2,_emissiveClr[2]*2);
+		sh.shininess(_shn);
+		sh.endShape(PConstants.CLOSE);
+		return sh;
+	}
+	
+	/**
+	 * Use this to help with drawing on sphere. TODO: Verify this is necessary
+	 * @return
+	 */
+	public myPoint getScreenLocation() {return  myPoint._add(sceneCtrVal,focusTar);}
 	
 	/**
 	 * Build button descriptive arrays : each object array holds true label, false label, and idx of button in owning child class
@@ -303,43 +407,7 @@ public abstract class myMusicSimWindow extends myDispWindow {
 		playNote(_out, 0, 1, 0.01f);			//playing a note to prevent hesitation before first note
 		_out.resumeNotes();
 	}
-	
-	//return array of halfstep displacements for each note of chord, starting with 0 for root
-	public int[] getChordDisp(chordType typ){
-		switch (typ){
-		case Major		:{return (new int[]{0,4,7});}	//1,3,5
-		case Minor		:{return (new int[]{0,3,7});}	//1,b3,5
-		case Augmented	:{return (new int[]{0,4,8});}	//1,3,#5
-		case MajFlt5	:{return (new int[]{0,4,6});}	//1,3,b5
-		case Diminished	:{return (new int[]{0,3,6});}	//1,b3,b5
-		case Sus2       :{return (new int[]{0,2,7});}	//1,2,5
-		case Sus4       :{return (new int[]{0,5,7});}	//1,4,5			
-		case Maj6       :{return (new int[]{0,4,7,9});}	//1,3,5,6
-		case Min6      	:{return (new int[]{0,3,7,9});}	//1,b3,5,6
-		case Maj7      	:{return (new int[]{0,4,7,11});}	//1,3,5,7
-		case Dom7      	:{return (new int[]{0,4,7,10});}	//1,3,5,b7
-		case Min7      	:{return (new int[]{0,3,7,10});}	//1,b3,5,b7
-		case Dim7      	:{return (new int[]{0,3,6,9});}	//1,b3,b5,bb7==6
-		case None      	:{return (new int[]{0});}	//not a predifined chord type
-		default         :{return (new int[]{0});}						
-		}			
-	}
-	
-	//where is middle c for this measure's notes (if clef is different from default staff clef, based on instrument)
-	public float getC4LocMultClef(clefVal clef, boolean isGrandStaff){
-		if(isGrandStaff){return 5;}
-		switch (clef){
-			case Treble : {return 5;}
-			case Bass   : {return -1;}
-			case Alto   : {return 2;}
-			case Tenor  : {return 2;}
-			case Drum   : {return 2;}
-			case Piano	: {return 5;}//should never get here - only will happen if somehow piano grandstaff doesn't get appropriate boolean set
-			default:		break;
-		}
-		return 0;
-	}	
-	
+
 	//note is tilted ellipse with stem (if  not whole note), and filled (if not whole or half note) and with flags (if 8th or smaller)
 	//type  == type of note (0 is whole, 1 is half, 2 is qtr, 3 is eighth, etc)
 	//nextNoteLoc is location of next note yikes.
@@ -351,8 +419,8 @@ public abstract class myMusicSimWindow extends myDispWindow {
 		//noteIdx : -2,-1, 0, 1, 2, 3
 		pa.rotate(MyMathUtils.FIFTH_PI_F,0,0,1);
 		pa.setStrokeWt(1);
-		pa.setColorValFill(pa.gui_Black, 255);
-		pa.setColorValStroke(pa.gui_Black, 255);
+		pa.setColorValFill(IRenderInterface.gui_Black, 255);
+		pa.setColorValStroke(IRenderInterface.gui_Black, 255);
 		if(flags[myNote.isChord] && flags[myNote.isFlipped]){pa.translate(-noteW,0,0);}		//only flip if close to note
 		//line(-noteW,0,0,noteW,0,0);//ledger lines, to help align the note
 		if(noteTypIdx <= -1){	pa.setStrokeWt(2);	pa.noFill();	}
@@ -411,12 +479,16 @@ public abstract class myMusicSimWindow extends myDispWindow {
 		if(restIdx > -1){//draw image
 			pa.translate(restDisp[restIdx][0], restDisp[restIdx][1],0);		//center image of rest - move up 2 ledger lines
 			pa.scale(1,1.2f,1);
-			image(restImgs[restIdx], 0,0);				
+			((my_procApplet) pa).image(restImgs[restIdx], 0,0);				
 		} else {//draw box
 			if(restIdx == -2){	pa.translate(0,-.5f * restW,0);}//whole rest is above half rest
 			pa.drawRect(-.5f * restW, 0, restW,.5f * restW);				
 		}
 		pa.popMatState();
+	}
+	
+	public void drawShape(PShape sh) {
+		((my_procApplet) pa).shape(sh);	
 	}
 	
 	//return summed outputs to simulation
@@ -425,18 +497,18 @@ public abstract class myMusicSimWindow extends myDispWindow {
 	//TODO replace with reticle-driven play and stop of notes
 	protected void addTrajNoteToPlay(SortedMap<Integer, myNote> tmpNotes){
 		if((null == tmpNotes) || (tmpNotes.size() == 0)){return;}
-		//pa.glblOut.pauseNotes();
+		//glblOut.pauseNotes();
 		for(SortedMap.Entry<Integer, myNote> note : tmpNotes.entrySet()) { 	
-			if(note.getValue().n.name == nValType.rest){continue;}
+			if(note.getValue().n.name == noteValType.rest){continue;}
 			myNote _n = note.getValue();
 			//msgObj.dispInfoMessage("myMusicSimWindow","Func","Play note : "+ _n.n.nameOct + " start : "+ _n.n.getStartPlayback() + " dur: " +  _n.n.getDurPlayback() * tempoDurRatio);
-			playNote(pa.glblOut, _n.n.getStartPlayback(), _n.n.getDurPlayback() * tempoDurRatio, _n.n.freq);
+			playNote(glblOut, _n.n.getStartPlayback(), _n.n.getDurPlayback() * tempoDurRatio, _n.n.freq);
 			if(_n.flags[myNote.isChord]){
 				for(Entry<String, myNote> cnote : ((myChord)(_n)).cnotes.entrySet()){
 					myNote chrdN = cnote.getValue();
 					if(_n.ID != chrdN.ID){
 						//msgObj.dispInfoMessage("myMusicSimWindow","Func","Play note of chord : "+ chrdN.n.nameOct + " start : "+ chrdN.n.getStartPlayback() + " dur: " +  chrdN.n.getDurPlayback() * tempoDurRatio);
-						playNote(pa.glblOut, chrdN.n.getStartPlayback(), chrdN.n.getDurPlayback() * tempoDurRatio, chrdN.n.freq);
+						playNote(glblOut, chrdN.n.getStartPlayback(), chrdN.n.getDurPlayback() * tempoDurRatio, chrdN.n.freq);
 					}
 				}
 			}
@@ -473,8 +545,8 @@ public abstract class myMusicSimWindow extends myDispWindow {
 //			instrNoteOut[i].close();
 //			instrNoteOut[i] = pa.getAudioOut();
 		if(this.ID != 2){
-			pa.glblOut.close();
-			pa.resetAudioOut();			//TODO
+			glblOut.close();
+			resetAudioOut();			//TODO
 		}
 		//	procInitOut(instrNoteOut[i]);
 		//}			
@@ -513,7 +585,7 @@ public abstract class myMusicSimWindow extends myDispWindow {
 	protected abstract void setGlobalTempoValIndiv(float tempo, float time);
 	
 	//set current key signature, at time passed - for score, set it at nearest measure boundary
-	protected abstract void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<nValType> lclKeyNotesAra, float time);	
+	protected abstract void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time);	
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected abstract void setLocalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time);	
 	//set time signature at time passed - for score, set it at nearest measure boundary

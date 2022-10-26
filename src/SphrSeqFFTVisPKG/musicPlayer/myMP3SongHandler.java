@@ -1,6 +1,6 @@
 package SphrSeqFFTVisPKG.musicPlayer;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import ddf.minim.AudioPlayer;
 import ddf.minim.analysis.FFT;
 import ddf.minim.analysis.WindowFunction;
@@ -11,7 +11,7 @@ import ddf.minim.analysis.WindowFunction;
  *
  */
 public class myMP3SongHandler{
-	public SeqVisFFTOcean pa;
+	public myMusicSimWindow win;
 	public AudioPlayer playMe;
 	public FFT fftMP3Log;
 	public String fileName, dispName;
@@ -19,9 +19,9 @@ public class myMP3SongHandler{
 	//length in millis
 	public int songLength;
 	
-	public myMP3SongHandler(SeqVisFFTOcean _p, String _fname, String _dname, int _sbufSize) {
-		pa = _p; fileName = _fname; dispName = _dname;songBufSize = _sbufSize;
-		playMe = pa.minim.loadFile(fileName, songBufSize);
+	public myMP3SongHandler(myMusicSimWindow _win, String _fname, String _dname, int _sbufSize) {
+		win=_win; fileName = _fname; dispName = _dname;songBufSize = _sbufSize;
+		playMe = win.minim.loadFile(fileName, songBufSize);
 		songLength = playMe.length();
 		fftMP3Log = new FFT(playMe.bufferSize(), playMe.sampleRate() );		
 //		barDims = new float[] {.8f * pa.menuWidth, 10.0f};

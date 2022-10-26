@@ -1,15 +1,14 @@
 package SphrSeqFFTVisPKG.ui.controls;
 
-import SphrSeqFFTVisPKG.SeqVisFFTOcean;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
+import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
+import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import processing.core.PApplet;
-import processing.core.PConstants;
-import processing.core.PImage;
 import processing.core.PShape;
 
 public class myMiniSphrCntl{
-	public SeqVisFFTOcean pa;
+	public myMusicSimWindow win;
 	public static int sphMiniCntl = 0;
 	public int ID;	
 	public mySphereCntl own;
@@ -48,10 +47,9 @@ public class myMiniSphrCntl{
 	public static final int numBFlags = 3;
 	
 	
-	public myMiniSphrCntl(SeqVisFFTOcean _pa, mySphereCntl _o, int _instCntlIDX, myVector[] _cntlAxis,
-			String _name,PImage _txtr, float _shn, float[] _vals, boolean[] _flags,
-			int[] specClr, int[] ambClr, int[] emissiveClr, int[] _txtFl, float _radius){
-		pa = _pa;
+	public myMiniSphrCntl(myMusicSimWindow _win, mySphereCntl _o, int _instCntlIDX, myVector[] _cntlAxis,
+			String _name, PShape _sh, float[] _vals, boolean[] _flags, int[] _txtFl, float _radius){
+		win = _win;
 		own = _o;
 		ID = sphMiniCntl++;
 		panAxis = new myVector();
@@ -73,15 +71,7 @@ public class myMiniSphrCntl{
 		radius = _radius;
 		invRadius = 1.0f/radius;
 		name = _name;
-		sh = pa.createShape(PConstants.SPHERE, radius); 
-		sh.setTexture(_txtr);	
-		sh.beginShape(PConstants.SPHERE);
-		sh.noStroke();
-		sh.ambient(ambClr[0],ambClr[1],ambClr[2]);		
-		sh.specular(specClr[0],specClr[1],specClr[2]);
-		sh.emissive(emissiveClr[0]*2,emissiveClr[1]*2,emissiveClr[2]*2);
-		sh.shininess(_shn);
-		sh.endShape(PConstants.CLOSE);
+		sh = _sh;
 		initVals(_vals);
 	}
 	
@@ -94,7 +84,7 @@ public class myMiniSphrCntl{
 	
 	public myVector getDispVec(){
 		double mag = distFromCtr._mag();
-		myVector disp = myVector._rotAroundAxis(pa.U(distFromCtr), cntlRotAxis, vals[rotAmtIDX]);
+		myVector disp = myVector._rotAroundAxis(myVector._unit(distFromCtr), cntlRotAxis, vals[rotAmtIDX]);
 		disp._mult(mag);
 		//disp.z = 0;
 		return disp;
@@ -102,44 +92,45 @@ public class myMiniSphrCntl{
 	
 	public boolean hitMeMini(myVector clickVec){
 		myVector disp= getDispVec();
-		myPoint tmp = pa.P(clickVec);
+		myPoint tmp = new myPoint(clickVec);
 		tmp.z = 0;
 		double dist = tmp._dist(disp);
 		//pa.outStr2Scr("Checking Hit in mini sphere ID : " + ID + " disp val (target ctr) : " + disp.toStrBrf() + " click vec : " + clickVec.toStrBrf() + " Dist from sphere : " + dist);
 		return (dist < 30);
 	}
 	
-	public void drawMiniLocked(){
-		pa.pushMatrix();pa.pushStyle();	
+	
+	public void drawMiniLocked(IRenderInterface pa){
+		pa.pushMatState();	
 		pa.rotate(vals[rotAmtIDX], cntlRotAxis);	
 		pa.translate(distFromCtr);
-		pa.pushMatrix();pa.pushStyle();	
+		pa.pushMatState();	
 			pa.rotate(-vals[rotAmtIDX], distFromCtr);	
-			pa.shape(sh);									//main sphere
-		pa.popStyle();pa.popMatrix();
-		pa.setFill(txtFillClr);
+			win.drawShape(sh);								
+		pa.popMatState();
+		pa.setFill(txtFillClr, 255);
 		pa.rotate(-vals[rotAmtIDX], cntlRotAxis);	
-		pa.pushMatrix();pa.pushStyle();	
+		pa.pushMatState();	
 			pa.translate(-4,1,10);	
 			pa.scale(.6f,.6f,.6f);
-			pa.text(String.format("%.2f",vals[valIDX]), 0,0);			//text of value
-		pa.popStyle();pa.popMatrix();
-		pa.fill(255,255,255,255);
+			pa.showText(String.format("%.2f",vals[valIDX]), 0,0);			//text of value
+		pa.popMatState();
+		pa.setFill(255,255,255,255);
 		pa.translate(myVector._mult(distFromCtr,.25));
 		pa.translate(-.5f*5*name.length(),-8,0);			//text of name of sphere
-		pa.text(name, 0,0);
-		pa.popStyle();pa.popMatrix();
+		pa.showText(name, 0,0);
+		pa.popMatState();
 	}
 
-	public void drawMini(){
-		pa.pushMatrix();pa.pushStyle();	
+	public void drawMini(IRenderInterface pa){
+		pa.pushMatState();	
 		pa.rotate(vals[rotAmtIDX], cntlRotAxis);	
 		pa.translate(distFromCtr);
-		pa.pushMatrix();pa.pushStyle();	
+		pa.pushMatState();	
 			pa.rotate(-vals[rotAmtIDX], distFromCtr);	
-			pa.shape(sh);									//main sphere
-		pa.popStyle();pa.popMatrix();
-		pa.popStyle();pa.popMatrix();
+			win.drawShape(sh);							
+		pa.popMatState();
+		pa.popMatState();
 	}
 	//take in an incrementing value, return a rotated value
 	//protected float getRotAmt(float val, float tick, float mult){return (PApplet.cos(val + tick) * mult);}
@@ -147,8 +138,8 @@ public class myMiniSphrCntl{
 	protected float getRotInterp(float val){return  (val - vals[minRAmtIDX])/(vals[maxRAmtIDX] - vals[minRAmtIDX]);}
 	protected float getLinVal(float interp){float newVal = vals[minAmtIDX] + interp *(vals[maxAmtIDX] - vals[minAmtIDX]);  return bndLinVal(newVal);}
 	protected float getRotVal(float interp){float newVal = vals[minRAmtIDX] + interp *(vals[maxRAmtIDX] - vals[minRAmtIDX]); return bndRotVal(newVal);}
-	protected float bndLinVal(float val){return PApplet.min(vals[maxAmtIDX], PApplet.max(vals[minAmtIDX],val));}
-	protected float bndRotVal(float val){return PApplet.min(vals[maxRAmtIDX], PApplet.max(vals[minRAmtIDX],val));}
+	protected float bndLinVal(float val){return MyMathUtils.min(vals[maxAmtIDX], MyMathUtils.max(vals[minAmtIDX],val));}
+	protected float bndRotVal(float val){return MyMathUtils.min(vals[maxRAmtIDX], MyMathUtils.max(vals[minRAmtIDX],val));}
 	//return the actual value, not the stored value (if exp then act value is stored value sqred)
 	public float getValue(){
 		return (mSphrFlags[expValBIDX] ? vals[valIDX] * vals[valIDX] : vals[valIDX]);		
@@ -167,7 +158,7 @@ public class myMiniSphrCntl{
 	
 	public boolean modValAmt(float tickX, float tickY){
 		float tickToUse = (mSphrFlags[horizBIDX] ? tickX : tickY);
-		if(PApplet.abs(tickToUse) < pa.feps){return false;}
+		if(Math.abs(tickToUse) < MyMathUtils.EPS_F){return false;}
 		//pa.outStr2Scr("In mini sphere :  valIncr : " + valIncr + " tick : " + tick);
 		float lItrp = getLinInterp(vals[valIDX]);
 		vals[valIDX] = getLinVal(lItrp + tickToUse);		

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import SphrSeqFFTVisPKG.clef.enums.keySigVals;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 public class myKeySig {
@@ -12,19 +12,19 @@ public class myKeySig {
 	public static int sigCnt = 0;
 	public int ID;
 	//there are 12 key signatures, each with a specific mapping of "allowed" notes
-	private static final nValType[][] keyNotes = new nValType[][]{//circle of 5ths
-		{nValType.C,nValType.D, nValType.E, nValType.F, nValType.G, nValType.A, nValType.B},		//CMaj(0) 0 sharps
-		{nValType.G, nValType.A, nValType.B,nValType.C,nValType.D, nValType.E, nValType.Fs},		//GMaj(1) 1 sharp : Fs
-		{nValType.D, nValType.E, nValType.Fs, nValType.G, nValType.A, nValType.B,nValType.Cs},		//DMaj(2) 2 sharps : Fs, Cs
-		{nValType.A, nValType.B,nValType.Cs,nValType.D, nValType.E, nValType.Fs, nValType.Gs},		//Amaj(3) 3 sharps : Fs, Cs, Gs
-		{nValType.E, nValType.Fs, nValType.Gs,nValType.A, nValType.B,nValType.Cs,nValType.Ds},		//EMaj(4) 4 sharps : Fs, Cs, Gs, Ds
-		{nValType.B,nValType.Cs,nValType.Ds,nValType.E, nValType.Fs, nValType.Gs,nValType.As},		//BMaj(5) 5 sharps : Fs, Cs, Gs, Ds As
-		{nValType.Fs, nValType.Gs,nValType.As,nValType.B,nValType.Cs,nValType.Ds,nValType.F},		//FsMaj(6) 6 sharps : Fs, Cs, Gs, Ds As Es
-		{nValType.Cs,nValType.Ds,nValType.F,nValType.Fs, nValType.Gs,nValType.As,nValType.C},		//CsMaj(7) 5 flats :  Db, Eb, Gb, Ab, Bb
-		{nValType.Gs,nValType.As,nValType.C,nValType.Cs,nValType.Ds,nValType.F,nValType.G},			//GsMaj(8) 4 flats :  Eb, Gb, Ab, Bb
-		{nValType.Ds,nValType.F,nValType.G,nValType.Gs,nValType.As,nValType.C,nValType.D},			//DsMaj(9) 3 flats :  Gb, Ab, Bb
-		{nValType.As,nValType.C,nValType.D,nValType.Ds,nValType.F,nValType.G,nValType.A},			//AsMaj(10) 2 flats : Ab, Bb
-		{nValType.F,nValType.G,nValType.A,nValType.As,nValType.C,nValType.D,nValType.E},			//Fmaj(11) 1 flat   : Bb
+	private static final noteValType[][] keyNotes = new noteValType[][]{//circle of 5ths
+		{noteValType.C,noteValType.D, noteValType.E, noteValType.F, noteValType.G, noteValType.A, noteValType.B},		//CMaj(0) 0 sharps
+		{noteValType.G, noteValType.A, noteValType.B,noteValType.C,noteValType.D, noteValType.E, noteValType.Fs},		//GMaj(1) 1 sharp : Fs
+		{noteValType.D, noteValType.E, noteValType.Fs, noteValType.G, noteValType.A, noteValType.B,noteValType.Cs},		//DMaj(2) 2 sharps : Fs, Cs
+		{noteValType.A, noteValType.B,noteValType.Cs,noteValType.D, noteValType.E, noteValType.Fs, noteValType.Gs},		//Amaj(3) 3 sharps : Fs, Cs, Gs
+		{noteValType.E, noteValType.Fs, noteValType.Gs,noteValType.A, noteValType.B,noteValType.Cs,noteValType.Ds},		//EMaj(4) 4 sharps : Fs, Cs, Gs, Ds
+		{noteValType.B,noteValType.Cs,noteValType.Ds,noteValType.E, noteValType.Fs, noteValType.Gs,noteValType.As},		//BMaj(5) 5 sharps : Fs, Cs, Gs, Ds As
+		{noteValType.Fs, noteValType.Gs,noteValType.As,noteValType.B,noteValType.Cs,noteValType.Ds,noteValType.F},		//FsMaj(6) 6 sharps : Fs, Cs, Gs, Ds As Es
+		{noteValType.Cs,noteValType.Ds,noteValType.F,noteValType.Fs, noteValType.Gs,noteValType.As,noteValType.C},		//CsMaj(7) 5 flats :  Db, Eb, Gb, Ab, Bb
+		{noteValType.Gs,noteValType.As,noteValType.C,noteValType.Cs,noteValType.Ds,noteValType.F,noteValType.G},			//GsMaj(8) 4 flats :  Eb, Gb, Ab, Bb
+		{noteValType.Ds,noteValType.F,noteValType.G,noteValType.Gs,noteValType.As,noteValType.C,noteValType.D},			//DsMaj(9) 3 flats :  Gb, Ab, Bb
+		{noteValType.As,noteValType.C,noteValType.D,noteValType.Ds,noteValType.F,noteValType.G,noteValType.A},			//AsMaj(10) 2 flats : Ab, Bb
+		{noteValType.F,noteValType.G,noteValType.A,noteValType.As,noteValType.C,noteValType.D,noteValType.E},			//Fmaj(11) 1 flat   : Bb
 	};
 	private static final String[][] occsDisp = new String[][]{
 		{},{"#"},{"#","#"},{"#","#","#"},{"#","#","#","#"},{"#","#","#","#","#"},{"#","#","#","#","#","#"},
@@ -64,12 +64,12 @@ public class myKeySig {
 	
 	public myKeySig(myKeySig _ks){this(_ks.p, _ks.key);}
 	//get root of key
-	public nValType getRoot(){return keyNotes[key.getVal()][0];}
-	public static nValType[] getKeyNotes(keySigVals _psdKey){return  keyNotes[_psdKey.getVal()];}
-	public static ArrayList<nValType> getKeyNotesAsList(keySigVals _psdKey){return  new ArrayList<nValType>(Arrays.asList(keyNotes[_psdKey.getVal()]));}
+	public noteValType getRoot(){return keyNotes[key.getVal()][0];}
+	public static noteValType[] getKeyNotes(keySigVals _psdKey){return  keyNotes[_psdKey.getVal()];}
+	public static ArrayList<noteValType> getKeyNotesAsList(keySigVals _psdKey){return  new ArrayList<noteValType>(Arrays.asList(keyNotes[_psdKey.getVal()]));}
 	//return array of alloweable note types for this key signature
-	public nValType[] getKeyVals(){	return keyNotes[key.getVal()];}	
-	public ArrayList<nValType> getKeyNotesAsList(){return  new ArrayList<nValType>(Arrays.asList(keyNotes[keyIdx]));}
+	public noteValType[] getKeyVals(){	return keyNotes[key.getVal()];}	
+	public ArrayList<noteValType> getKeyNotesAsList(){return  new ArrayList<noteValType>(Arrays.asList(keyNotes[keyIdx]));}
 
 	//assumes starting at upper left of measure bound - offY is for offset from clef, to align with correct notes
 	public void drawMe(float offX, float offY){

@@ -2,7 +2,7 @@ package SphrSeqFFTVisPKG.note;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 
 /**
@@ -13,7 +13,7 @@ import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 public class NoteData implements Comparable<NoteData> {//only compares start time
 	public static final float Cn1 = 16.352f;		//baseline for note frequency
 	//note value
-	public nValType name;
+	public noteValType name;
 	public int octave;		//what octave this note lives in - 0 is lowest octave 
 	
 	public String nameOct;
@@ -30,10 +30,10 @@ public class NoteData implements Comparable<NoteData> {//only compares start tim
 	
 	public boolean isSharp;		//this note is a black key (always a sharp)
 		
-	public NoteData(nValType _name, int _octave){
+	public NoteData(noteValType _name, int _octave){
 		setNoteVals(_name,_octave, 1.0f);
 		setDur(0);
-		if(_name == nValType.rest){setRest();}
+		if(_name == noteValType.rest){setRest();}
 	}	
 	
 	public NoteData(NoteData _n){//copy ctor
@@ -43,11 +43,11 @@ public class NoteData implements Comparable<NoteData> {//only compares start tim
 		stTime = _n.stTime;
 	}
 	
-	public NoteData(int d, int s, nValType _name, int _octave){
+	public NoteData(int d, int s, noteValType _name, int _octave){
 		this(_name, _octave);
 		setDur(d);
 		stTime = s;
-		if(_name == nValType.rest){setRest();}
+		if(_name == noteValType.rest){setRest();}
 	}
 	//use to set all values if this note is a rest
 	private void setRest(){
@@ -64,7 +64,7 @@ public class NoteData implements Comparable<NoteData> {//only compares start tim
 			mod = (noteVal == 0 ? -1 : 0);			//octave goes down if going down at c
 			newVal = ((noteVal + 12) - 1)%12;
 		}
-		setNoteVals(nValType.getVal(newVal),octave+mod, amplitude);		//mod 12 because we want 0-11 (avoid rest==12)			
+		setNoteVals(noteValType.getVal(newVal),octave+mod, amplitude);		//mod 12 because we want 0-11 (avoid rest==12)			
 	}//
 	
 	//set volume of note TODO
@@ -119,12 +119,12 @@ public class NoteData implements Comparable<NoteData> {//only compares start tim
 	}
 	
 	//edit this notedata with new values
-	public void editNoteVal(nValType _name, int _octave){
+	public void editNoteVal(noteValType _name, int _octave){
 		setNoteVals(_name,_octave, amplitude);
 	}
 	
 	//sets note name, octave and frequency, returns frequency
-	private float setNoteVals(nValType _name, int _octave, float amp){
+	private float setNoteVals(noteValType _name, int _octave, float amp){
 		name = _name;
 		octave = _octave;
 		nameOct = "" + name+octave;
