@@ -3,6 +3,7 @@ package SphrSeqFFTVisPKG;
 import java.util.TreeMap;
 
 import SphrSeqFFTVisPKG.note.myNote;
+import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
@@ -13,7 +14,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
  */
 public class myDrawnSmplTraj {
 	public SeqVisFFTOcean pa;
-	public myDispWindow win;
+	public myMusicSimWindow win;
 	public static int trjCnt = 0;
 	public int ID;
 
@@ -45,7 +46,7 @@ public class myDrawnSmplTraj {
 	
 	public int ctlRad;
 	
-	public myDrawnSmplTraj(SeqVisFFTOcean _p, myDispWindow _win,float _topOffy, int _fillClrCnst, int _strkClrCnst, boolean _flat, boolean _smCntl){
+	public myDrawnSmplTraj(SeqVisFFTOcean _p, myMusicSimWindow _win,float _topOffy, int _fillClrCnst, int _strkClrCnst, boolean _flat, boolean _smCntl){
 		pa = _p;
 		fillClrCnst = _fillClrCnst; 
 		strkClrCnst = _strkClrCnst;
@@ -97,14 +98,14 @@ public class myDrawnSmplTraj {
 		drawnTraj.startDrawing();
 	}
 	public boolean startEditEndPoint(int idx){
-		editEndPt = idx; win.dispFlags[myDispWindow.editingTraj] = true;
+		editEndPt = idx; win.dispFlags[myMusicSimWindow.editingTraj] = true;
 		//pa.outStr2Scr("Handle TrajClick 2 startEditEndPoint : " + name + " | Move endpoint : "+editEndPt);
 		return true;
 	}
 	//check if initiating an edit on an existing object, if so then set up edit
 	public boolean startEditObj(myPoint mse){
 		boolean doEdit = false; 
-		float chkDist = win.dispFlags[myDispWindow.is3DWin] ? msClkPt3DRad : msClkPtRad;
+		float chkDist = win.dispFlags[myMusicSimWindow.is3DWin] ? msClkPt3DRad : msClkPtRad;
 		//first check endpoints, then check curve points
 		double[] distTocPts = new double[1];			//using array as pointer, passing by reference
 		int cntpIdx = win.findClosestPt(mse, distTocPts, edtCrvEndPts);	
@@ -116,14 +117,14 @@ public class myDrawnSmplTraj {
 			//pa.outStr2Scr("Handle TrajClick 2 startEditObj : " + name);
 			if(distToPts[0] < chkDist){//close enough to mod
 				win.setEditCueCircle(0,mse);
-				win.dispFlags[myDispWindow.editingTraj] = true;
+				win.dispFlags[myMusicSimWindow.editingTraj] = true;
 				doEdit = true;
 				//pa.outStr2Scr("Handle TrajClick 3 startEditObj modPt : " + name + " : pIdx : "+ pIdx);
 				drawnTrajPickedIdx = pIdx;	
 				editEndPt = -1;
 			} else if (distToPts[0] < sqMsClkRad){//not close enough to mod but close to curve
 				win.setEditCueCircle(1,mse);
-				win.dispFlags[myDispWindow.smoothTraj] = true;
+				win.dispFlags[myMusicSimWindow.smoothTraj] = true;
 			}
 		}
 		return doEdit;
@@ -131,7 +132,7 @@ public class myDrawnSmplTraj {
 	
 	//returns true if within eps of any of the points of this trajector
 	public boolean clickedMe(myPoint mse){
-		float chkDist = win.dispFlags[myDispWindow.is3DWin] ? msClkPt3DRad : msClkPtRad;	
+		float chkDist = win.dispFlags[myMusicSimWindow.is3DWin] ? msClkPt3DRad : msClkPtRad;	
 		double[] distToPts = new double[1];			//using array as pointer, passing by reference
 		int cntpIdx = win.findClosestPt(mse, distToPts, edtCrvEndPts);	
 		if(distToPts[0] < chkDist){return true;}
@@ -165,8 +166,8 @@ public class myDrawnSmplTraj {
 	//edit the trajectory used for UI input in this window
 	public boolean editTraj(int mouseX, int mouseY,int pmouseX, int pmouseY, myPoint mouseClickIn3D, myVector mseDragInWorld){
 		boolean mod = false;
-		if((drawnTrajPickedIdx == -1) && (editEndPt == -1) && (!win.dispFlags[myDispWindow.smoothTraj])){return mod;}			//neither endpoints nor drawn points have been edited, and we're not smoothing
-		myVector diff = win.dispFlags[myDispWindow.is3DWin] ? mseDragInWorld : pa.V(mouseX-pmouseX, mouseY-pmouseY,0);		
+		if((drawnTrajPickedIdx == -1) && (editEndPt == -1) && (!win.dispFlags[myMusicSimWindow.smoothTraj])){return mod;}			//neither endpoints nor drawn points have been edited, and we're not smoothing
+		myVector diff = win.dispFlags[myMusicSimWindow.is3DWin] ? mseDragInWorld : pa.V(mouseX-pmouseX, mouseY-pmouseY,0);		
 		//pa.outStr2Scr("Diff in editTraj for  " + name + "  : " +diff.toStrBrf());
 		//needs to be before templateZoneY check
 		if (editEndPt != -1){//modify scale of ornament here, or modify drawn trajectory	
@@ -182,7 +183,7 @@ public class myDrawnSmplTraj {
 	
 	public void endEditObj(){
 		if((drawnTrajPickedIdx != -1) || (editEndPt != -1)
-			|| ( win.dispFlags[myDispWindow.smoothTraj])){//editing curve
+			|| ( win.dispFlags[myMusicSimWindow.smoothTraj])){//editing curve
 			drawnTraj.remakeDrawnTraj(false);
 			rebuildDrawnTraj();		
 		}
@@ -194,12 +195,14 @@ public class myDrawnSmplTraj {
 		win.processTrajectory(this);//dispFlags[trajDirty] = true;
 		drawnTrajPickedIdx = -1;
 		editEndPt = -1;
-		win.dispFlags[myDispWindow.editingTraj] = false;
-		win.dispFlags[myDispWindow.smoothTraj] = false;
+		win.dispFlags[myMusicSimWindow.editingTraj] = false;
+		win.dispFlags[myMusicSimWindow.smoothTraj] = false;
 	}
 	
 	public void endDrawObj(myPoint endPoint){
-		drawnTraj.addPt(endPoint);
+		if(endPoint != null) {
+			drawnTraj.addPt(endPoint);
+		}
 		//pa.outStr2Scr("Size of drawn traj : " + drawnTraj.cntlPts.length);
 		if(drawnTraj.cntlPts.length >= 2){
 			drawnTraj.finalizeDrawing(true);
@@ -213,7 +216,7 @@ public class myDrawnSmplTraj {
 		} else {
 			drawnTraj = new myVariStroke(pa, pa.V(pa.canvas.drawSNorm),fillClrCnst, strkClrCnst);
 		}
-		win.dispFlags[myDispWindow.drawingTraj] = false;
+		win.dispFlags[myMusicSimWindow.drawingTraj] = false;
 	}	
 	
 	public void addPoint(myPoint mse){

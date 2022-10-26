@@ -446,7 +446,9 @@ public class myVariStroke extends myDrawnObject {
 	public cntlPt[] movePoints(myVector move, cntlPt[] _pts){for(int i =0; i<_pts.length; ++i){	_pts[i]._add(move);	}	return _pts;}
 	
 	//calculate the weight of each point by determining the distance from its two neighbors - radius is inversely proportional to weight
-	public float calcCntlWeight(myPoint a, myPoint p, myPoint b){	return (float)(myPoint._dist(a,p) + myPoint._dist(p,b));}
+	public float calcCntlWeight(myPoint a, myPoint p, myPoint b){	
+		return (float)(myPoint._dist(a,p) + 
+				myPoint._dist(p,b));}
 	
 	//override this for cntrl-point driven constructs
 	public int findClosestPt(myPoint p, double[] d){	
