@@ -2,7 +2,6 @@ package SphrSeqFFTVisPKG.ui;
 
 import java.util.*;
 
-import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.durType;

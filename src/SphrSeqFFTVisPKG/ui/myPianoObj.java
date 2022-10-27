@@ -34,14 +34,22 @@ public class myPianoObj{
 		winDim = new float[_winDim.length];
 		updateDims(kx, ky, _pianoDim, _winDim);	
 	}
-	//if the window or piano dimensions change, update them here
+	/**
+	 * if the window or piano dimensions change, update them here
+	 * @param kx
+	 * @param ky
+	 * @param _pianoDim
+	 * @param _winDim
+	 */
 	public void updateDims(float kx, float ky, float[] _pianoDim, float[] _winDim){
 		keyX = kx; keyY = ky; updatePianoDim(_pianoDim);updateWinDim(_winDim);
 		numWhiteKeys = 52;//PApplet.min(52,(int)(_winDim[3]/keyY));		//height of containing window will constrain keys in future maybe.
 		numNotesWide = (int)((winDim[2] - pianoDim[2])/keyX);
 		buildKeyDims();
 	}
-	//build key dimensions array for checking and displaying
+	/**
+	 * build key dimensions array for checking and displaying
+	 */
 	private void buildKeyDims(){
 		pianoWKeyDims = new float[numWhiteKeys][];		//88 x 5, last idx is 0 if white, 1 if black
 		pianoWNotes = new NoteData[numWhiteKeys];
@@ -67,7 +75,13 @@ public class myPianoObj{
 		}	
 	}//buildKeyDims
 	
-	//return note clicked on if clicked on piano directly
+	/**
+	 * return note clicked on if clicked on piano directly
+	 * @param mouseX
+	 * @param mouseY
+	 * @param snapClickLoc
+	 * @return
+	 */
 	public myNote checkClick(int mouseX, int mouseY, myPoint snapClickLoc){
 		myNote res = null;
 		if(!MyMathUtils.ptInRange(mouseX, mouseY, pianoDim[0], pianoDim[1], pianoDim[0]+pianoDim[2], pianoDim[1]+pianoDim[3])){return res;}//not in this window)
@@ -97,8 +111,13 @@ public class myPianoObj{
 		return res;	
 	}//checkClick		
 	
-	//given a y coordinate in mouse space (piano roll area), return the note this is, or null
-	//called directly by piano roll, so no range checking necessary
+	/**
+	 * given a y coordinate in mouse space (piano roll area), return the note this is, or null.called directly by piano roll, so no range checking necessary
+	 * @param x
+	 * @param y
+	 * @param nrDims
+	 * @return
+	 */
 	public myNote checkRollArea(int x, int y, float[] nrDims){
 		myNote res = null;
 		int resIdx = -1, keyType = -1;
@@ -140,7 +159,12 @@ public class myPianoObj{
 		return res;	
 	}//checkRollArea
 	
-	//get piano roll rectangle dimensions given a specific note data value
+	/**
+	 * get piano roll rectangle dimensions given a specific note data value
+	 * @param nd
+	 * @param xStOffset
+	 * @return
+	 */
 	public float[] getRectDimsFromRoll(NoteData nd, float xStOffset){
 		//nrDims[0] =(((int)(x/keyX)) * keyX);
 		float[] res = new float[4];

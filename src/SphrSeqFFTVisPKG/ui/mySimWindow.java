@@ -5,8 +5,6 @@ import java.util.*;
 import javax.swing.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
-import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.myOcean;
 import SphrSeqFFTVisPKG.musicPlayer.myMP3SongHandler;
 import SphrSeqFFTVisPKG.note.myNote;

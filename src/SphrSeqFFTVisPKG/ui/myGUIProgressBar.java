@@ -1,21 +1,21 @@
 package SphrSeqFFTVisPKG.ui;
 
-import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.ui.base.myMusicSimWindow;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.uiObjs.myGUIObj;
 
 public class myGUIProgressBar extends myGUIObj{
 	public final float[] barDims;// = new float[] {.8f * pa.menuWidth, 10.0f};
 
-	public myGUIProgressBar(IRenderInterface _p, myMusicSimWindow _win, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off) {
-		super(_p, _win, _winID, _name, _start, _end,  _minMaxMod, _initVal, _flags, _off);
+	public myGUIProgressBar(IRenderInterface _p, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off) {
+		super(_p,  _winID, _name, _start, _end,  _minMaxMod, _initVal, _flags, _off);
 		//TODO should be .8 * menuwidth
 		barDims = new float[] {.12f * p.getWidth(), (float) (.5*yOff)};		
 	}
 	
-	public myGUIProgressBar(IRenderInterface _p, myMusicSimWindow _win, int _winID, String _name, double _xst, double _yst, double _xend, double _yend, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _Off) {
-		this(_p,_win, _winID,_name,new myVector(_xst,_yst,0), new myVector(_xend,_yend,0), _minMaxMod, _initVal, _flags, _Off);	
+	public myGUIProgressBar(IRenderInterface _p, int _winID, String _name, double _xst, double _yst, double _xend, double _yend, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _Off) {
+		this(_p, _winID,_name,new myVector(_xst,_yst,0), new myVector(_xend,_yend,0), _minMaxMod, _initVal, _flags, _Off);	
 	}
 
 	@Override

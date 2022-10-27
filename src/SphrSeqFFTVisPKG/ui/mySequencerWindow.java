@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.clef.enums.clefType;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
