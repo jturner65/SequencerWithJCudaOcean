@@ -11,7 +11,7 @@ import SphrSeqFFTVisPKG.clef.myClef;
 import SphrSeqFFTVisPKG.clef.myGrandClef;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myStaff;
 
 
@@ -181,7 +181,7 @@ public class myInstrument {
 			return -1;}
 		//p.outStr2Scr("instr ID : " + ID + " play single note : "+ note.toString());
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return startSphDrumNote(note);}
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		if(!instFlags[mstOutPtchIDX]){patchMstrOut();}
 		myNoteChannel _nc = getAvailNtChan(note.ID);		
 		if(_nc == null){return -1;}
@@ -196,7 +196,7 @@ public class myInstrument {
 			return -1;}
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return stopSphDrumNote(note);}
 		//p.outStr2Scr("instr ID : " + ID + " stop single note : "+ note.toString());
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		myNoteChannel _nc = relPlayingNtChan(note.ID);
 		if(_nc == null){return -1;}
 		_nc.clearCurNoteAndStop(note);
@@ -293,7 +293,7 @@ public class myInstrument {
 			return -1;}
 		//p.outStr2Scr("instr ID : " + ID + " play single note : "+ note.toString());
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return startDrumNote(note);}
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		if(!instFlags[mstOutPtchIDX]){patchMstrOut();}
 		myNoteChannel _nc = getAvailNtChan(note.ID);		
 		if(_nc == null){return -1;}
@@ -308,7 +308,7 @@ public class myInstrument {
 			return -1;}
 		if(this.instFlags[myInstrument.isDrumTrackIDX]){return stopDrumNote(note);}
 		//p.outStr2Scr("instr ID : " + ID + " stop single note : "+ note.toString());
-		if(note.n.name == nValType.rest){return 0;}		//don't add or remove rests
+		if(note.n.name == noteValType.rest){return 0;}		//don't add or remove rests
 		myNoteChannel _nc = relPlayingNtChan(note.ID);
 		if(_nc == null){return -1;}
 		_nc.clearCurNoteAndStop(note);

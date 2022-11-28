@@ -4,7 +4,7 @@ import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.note.NoteData;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import processing.core.PImage;
 
 public class myClef extends myClefBase{
@@ -13,10 +13,10 @@ public class myClef extends myClefBase{
 		super(_p, _name, _clef, _mdNote, _img, _drawDim, _ocf);
 		lowNote = new NoteData(midNote);
 		int[] dispAmts = p.getNoteDisp(lowNote, -7);
-		lowNote.editNoteVal(nValType.getVal(dispAmts[0]), dispAmts[1]);
+		lowNote.editNoteVal(noteValType.getVal(dispAmts[0]), dispAmts[1]);
 		highNote = new NoteData(midNote);
 		dispAmts = p.getNoteDisp(highNote, 7);
-		highNote.editNoteVal(nValType.getVal(dispAmts[0]), dispAmts[1]);
+		highNote.editNoteVal(noteValType.getVal(dispAmts[0]), dispAmts[1]);
 		c4LocMultForClef = p.getC4LocMultClef(clef, false);
 	}
 	public myClef(myClefBase _c){this(_c.p,_c.name,_c.getClef(),new NoteData(_c.getMidNote()), _c.clefImage, _c.drawDim, _c.occsOffset);}

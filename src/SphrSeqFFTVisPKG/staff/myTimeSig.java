@@ -1,6 +1,6 @@
 package SphrSeqFFTVisPKG.staff;
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
 
 public class myTimeSig{
@@ -8,10 +8,10 @@ public class myTimeSig{
 	public static int tsigCnt = 0;
 	public final int ID;
 	public final int beatPerMeas, beatNote;
-	public final durType noteType;
+	public final noteDurType noteType;
 	public float[] drawDim;
 	
-	public myTimeSig(SeqVisFFTOcean _p, int _bPerMeas, int _beatNote, durType _noteType){
+	public myTimeSig(SeqVisFFTOcean _p, int _bPerMeas, int _beatNote, noteDurType _noteType){
 		p=_p;
 		ID = tsigCnt++;
 		beatPerMeas =_bPerMeas; 

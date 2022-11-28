@@ -5,14 +5,14 @@ import java.util.*;
 import javax.swing.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
+import SphrSeqFFTVisPKG.Base_DispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.myOcean;
 import SphrSeqFFTVisPKG.musicPlayer.myMP3SongHandler;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -23,7 +23,7 @@ import ddf.minim.analysis.*;
 import processing.core.PConstants;
 import ddf.minim.*;
 
-public class mySimWindow extends myDispWindow {
+public class mySimWindow extends Base_DispWindow {
 	
 	myMP3SongHandler[] songs;
 	FFT fftSeqLog;
@@ -34,18 +34,18 @@ public class mySimWindow extends myDispWindow {
 	//per zone avg frequencies - avg pwr across all frequencies within each 1/numZones fraction of spectrum
 	//float[] blankBands = new float[numZones];
 	
-	String[] songTitles = new String[]{"sati.mp3","PurpleHaze.mp3","karelia.mp3","choir.mp3"};
-	String[] songList = new String[]{"Sati","PurpleHaze","Karelia","Choir"};
+	String[] songTitles = new String[]{"sati.mp3","PurpleHaze.mp3","karelia.mp3","choir.mp3","TheStranger.mp3"};
+	String[] songList = new String[]{"Sati","PurpleHaze","Karelia","Choir","TheStranger"};
 	
 	public int songIDX;
-	AudioOutput notesIn;					//notes currently playing in system - just get output from current myDispWindow
+	AudioOutput notesIn;					//notes currently playing in system - just get output from current Base_DispWindow
 	
 	//current index of windowing function, from ui
 	int curWindowIDX = 0;
 	WindowFunction[] windowList = new WindowFunction[]{FFT.NONE, FFT.BARTLETT, FFT.BARTLETTHANN, FFT.BLACKMAN, FFT.COSINE, FFT.GAUSS, FFT.HAMMING, FFT.HANN, FFT.LANCZOS, FFT.TRIANGULAR};
 	String[] windowNames = new String[]{"NONE","BARTLETT","BARTLETTHANN","BLACKMAN","COSINE","GAUSS","HAMMING","HANN","LANCZOS","TRIANGULAR"};
 
-	int[] perSongBuildKFuncs = new int[] {myOcean.bldFreqIDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX};	
+	int[] perSongBuildKFuncs = new int[] {myOcean.bldFreqIDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX,myOcean.bldFreq2IDX};	
 	
 	public myOcean fftOcean;
 	
@@ -377,7 +377,7 @@ public class mySimWindow extends myDispWindow {
 		double stClkY = uiClkCoords[3], sizeClkY = 3*yOff;
 		guiObjs[songTransIDX] = new myGUIProgressBar(pa, this, songTransIDX, "MP3 Transport for ", 
 				new myVector(0, stClkY,0), new myVector(uiClkCoords[2], stClkY+sizeClkY,0),
-				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, true}, new double[]{xOff,yOff});	
+				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, false}, new double[]{xOff,yOff});	
 		
 		//setup space for ui interaction with song bar
 		stClkY += sizeClkY;				
@@ -446,6 +446,8 @@ public class mySimWindow extends myDispWindow {
 		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.getFlags(myOcean.doneInit))){return;}
 		float val =  (float)(guiObjs[UIidx].getVal());
 		switch(UIidx){
+			case songSelIDX 	: {changeCurrentSong((int)(guiObjs[UIidx].getVal()));break;}
+			case winSelIDX		: {changeCurrentWindowfunc((int)(guiObjs[UIidx].getVal()));	break;}
 			case patchSizeIDX 	: {setOceanFFTVal("patchSizeIDX", val, fftOcean.patchSize);break;}//			patchSize 	: Phillips eq : 
 			case windSpeedIDX 	: {setOceanFFTVal("windSpeedIDX", val, fftOcean.windSpeed);break;}//			windSpeed 	: Phillips eq : 
 			case windDirIDX  	: {setOceanFFTVal("windDirIDX", val, fftOcean.windDir);break;}	//			windDir   	: Phillips eq : 
@@ -454,10 +456,7 @@ public class mySimWindow extends myDispWindow {
 			case freqMixIDX  	: {setOceanFFTVal("freqMixIDX", (float)(guiObjs[UIidx].getVal()/100.0), fftOcean.freqMix);break;}	 	//			freqMix		: Mixture amount of pure phillips wave noise to song frequencies - 100 is all song, 0 is all phillips
 			case chopinessIDX  	: {setOceanFFTVal("chopinessIDX", val, fftOcean.chopiness);break;}//			chopiness	: 	
 			//case threshIDX		: {setOceanFFTVal("threshIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.thresh);break;}//			threshold	: 	
-			case songSelIDX 	: {changeCurrentSong((int)(guiObjs[UIidx].getVal()));break;}
-			case winSelIDX		: {changeCurrentWindowfunc((int)(guiObjs[UIidx].getVal()));	break;}
-			case songTransIDX	: {
-				songs[songIDX].modPlayLoc(val);    break;}
+			case songTransIDX	: {	songs[songIDX].modPlayLoc(val);    break;}
 		default : {break;}
 		}
 	}
@@ -479,6 +478,7 @@ public class mySimWindow extends myDispWindow {
 	//move current play position when playing mp3/sample (i.e. something not controlled by pbe reticle
 	@Override
 	protected void modMySongLoc(float modAmt) {
+		System.out.println("modMySongLoc");
 		songs[songIDX].modPlayLoc(modAmt);
 		setSongTransInfo();
 	};
@@ -503,16 +503,16 @@ public class mySimWindow extends myDispWindow {
 	protected void setGlobalKeySigValIndiv(int idx, float time){	}//setCurrentKeySigVal
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
-	protected void setGlobalTimeSigValIndiv(int tsnum, int tsdenom, durType _d, float time){	}//setCurrentTimeSigVal
+	protected void setGlobalTimeSigValIndiv(int tsnum, int tsdenom, noteDurType _d, float time){	}//setCurrentTimeSigVal
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setGlobalTempoValIndiv(float tempo, float time){	}//setCurrentTimeSigVal
 	@Override
 	//set current key signature, at time passed - for score, set it at nearest measure boundary
-	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<nValType> lclKeyNotesAra, float time){}
+	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time){}
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
-	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){}
+	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, noteDurType _beatNoteType, float time){}
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setLocalTempoValIndiv(float tempo, float time){}

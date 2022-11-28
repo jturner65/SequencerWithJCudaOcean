@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.base.myClefBase;
 import SphrSeqFFTVisPKG.measure.myMeasure;
-import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
@@ -57,7 +57,7 @@ public class myNote {
 	
 	
 	//build note then set duration
-	public myNote(SeqVisFFTOcean _p, nValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
+	public myNote(SeqVisFFTOcean _p, noteValType _name, int _octave, myMeasure _measure, myStaff _owningStaff) {
 		p=_p;
 		ID = nCnt++;	
 		meas = _measure;
@@ -74,7 +74,7 @@ public class myNote {
 		
 		flags = new boolean[numFlags];
 		initFlags();
-		if (n.name == nValType.rest){	setRest();}
+		if (n.name == noteValType.rest){	setRest();}
 		setDispMsgVals(owningStaff.getC4DistForClefsAtTime(n.stTime));
 		//not every note has an owning measure, but every note has an owning staff
 		flags[isInStaff] = (owningStaff.getClefsAtTime(n.stTime).isOnStaff(n) == 0);
@@ -111,7 +111,7 @@ public class myNote {
 		sphereRing = _note.sphereRing;
 		flags = new boolean[numFlags];
 		for(int i =0; i<numFlags;++i){	flags[i]=_note.flags[i];}
-		if (n.name == nValType.rest){	setRest();}
+		if (n.name == noteValType.rest){	setRest();}
 		setDispMsgVals(owningStaff.getC4DistForClefsAtTime(_note.n.stTime));
 		flags[isInStaff] = (owningStaff.getClefsAtTime(_note.n.stTime).isOnStaff(n) == 0);
 	}	
@@ -141,7 +141,7 @@ public class myNote {
 			if(numNotesDisp < -12){numNotesDisp += 12; n.editNoteVal(n.name, n.octave-1);}
 		}
 		int[] indNDisp = p.getNoteDisp(n, numNotesDisp);		
-		this.n.editNoteVal(nValType.getVal(indNDisp[0]), indNDisp[1]);
+		this.n.editNoteVal(noteValType.getVal(indNDisp[0]), indNDisp[1]);
 		//p.outStr2Scr("new note : "+ n.toString() + " #rings : "+sphereRing + " notes disp : " +numNotesDisp);
 	}
 	
@@ -160,8 +160,8 @@ public class myNote {
 		}		
 		calcDispYVal(c4DspLc);
 	}
-	public void moveNoteHalfStep(myKeySig _key, ArrayList<nValType> keyAra, boolean up){moveNoteHalfStepPriv(_key,keyAra,up);}
-	protected void moveNoteHalfStepPriv(myKeySig _key, ArrayList<nValType> keyAra, boolean up){
+	public void moveNoteHalfStep(myKeySig _key, ArrayList<noteValType> keyAra, boolean up){moveNoteHalfStepPriv(_key,keyAra,up);}
+	protected void moveNoteHalfStepPriv(myKeySig _key, ArrayList<noteValType> keyAra, boolean up){
 		//p.outStr2Scr("Before move:  " + n.toString());
 		if(flags[isRest]){return;}
 		if(!keyAra.contains(n.name)){
@@ -224,17 +224,17 @@ public class myNote {
 		n.octave = 0;
 	}	
 	
-	public void setVals(int _stTime, durType _typ, boolean _isDot, boolean _isTup, int _tplVal){setStart(_stTime);setDuration( _typ.getVal(),_isDot, _isTup, _tplVal);}
+	public void setVals(int _stTime, noteDurType _typ, boolean _isDot, boolean _isTup, int _tplVal){setStart(_stTime);setDuration( _typ.getVal(),_isDot, _isTup, _tplVal);}
 	public void setVals(int _stTime, int _dur, boolean _isDot, boolean _isTup, int _tplVal){setStart(_stTime);setDuration( _dur,_isDot, _isTup, _tplVal);}	
 	//dotted noted means note duration is x 1.5; tuple is x in the space of 2 notes, so duration is 2/x where x is the tuple val (>=3)
-	public void setDuration(durType _typ, boolean _isDot, boolean _isTup, int _tplVal){	setDuration( _typ.getVal(),_isDot, _isTup, _tplVal);	}	
+	public void setDuration(noteDurType _typ, boolean _isDot, boolean _isTup, int _tplVal){	setDuration( _typ.getVal(),_isDot, _isTup, _tplVal);	}	
 	public void setDuration(int _dur, boolean _isDot, boolean _isTup, int _tplVal){
 		if(_isDot){_dur = (int)(_dur * 1.5f); flags[isDotted] = true;} 
 		else if(_isTup){ if(tupleVal < 3){return;} tupleVal = _tplVal; _dur =(int)(_dur * 2.0/(tupleVal)); flags[isTuple] = true;} 
 		n.setDur(_dur);
 	}
 	
-	public void setDurationPRL(durType _typ, int defaultVal, boolean _isDot, boolean _isTup, int _tplVal){	setDuration( _typ.getVal(),_isDot, _isTup, _tplVal);	}
+	public void setDurationPRL(noteDurType _typ, int defaultVal, boolean _isDot, boolean _isTup, int _tplVal){	setDuration( _typ.getVal(),_isDot, _isTup, _tplVal);	}
 	
 	public void setDurationPRL(float _scrDur, int defaultVal,  boolean _isDot, boolean _isTup, int _tplVal){
 		if(_isDot){_scrDur = _scrDur * 1.5f; flags[isDotted] = true;} 

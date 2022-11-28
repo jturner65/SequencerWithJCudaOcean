@@ -3,7 +3,7 @@ package SphrSeqFFTVisPKG.clef.base;
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.note.NoteData;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import processing.core.PImage;
 
 public abstract class myClefBase{
@@ -32,7 +32,7 @@ public abstract class myClefBase{
 		clef = _clef;	
 		midNote = _mdNote;
 		setSphereMidNote(new NoteData(midNote));
-		getSphereMidNote().editNoteVal(nValType.C, getSphereMidNote().octave);
+		getSphereMidNote().editNoteVal(noteValType.C, getSphereMidNote().octave);
 		hasLoadedImg = !(null == _img);
 		clefImage = _img;
 		drawDim = new float[4];

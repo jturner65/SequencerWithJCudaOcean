@@ -52,6 +52,7 @@ public class myMP3SongHandler{
 		int curPos = playMe.position();	
 		int dispSize = songLength/20, newPos = (int) (curPos + (dispSize * modAmt));
 		if(newPos < 0) { newPos = 0;} else if (newPos > songLength-1){newPos = songLength-1;}
+		System.out.println("Mod playback by " + modAmt + " song length : " + songLength + " song position : " + curPos + " new position : " + newPos);
 		playMe.cue(newPos);
 		//System.out.println("Mod playback by " + modAmt + " song length : " + songLength + " song position : " + curPos + " new position : " + newPos);
 	}

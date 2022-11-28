@@ -11,7 +11,7 @@ import SphrSeqFFTVisPKG.clef.enums.keySigVals;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.ui.myPianoObj;
 
 import java.util.SortedMap;
@@ -258,7 +258,7 @@ public class myStaff {
 	}
 	
 	//forces all notes to be in specified key, overrides existing key settings for every measure	
-	public void forceNotesSetKey(myKeySig _key, ArrayList<nValType> keyNotesAra, boolean moveUp, myPianoObj dispPiano){				
+	public void forceNotesSetKey(myKeySig _key, ArrayList<noteValType> keyNotesAra, boolean moveUp, myPianoObj dispPiano){				
 		for(Map.Entry<Integer,myMeasure> measure : measures.entrySet()) {
 			measure.getValue().forceNotesToKey( new myKeySig(_key), keyNotesAra, moveUp, dispPiano);
 		}	

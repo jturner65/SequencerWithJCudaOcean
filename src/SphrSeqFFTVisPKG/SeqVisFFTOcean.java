@@ -16,14 +16,13 @@ import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.chordType;
-import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.ui.myInstEditWindow;
 import SphrSeqFFTVisPKG.ui.mySequencerWindow;
 import SphrSeqFFTVisPKG.ui.mySimWindow;
 import SphrSeqFFTVisPKG.ui.mySphereWindow;
 import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface;
-import base_JavaProjTools_IRender.base_Render_Interface.IRenderInterface.GL_PrimStyle;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -88,10 +87,6 @@ import ddf.minim.ugens.*;
 	public final int numHarms = 10;
 	
 	public myScore score;					//score being worked on - all windows reference same score
-
-	//descending scale from C, to build piano roll piano
-	public final nValType[] wKeyVals = new nValType[] {nValType.C, nValType.B, nValType.A, nValType.G, nValType.F,nValType.E,nValType.D},
-								   bKeyVals = new nValType[] {nValType.As, nValType.Gs, nValType.Fs, nValType.Ds, nValType.Cs};
 	
 	/**
 	 * Precalculated cosine and sine values
@@ -179,7 +174,7 @@ import ddf.minim.ugens.*;
 	//called once at start of program
 	public void initOnce(){
 		initVisOnce();						//always first
-		C4 = new NoteData(this, nValType.C, 4);
+		C4 = new NoteData(this, noteValType.C, 4);
 		hSrsMult = new float[numHarms];
 		for(int i=0;i<numHarms;++i){hSrsMult[i] = 1.0f/(i+1); }
 		sceneIDX = 1;//(flags[show3D] ? 1 : 0);
@@ -204,14 +199,14 @@ import ddf.minim.ugens.*;
 		focusTar = new myVector(sceneFcsVals[sceneIDX]);
 		loadAndSetImgs();					//load all images used : rest, clef, textures for spheres
 		clefs = new myClefBase[]{
-				new myClef(this, "Treble", clefVal.Treble, new NoteData(this, nValType.B, 4),clefImgs[0], new float[]{-5,0,40,50},0),   //Treble(0), Bass(1), Alto(2), Tenor(3), Piano(4), Drum(5); 
-				new myClef(this, "Bass", clefVal.Bass, new NoteData(this, nValType.D, 3),clefImgs[1], new float[]{0,-1,40,38},10),
-				new myClef(this, "Alto", clefVal.Alto, new NoteData(this, nValType.C, 4),clefImgs[2], new float[]{-10,-3,40,46},5),
-				new myClef(this, "Tenor", clefVal.Tenor, new NoteData(this, nValType.A, 3),clefImgs[3],new float[]{-10,-13,40,46},-5),
+				new myClef(this, "Treble", clefVal.Treble, new NoteData(this, noteValType.B, 4),clefImgs[0], new float[]{-5,0,40,50},0),   //Treble(0), Bass(1), Alto(2), Tenor(3), Piano(4), Drum(5); 
+				new myClef(this, "Bass", clefVal.Bass, new NoteData(this, noteValType.D, 3),clefImgs[1], new float[]{0,-1,40,38},10),
+				new myClef(this, "Alto", clefVal.Alto, new NoteData(this, noteValType.C, 4),clefImgs[2], new float[]{-10,-3,40,46},5),
+				new myClef(this, "Tenor", clefVal.Tenor, new NoteData(this, noteValType.A, 3),clefImgs[3],new float[]{-10,-13,40,46},-5),
 				null,//replaced below
-				new myClef(this, "Drum", clefVal.Drum, new NoteData(this, nValType.B, 4),clefImgs[5], new float[]{0,0,40,40},0)				
+				new myClef(this, "Drum", clefVal.Drum, new NoteData(this, noteValType.B, 4),clefImgs[5], new float[]{0,0,40,40},0)				
 		};
-		clefs[4] = new myGrandClef(this, "Piano", clefVal.Piano, new NoteData(this, nValType.B, 4),clefImgs[4], new float[]{0,0,40,40},0); 
+		clefs[4] = new myGrandClef(this, "Piano", clefVal.Piano, new NoteData(this, noteValType.B, 4),clefImgs[4], new float[]{0,0,40,40},0); 
 		InstrList = new myInstrument[]{//TODO set harmonic series
 				new myInstrument(this, "Guitar1", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.SAW, false),
 				new myInstrument(this, "Guitar2", clefs[clefVal.Treble.getVal()], hSrsMult,Waves.QUARTERPULSE, false),
@@ -277,16 +272,16 @@ import ddf.minim.ugens.*;
 	}//draw
 	//move reticle if currently playing
 	public void movePBEReticle(float modAmtSec){
-		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.plays])){dispWinFrames[i].movePBEReticle(modAmtSec); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
+		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.plays])){dispWinFrames[i].movePBEReticle(modAmtSec); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
 	}
 	
 	//call 1 time if play is turned to true
 	public void playMusic(){
-		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.plays])){dispWinFrames[i].play(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
+		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.plays])){dispWinFrames[i].play(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
 	}
 	//call 1 time if play is turned to false or stop is called
 	public void stopMusic(){
-		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.plays])){dispWinFrames[i].stopPlaying(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
+		for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.plays])){dispWinFrames[i].stopPlaying(); return;}} //TODO Cntl if multiple windows need to handle simultaneous play here
 	}
 	
 	public void draw3D_solve3D(){
@@ -294,7 +289,7 @@ import ddf.minim.ugens.*;
 			background(bground[0],bground[1],bground[2],bground[3]);				//if refreshing screen, this clears screen, sets background
 			pushMatrix();pushStyle();
 			translateSceneCtr();				//move to center of 3d volume to start drawing	
-			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
+			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
 			popStyle();popMatrix();
 			drawAxes(100,3, new myPoint(-canvas.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
 	//	}
@@ -319,7 +314,7 @@ import ddf.minim.ugens.*;
 	//if should show problem # i
 	public boolean isShowingWindow(int i){return flags[(i+this.showUIMenu)];}//showUIMenu is first flag of window showing flags
 	public void drawUI(){					
-		for(int i =1; i<numDispWins; ++i){if ((isShowingWindow(i)) && !(dispWinFrames[i].dispFlags[myDispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
+		for(int i =1; i<numDispWins; ++i){if ((isShowingWindow(i)) && !(dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
 		//dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
 		for(int i =1; i<numDispWins; ++i){dispWinFrames[i].drawHeader();}
 		//menu
@@ -350,7 +345,7 @@ import ddf.minim.ugens.*;
 		setFocus();
 	}
 	public void loadAndSetImgs(){
-		numRestImges = durType.getNumVals() - 2;
+		numRestImges = noteDurType.getNumVals() - 2;
 		numClefImgs = clefVal.getNumVals();			
 		numSphereImgs = 18;
 		
@@ -663,16 +658,16 @@ import ddf.minim.ugens.*;
 //			}	
 //		}//setEnumValAllWins
 	
-	public durType getDurTypeForNote(int _noteType){
+	public noteDurType getDurTypeForNote(int _noteType){
 		switch (_noteType){
-		case 1 : {return durType.Whole;}
-		case 2 : {return durType.Half;}
-		case 4 : {return durType.Quarter;}
-		case 8 : {return durType.Eighth;}
-		case 16 : {return durType.Sixteenth;}
-		case 32 : {return durType.Thirtisecond;}
+		case 1 : {return noteDurType.Whole;}
+		case 2 : {return noteDurType.Half;}
+		case 4 : {return noteDurType.Quarter;}
+		case 8 : {return noteDurType.Eighth;}
+		case 16 : {return noteDurType.Sixteenth;}
+		case 32 : {return noteDurType.Thirtisecond;}
 		}
-		return durType.Quarter;
+		return noteDurType.Quarter;
 	}
 	
 	//instance an audio out
@@ -680,8 +675,8 @@ import ddf.minim.ugens.*;
 		glblOut = minim.getLineOut(OutTyp,glbBufrSize, 44100.0f);	
 		//glblOut.setVolume(.5f);
 		float tmpTempo = 1;
-		if(myDispWindow.glblTempo <1){		tmpTempo = 120.0f;}			
-		else{			tmpTempo = myDispWindow.glblTempo;		}
+		if(Base_DispWindow.glblTempo <1){		tmpTempo = 120.0f;}			
+		else{			tmpTempo = Base_DispWindow.glblTempo;		}
 		glblOut.setTempo(tmpTempo);			
 		glblSum.patch(glblOut);
 		outStr2Scr("Out tempo set to   " + tmpTempo);
@@ -720,7 +715,7 @@ import ddf.minim.ugens.*;
 			dispWinFrames[i].setGlobalTempoVal(120);		//set for right now
 			dispWinFrames[i].setGlobalKeySigVal(0);		//set for right now
 			dispWinFrames[i].setGlobalTimeSigVal(4,4,getDurTypeForNote(4));		//set for right now
-			dispWinFrames[i].dispFlags[myDispWindow.is3DWin] = dispWinIs3D[i];
+			dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin] = dispWinIs3D[i];
 			dispWinFrames[i].setTrajColors(winTrajFillClrs[i], winTrajStrkClrs[i]);
 		}	
 				
@@ -728,10 +723,10 @@ import ddf.minim.ugens.*;
 	//needs to happen here, and then be propagated out to all windows
 	public void initNewScore(){//uses default values originally called in mySequencer constructor
 		//outStr2Scr("Build score with default instrument list");
-		initNewScore("TempSong", InstrList, winRectDimOpen[dispPianoRollIDX][0] + winRectDimOpen[dispPianoRollIDX][2],winRectDimOpen[dispPianoRollIDX][1]+winRectDimOpen[dispPianoRollIDX][3]-4*myDispWindow.yOff);
+		initNewScore("TempSong", InstrList, winRectDimOpen[dispPianoRollIDX][0] + winRectDimOpen[dispPianoRollIDX][2],winRectDimOpen[dispPianoRollIDX][1]+winRectDimOpen[dispPianoRollIDX][3]-4*Base_DispWindow.yOff);
 	}
 	public void initNewScore(String scrName, myInstrument[] _instrs, float scoreWidth, float scoreHeight){
-		float [] scoreRect = new float[]{0, myDispWindow.topOffY, scoreWidth, scoreHeight};
+		float [] scoreRect = new float[]{0, Base_DispWindow.topOffY, scoreWidth, scoreHeight};
 		score = new myScore(this,dispWinFrames[dispPianoRollIDX],"TempSong",scoreRect);	
 		//debug stuff - buildScore only
 		String[] scoreStaffNames = new String[_instrs.length];
@@ -874,7 +869,7 @@ import ddf.minim.ugens.*;
 
 	
 	//individual display/HUD windows for gui/user interaction
-	public myDispWindow[] dispWinFrames;
+	public Base_DispWindow[] dispWinFrames;
 	//idx's in dispWinFrames for each window
 	public static final int dispMenuIDX = 0,
 							dispPianoRollIDX = 1,
@@ -884,7 +879,7 @@ import ddf.minim.ugens.*;
 	
 	public static final int numDispWins = 5;	
 			
-	public int curFocusWin;				//which myDispWindow currently has focus 
+	public int curFocusWin;				//which Base_DispWindow currently has focus 
 	
 	//whether or not the display windows will accept a drawn trajectory -- eventually set InstEdit window to be drawable
 	public boolean[] canDrawInWin = new boolean[]{	false,true,true,false,true};		
@@ -995,7 +990,7 @@ import ddf.minim.ugens.*;
 		strokeCap(SQUARE);//makes the ends of stroke lines squared off
 		
 		//display window initialization
-		dispWinFrames = new myDispWindow[numDispWins];		
+		dispWinFrames = new Base_DispWindow[numDispWins];		
 		//menu bar init
 		dispWinFrames[dispMenuIDX] = new mySideBarMenu(this, "UI Window", showUIMenu,  winFillClrs[dispMenuIDX], winStrkClrs[dispMenuIDX], winRectDimOpen[dispMenuIDX],winRectDimClose[dispMenuIDX], "User Controls",canDrawInWin[dispMenuIDX]);			
 		
@@ -1604,16 +1599,16 @@ import ddf.minim.ugens.*;
 /////////////////////
 ///Misc utils
 /////////////////////
-	//array of naturals drecreased by a sharp in y on grid
-	public nValType[] hasSharps = new nValType[]{nValType.C, nValType.D, nValType.F,nValType.G,nValType.A};
-	//array of naturals drecreased by a flat in y on grid
-	public nValType[] hasFlats = new nValType[]{nValType.B, nValType.D, nValType.E,nValType.G,nValType.A};	
-	//array of all natural notes
-	public nValType[] isNaturalNotes = new nValType[]{nValType.A,nValType.B, nValType.C,nValType.D, nValType.E,nValType.F,nValType.G};	
-	public boolean chkHasSharps(nValType n){for(int i =0; i<hasSharps.length;++i){	if(hasSharps[i].getVal() == n.getVal()){return true;}}return false;}
-	public boolean chkHasFlats(nValType n){for(int i =0; i<hasFlats.length;++i){	if(hasFlats[i].getVal() == n.getVal()){return true;}}return false;}
-	public boolean isNaturalNote(nValType n){for(int i =0; i<isNaturalNotes.length;++i){	if(isNaturalNotes[i].getVal() == n.getVal()){return true;}}return false;}
-	public String getKeyNames(ArrayList<nValType> keyAra){String res = "";for(int i=0;i<keyAra.size();++i){res += "|i:"+i+" : val="+keyAra.get(i); }return res;}	
+//	//array of naturals drecreased by a sharp in y on grid
+//	public noteValType[] hasSharps = new noteValType[]{noteValType.C, noteValType.D, noteValType.F,noteValType.G,noteValType.A};
+//	//array of naturals drecreased by a flat in y on grid
+//	public noteValType[] hasFlats = new noteValType[]{noteValType.B, noteValType.D, noteValType.E,noteValType.G,noteValType.A};	
+//	//array of all natural notes
+//	public noteValType[] isNaturalNotes = new noteValType[]{noteValType.A,noteValType.B, noteValType.C,noteValType.D, noteValType.E,noteValType.F,noteValType.G};	
+//	public boolean chkHasSharps(noteValType n){for(int i =0; i<hasSharps.length;++i){	if(hasSharps[i].getVal() == n.getVal()){return true;}}return false;}
+//	public boolean chkHasFlats(noteValType n){for(int i =0; i<hasFlats.length;++i){	if(hasFlats[i].getVal() == n.getVal()){return true;}}return false;}
+//	public boolean isNaturalNote(noteValType n){for(int i =0; i<isNaturalNotes.length;++i){	if(isNaturalNotes[i].getVal() == n.getVal()){return true;}}return false;}
+//	public String getKeyNames(ArrayList<noteValType> keyAra){String res = "";for(int i=0;i<keyAra.size();++i){res += "|i:"+i+" : val="+keyAra.get(i); }return res;}	
 
 	
 /////////////////////		
@@ -1813,7 +1808,7 @@ import ddf.minim.ugens.*;
 	 * @param alpha 
 	 */
 	@Override
-	public void gl_SetFill(int r, int g, int b, int alpha) {super.fill(r,g,b,alpha);}
+	public void gl_setFill(int r, int g, int b, int alpha) {super.fill(r,g,b,alpha);}
 
 	/**
 	 * set stroke color by value during shape building
@@ -1821,7 +1816,7 @@ import ddf.minim.ugens.*;
 	 * @param alpha 
 	 */
 	@Override
-	public void gl_SetStroke(int r, int g, int b, int alpha) {super.stroke(r,g,b,alpha);}	
+	public void gl_setStroke(int r, int g, int b, int alpha) {super.stroke(r,g,b,alpha);}	
 	
 	
 	/**
@@ -1990,7 +1985,7 @@ import ddf.minim.ugens.*;
 	 * @param n # of points
 	 * @return array of n equal-arc-length points centered around p
 	 */
-	public synchronized myPoint[] buildCircleInscribedPoints(myPoint p, float r, myVector I, myVector J,int n) {
+	public synchronized myPoint[] buildCircleInscribedPoints(myPoint p, double r, myVector I, myVector J,int n) {
 		myPoint[] pts = new myPoint[n];
 		pts[0] = new myPoint(p,r,myVector._unit(I));
 		float a = (MyMathUtils.TWO_PI_F)/(1.0f*n); 
@@ -2021,7 +2016,7 @@ import ddf.minim.ugens.*;
 	 * @param n # of points to use
 	 */
 	@Override
-	public void drawCircle3D(myPoint P, float r, myVector I, myVector J, int n) {
+	public void drawCircle3D(myPoint P, double r, myVector I, myVector J, int n) {
 		myPoint[] pts = buildCircleInscribedPoints(P,r,I,J,n);
 		pushMatState();noFill(); show(pts);popMatState();
 	}
@@ -2094,7 +2089,7 @@ import ddf.minim.ugens.*;
 	 * @param r desired radius of cylinder
 	 * @return array of points for cylinder
 	 */
-	public myPoint[] buildCylVerts(myPoint A, myPoint B, float r) {
+	public myPoint[] buildCylVerts(myPoint A, myPoint B, double r) {
 		myVector[] frame = buildViewBasedFrame(A, B);
 		myPoint[] resList = new myPoint[2 * cylCosVals.length];
 		double rca, rsa;
@@ -2129,16 +2124,16 @@ import ddf.minim.ugens.*;
 	
 	
 	@Override
-	public void drawCylinder_NoFill(myPoint A, myPoint B, float r, int clr1, int clr2) {
+	public void drawCylinder_NoFill(myPoint A, myPoint B, double r, int clr1, int clr2) {
 		myPoint[] vertList = buildCylVerts(A, B, r);
 		int[] c1 = getClr(clr1, 255);
 		int[] c2 = getClr(clr2, 255);
 		noFill();
 		beginShape(QUAD_STRIP);
 			for(int i=0; i<vertList.length; i+=2) {
-				gl_SetStroke(c1[0],c1[1],c1[2],255);
+				gl_setStroke(c1[0],c1[1],c1[2],255);
 				gl_vertex(vertList[i]);
-				gl_SetStroke(c2[0],c2[1],c2[2],255);
+				gl_setStroke(c2[0],c2[1],c2[2],255);
 				gl_vertex(vertList[i+1]);}
 		gl_endShape();
 	}
@@ -2150,23 +2145,23 @@ import ddf.minim.ugens.*;
 		noFill();
 		beginShape(QUAD_STRIP);
 			for(int i=0; i<vertList.length; i+=2) {
-				gl_SetStroke(c1[0],c1[1],c1[2],255);
+				gl_setStroke(c1[0],c1[1],c1[2],255);
 				gl_vertex(vertList[i]); 
-				gl_SetStroke(c2[0],c2[1],c2[2],255);
+				gl_setStroke(c2[0],c2[1],c2[2],255);
 				gl_vertex(vertList[i+1]);}
 		gl_endShape();
 	}
 
 	@Override
-	public void drawCylinder(myPoint A, myPoint B, float r, int clr1, int clr2) {
+	public void drawCylinder(myPoint A, myPoint B, double r, int clr1, int clr2) {
 		myPoint[] vertList = buildCylVerts(A, B, r);
 		int[] c1 = getClr(clr1, 255);
 		int[] c2 = getClr(clr2, 255);
 		beginShape(QUAD_STRIP);
 			for(int i=0; i<vertList.length; i+=2) {
-				gl_SetFill(c1[0],c1[1],c1[2],255);		
+				gl_setFill(c1[0],c1[1],c1[2],255);		
 				gl_vertex(vertList[i]); 
-				gl_SetFill(c2[0],c2[1],c2[2],255);	
+				gl_setFill(c2[0],c2[1],c2[2],255);	
 				gl_vertex(vertList[i+1]);}
 		gl_endShape();
 	}
@@ -2178,9 +2173,9 @@ import ddf.minim.ugens.*;
 		int[] c2 = getClr(clr2, 255);
 		beginShape(QUAD_STRIP);
 		for(int i=0; i<vertList.length; i+=2) {
-			gl_SetFill(c1[0],c1[1],c1[2],255);		
+			gl_setFill(c1[0],c1[1],c1[2],255);		
 			gl_vertex(vertList[i]); 
-			gl_SetFill(c2[0],c2[1],c2[2],255);		
+			gl_setFill(c2[0],c2[1],c2[2],255);		
 			gl_vertex(vertList[i+1]);}
 	gl_endShape();
 	}

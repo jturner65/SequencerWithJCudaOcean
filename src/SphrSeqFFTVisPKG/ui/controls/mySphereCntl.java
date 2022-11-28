@@ -11,7 +11,7 @@ import SphrSeqFFTVisPKG.myVariStroke;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
 import SphrSeqFFTVisPKG.ui.mySphereWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -347,7 +347,7 @@ public class mySphereCntl {
 	
 	
 	//return integer key for notes for map - degrees? 
-	public int getTickFromAlpha(float alpha){ return (int)(alpha * (PConstants.RAD_TO_DEG/360.0f) * 4 * durType.Whole.getVal());}		//convert from alpha to ticks - one whole circle is 4 whole notes
+	public int getTickFromAlpha(float alpha){ return (int)(alpha * (PConstants.RAD_TO_DEG/360.0f) * 4 * noteDurType.Whole.getVal());}		//convert from alpha to ticks - one whole circle is 4 whole notes
 	//return the note corresponding to the passed point
 	public myNote getNoteFromSphereLoc(myPoint pt){
 		myVector ptDirCtrVec = new myVector(pt);

@@ -8,8 +8,8 @@ import java.util.Map.Entry;
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
@@ -53,7 +53,7 @@ public class myMeasure {
 		//p.outStr2Scr("copy CTOR : copy meas : "+ _m.seqNum +"\n new  seq num: "+ newSeqNum + "|" + newStTime +" | ID: " + ID);
 	}
 
-	public void forceNotesToKey(myKeySig _key, ArrayList<nValType> keyAra, boolean moveUp, myPianoObj dispPiano){
+	public void forceNotesToKey(myKeySig _key, ArrayList<noteValType> keyAra, boolean moveUp, myPianoObj dispPiano){
 		m.setKeySig(_key);
 		//p.outStr2Scr("Key : "+ _key +" : moving notes to be in key");
 		for(Map.Entry<Integer,myNote> noteEntry : notes.entrySet()) {
@@ -141,7 +141,7 @@ public class myMeasure {
 	}
 		
 	private int calcEndTime(){
-		int ticksPerMeasure = (int)(m.ts.tSigMult() * 4 * durType.Quarter.getVal());  //tSigMult gives fraction of 4 qtr notes total that make up measure		
+		int ticksPerMeasure = (int)(m.ts.tSigMult() * 4 * noteDurType.Quarter.getVal());  //tSigMult gives fraction of 4 qtr notes total that make up measure		
 		//int measDur = stTime + (int)((1.0f/tempo) * timeSig.tSigMult() * (p.ticksPerBeat)); 		//tempo is beats per minute, 1/ tempo is minutes per beat, p.ticksPerBeat is ticks per beat
 		int measDur = ticksPerMeasure; 		//don't have measure control playback tempo, allow this to be controlled by play back engine
 		m.endTime = m.stTime + measDur;
@@ -154,7 +154,7 @@ public class myMeasure {
 		m.setAllVals(staff.getTimeSigAtTime(m.stTime), staff.getKeySigsAtTime(m.stTime), staff.getClefsAtTime(m.stTime), staff.getC4DistForClefsAtTime(m.stTime));
 		int measDur = calcEndTime();		//initialize measure to be full of rest
 		notes.clear();
-		myNote tmpRest = new myNote(p, nValType.rest, 0, this, this.staff);		
+		myNote tmpRest = new myNote(p, noteValType.rest, 0, this, this.staff);		
 		tmpRest.setVals(m.stTime, measDur, false, false, -1);
 		putNoteInAra(0,tmpRest);
 		//staff.addNoteAtNoteTime(tmpRest);

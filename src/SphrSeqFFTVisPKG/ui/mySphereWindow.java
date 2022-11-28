@@ -3,13 +3,13 @@ package SphrSeqFFTVisPKG.ui;
 import java.util.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
+import SphrSeqFFTVisPKG.Base_DispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
 import base_Math_Objects.MyMathUtils;
@@ -17,7 +17,7 @@ import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PApplet;
 
-public class mySphereWindow extends myDispWindow {
+public class mySphereWindow extends Base_DispWindow {
 	public final int numGUIObjs = 0;												//# of gui objects for ui
 	
 	public TreeMap<String, mySphereCntl> sphereCntls;								//controls for each instrument
@@ -208,7 +208,7 @@ public class mySphereWindow extends myDispWindow {
 	public void addSphereNoteToPlayNow(myInstrument instr, SortedMap<Integer, myNote> tmpNotes, float durMult, int stTime){
 		//pa.outStr2Scr("Iter : " + stIterStatic++ + " Stop ");
 		int retCode = instr.addSphNotesToPlay(tmpNotes,stTime);
-		this.dispFlags[myDispWindow.notesLoaded] = true;
+		this.dispFlags[Base_DispWindow.notesLoaded] = true;
 	}//addTrajNoteToPlay
 //	static int iterStatic = 0;
 //	protected void addSphereNoteToPlayNow(SortedMap<Integer, myNote> tmpNotes, float durMult){
@@ -234,7 +234,7 @@ public class mySphereWindow extends myDispWindow {
 //			}
 //		}
 //		iterStatic++;
-//		this.dispFlags[myDispWindow.notesLoaded] = true;
+//		this.dispFlags[Base_DispWindow.notesLoaded] = true;
 //	}//addSphereNoteToPlayNow	
 	
 	public void setLights(){
@@ -480,16 +480,16 @@ public class mySphereWindow extends myDispWindow {
 	protected void setGlobalKeySigValIndiv(int idx, float time){	}//setCurrentKeySigVal
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
-	protected void setGlobalTimeSigValIndiv(int tsnum, int tsdenom, durType _d, float time){	}//setCurrentTimeSigVal
+	protected void setGlobalTimeSigValIndiv(int tsnum, int tsdenom, noteDurType _d, float time){	}//setCurrentTimeSigVal
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setGlobalTempoValIndiv(float tempo, float time){	}//setCurrentTimeSigVal
 	@Override
 	//set local at-time key signature, at time passed - for score, set it at nearest measure boundary
-	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<nValType> lclKeyNotesAra, float time){}
+	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time){}
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
-	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){}
+	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, noteDurType _beatNoteType, float time){}
 	@Override
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setLocalTempoValIndiv(float tempo, float time){}

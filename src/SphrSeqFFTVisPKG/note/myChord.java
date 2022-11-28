@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.enums.chordType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
@@ -23,7 +23,7 @@ public class myChord extends myNote{
 	public TreeMap<String, myNote> cnotes;	//keyed by frequency
 		
 	//note passed is root of chord
-	public myChord(SeqVisFFTOcean _p, nValType _name, int _octave, myMeasure _measure, myStaff _stf) {
+	public myChord(SeqVisFFTOcean _p, noteValType _name, int _octave, myMeasure _measure, myStaff _stf) {
 		super(_p,_name,_octave,_measure,_stf);
 		initChord();
 	} 
@@ -73,7 +73,7 @@ public class myChord extends myNote{
 		myNote newNote;
 		if(keyBased){
 			//TODO : force root to be key root?  or find closest chord note matching root?  for now, force note to be key root
-			nValType root = key.getRoot();
+			noteValType root = key.getRoot();
 			n.editNoteVal(root, n.octave);			
 		} 
 		else {	}//treat root as key of chord - move notes appropriately - root remains unchanged	
@@ -87,7 +87,7 @@ public class myChord extends myNote{
 				if(noteDispAra[i] > 12){noteDispAra[i] -= 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave+1);}
 				if(noteDispAra[i] < -12){noteDispAra[i] += 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave-1);}
 				indNDisp = p.getNoteDisp(newNote.n, noteDispAra[i]);
-				newNote.n.editNoteVal(nValType.getVal(indNDisp[0]), indNDisp[1]);
+				newNote.n.editNoteVal(noteValType.getVal(indNDisp[0]), indNDisp[1]);
 			}		
 		
 		} else {
@@ -96,7 +96,7 @@ public class myChord extends myNote{
 				if(noteDispAra[i] > 12){noteDispAra[i] -= 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave+1);}
 				if(noteDispAra[i] < -12){noteDispAra[i] += 12; newNote.n.editNoteVal(newNote.n.name, newNote.n.octave-1);}
 				indNDisp = p.getNoteDisp(newNote.n, noteDispAra[i]);
-				newNote.n.editNoteVal(nValType.getVal(indNDisp[0]), indNDisp[1]);
+				newNote.n.editNoteVal(noteValType.getVal(indNDisp[0]), indNDisp[1]);
 			}		
 		}
 		//this gets rid of existing chord notes and builds new chord
@@ -121,7 +121,7 @@ public class myChord extends myNote{
 		for(Entry<String, myNote> note : cnotes.entrySet()){if(this.ID != note.getValue().ID){note.getValue().drawMe();}}
 	}
 	@Override	
-	public void moveNoteHalfStep(myKeySig _key, ArrayList<nValType> keyAra, boolean up){		
+	public void moveNoteHalfStep(myKeySig _key, ArrayList<noteValType> keyAra, boolean up){		
 		ArrayList<myNote> newCNotes = new ArrayList<myNote>();
 		moveNoteHalfStepPriv(_key, keyAra, up);
 		for(Entry<String, myNote> note : cnotes.entrySet()){

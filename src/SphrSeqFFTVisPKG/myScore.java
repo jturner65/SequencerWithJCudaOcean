@@ -6,7 +6,7 @@ import java.util.TreeMap;
 
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
@@ -14,7 +14,7 @@ import SphrSeqFFTVisPKG.ui.myPianoObj;
 
 public class myScore {
 	public static SeqVisFFTOcean pa;
-	public myDispWindow w;
+	public Base_DispWindow w;
 	public static int sngCnt = 0;
 	public int ID;
 	public String songName;	
@@ -37,7 +37,7 @@ public class myScore {
 	//distance between staffs
 	public static final float stOff = 90, boxStX = 0, boxStY = 10;
 	
-	public myScore(SeqVisFFTOcean _p, myDispWindow _w,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstrument> _inst) {
+	public myScore(SeqVisFFTOcean _p, Base_DispWindow _w,String _name, float[] _scoreDim, ArrayList<String> staffName, ArrayList<myInstrument> _inst) {
 		pa=_p;
 		w=_w;
 		ID = sngCnt++;
@@ -54,7 +54,7 @@ public class myScore {
 		initScrFlags();
 	}	
 
-	public myScore(SeqVisFFTOcean _p,myDispWindow _w, String _name, float[] _scoreDim) {
+	public myScore(SeqVisFFTOcean _p,Base_DispWindow _w, String _name, float[] _scoreDim) {
 		this(_p,_w,_name,_scoreDim,new ArrayList<String>(),new ArrayList<myInstrument>());
 	}		
 	public void initScrFlags(){		scrFlags = new boolean[numScrFlags];for(int i=0;i<numScrFlags;++i){scrFlags[i]=false;}	}
@@ -109,7 +109,7 @@ public class myScore {
 	}//clearStaffNotes
 
 	//overrides all key settings set in measures :  forceNotesSetKey(myKeySig _key, ArrayList<nValType> glblKeyNotesAra, boolean moveUp, myPianoObj dispPiano){			
-	public void forceAllNotesToKey(myKeySig _key, ArrayList<nValType> glblKeyNotesAra, boolean moveUp, myPianoObj dispPiano){		
+	public void forceAllNotesToKey(myKeySig _key, ArrayList<noteValType> glblKeyNotesAra, boolean moveUp, myPianoObj dispPiano){		
 		for(int i =0; i<staffDispOrder.size(); ++i){	
 			staffs.get(staffDispOrder.get(i)).forceNotesSetKey( _key,  glblKeyNotesAra,  moveUp,  dispPiano);				
 		}
@@ -123,7 +123,7 @@ public class myScore {
 	}
 	
 	//send out key sig info to every staff setKeySigAtTime(float stTime, myKeySig newKey){
-	public void setCurrentKeySig(float timeToSet, myKeySig ks, ArrayList<nValType> glblKSNoteVals){
+	public void setCurrentKeySig(float timeToSet, myKeySig ks, ArrayList<noteValType> glblKSNoteVals){
 		for(int i =0; i<staffDispOrder.size(); ++i){	
 			staffs.get(staffDispOrder.get(i)).setKeySigAtTime(timeToSet, ks);				
 		}		

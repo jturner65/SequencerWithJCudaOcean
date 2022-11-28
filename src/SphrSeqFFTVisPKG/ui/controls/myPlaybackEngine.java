@@ -1,8 +1,8 @@
 package SphrSeqFFTVisPKG.ui.controls;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
-import SphrSeqFFTVisPKG.note.enums.durType;
+import SphrSeqFFTVisPKG.Base_DispWindow;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
 
 /**
  * handles all transport control - accessible by all classes who need it. 
@@ -17,7 +17,7 @@ public class myPlaybackEngine {
 	public static int pbCnt = 0;
 	public int ID;
 	
-	public myDispWindow win;					//owning display window
+	public Base_DispWindow win;					//owning display window
 	
 	public int[] fillClr, strkClr;
 	//current dims of reticle
@@ -49,7 +49,7 @@ public class myPlaybackEngine {
 	
 	public static final int numPFlags = 4;
 
-	public myPlaybackEngine(SeqVisFFTOcean _p, myDispWindow _win, int[] fc, int[] sc, float[] _dims){
+	public myPlaybackEngine(SeqVisFFTOcean _p, Base_DispWindow _win, int[] fc, int[] sc, float[] _dims){
 		pa = _p;
 		win = _win;
 		ID = pbCnt++;
@@ -60,7 +60,7 @@ public class myPlaybackEngine {
 		curTime = 0; stTime = 0; 
 		stLoopTime = -1; endLoopTime = -1;
 		updateTimSigTempo(120);				//some default values
-		ticksPerBeat = durType.Quarter.getVal();
+		ticksPerBeat = noteDurType.Quarter.getVal();
 		pxlsPerBeat = 13;
 		curPxls = 0; stPixels = 0; 
 		stLoopPxls =-1; endLoopPxls = -1;

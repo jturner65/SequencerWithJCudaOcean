@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDispWindow;
+import SphrSeqFFTVisPKG.Base_DispWindow;
 import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.myVariStroke;
@@ -12,23 +12,20 @@ import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
 import SphrSeqFFTVisPKG.note.myNote;
-import SphrSeqFFTVisPKG.note.enums.durType;
-import SphrSeqFFTVisPKG.note.enums.nValType;
+import SphrSeqFFTVisPKG.note.enums.noteDurType;
+import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
-import ddf.minim.AudioOutput;
-import ddf.minim.Minim;
 import ddf.minim.ugens.Waves;
 
-public class mySequencerWindow extends myDispWindow {
+public class mySequencerWindow extends Base_DispWindow {
 	//this window will allow input of notes overlayed on a "player piano"-style 2D mesh, with piano displayed on left side
 	
 	public int gridX, gridY;									//pxls per grid box
-	public final float whiteKeyWidth = 78;
-	public float bkModY;				//how long, in pixels, is a white key, blk key is 2/3 as long
+	//public float bkModY;				//how long, in pixels, is a white key, blk key is 2/3 as long
 	//displayed piano
 	private myPianoObj dispPiano;	
 	//private float[] dispPianoRect;
@@ -61,13 +58,14 @@ public class mySequencerWindow extends myDispWindow {
 	//public AudioOutput clickNoteOut;
 	public myInstrument prlKeyboard;					//piano to play clicks on keys
 	
-	public durType defaultNoteLength;			//default note length for each square in piano roll
+	public noteDurType defaultNoteLength;			//default note length for each square in piano roll
 	
 	public mySequencerWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		updateGridXandY(false);
 		//dispPianoRect = new float[]{0, topOffY, whiteKeyWidth, 52 * gridY};
-		dispPiano = new myPianoObj(pa, this,  gridX, gridY, new float[]{0, topOffY, whiteKeyWidth, 52 * gridY}, fillClr, rectDim);		//start with 52 white keys (full keyboard)
+		float[] pianoDimsAra = new float[]{0, topOffY, myPianoObj.whiteKeyWidth,52 * gridY};
+		dispPiano = new myPianoObj(pa, gridX, gridY, pianoDimsAra, fillClr, rectDim);		//start with 52 white keys (full keyboard)
 		numTrajNoteRpts = 0;		
 //		initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
 		//setup clickable regions for flag buttons - 1 per boolean flag
@@ -95,12 +93,12 @@ public class mySequencerWindow extends myDispWindow {
 		dispFlags[plays] = true;						//this window responds to travelling reticle
 		dispFlags[hasScrollBars] = true;				//to view measures off the screen and staffs off the screen
 		initPrivFlags(numPrivFlags);
-		vsblStLoc = new float[]{whiteKeyWidth,0};
+		vsblStLoc = new float[]{myPianoObj.whiteKeyWidth,0};
 		seqVisStTime = new int[] {0,0};
 		//initNoteOutIndiv();
 
 		//curTrajAraIDX = 0;
-		defaultNoteLength = durType.Quarter;		
+		defaultNoteLength = noteDurType.Quarter;		
 		
 		playClickNote = false;
 		//clickNoteOut = pa.getAudioOut();
@@ -174,24 +172,24 @@ public class mySequencerWindow extends myDispWindow {
 	}//setupMenuClkRegions
 	
 	public void updateGridXandY(boolean setTempo){
-		gridX = (int)(calcGridWidth(rectDim[2]) * (setTempo ? (defaultNoteLength.getVal()/(durType.Quarter.getVal()*1.0f)) : 1));//default width is quarter note
+		gridX = (int)(calcGridWidth(rectDim[2]) * (setTempo ? (defaultNoteLength.getVal()/(noteDurType.Quarter.getVal()*1.0f)) : 1));//default width is quarter note
 		gridY = calcGridHeight(rectDim[3]);
-		bkModY = .3f * gridY;
+		//bkModY = .3f * gridY;
 		//pa.outStr2Scr("wkwidth : " + whiteKeyWidth+ " set Tempo : " + setTempo);
 		if(setTempo){
-			dispPiano.updateDims(gridX, gridY, new float[]{0, topOffY, whiteKeyWidth, 52 * gridY}, rectDim);
+			dispPiano.updateDims(gridX, gridY, new float[]{0, topOffY, myPianoObj.whiteKeyWidth, 52 * gridY}, rectDim);
 			setGlobalTempoVal(glblTempo);
 		}
 	}
 	//set current key signature, at time passed - for pa.score, set it at nearest measure boundary
-	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<nValType> lclKeyNotesAra, float time){
+	protected void setLocalKeySigValIndiv(myKeySig lclKeySig, ArrayList<noteValType> lclKeyNotesAra, float time){
 		if(pa.score != null){
 			pa.score.setCurrentKeySig(time, lclKeySig, lclKeyNotesAra);
 		}
 	}//setCurrentKeySigVal//pbe.updateTimSigTempo(glblTempo, gridX,  glblTimeSig.getTicksPerBeat());
 	
 	//set time signature at time passed - for pa.score, set it at nearest measure boundary - global time sig need to be set by here
-	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){		
+	protected void setLocalTimeSigValIndiv(int tsnum, int tsdenom, noteDurType _beatNoteType, float time){		
 		myTimeSig ts = new myTimeSig(pa, tsnum, tsdenom, _beatNoteType);	
 		if(pa.score != null){
 			pa.score.setCurrentTimeSig(time, ts);
@@ -217,7 +215,7 @@ public class mySequencerWindow extends myDispWindow {
 	}//setCurrentKeySigVal//pbe.updateTimSigTempo(glblTempo, gridX,  glblTimeSig.getTicksPerBeat());
 	
 	//set time signature at time passed - for pa.pa.score, set it at nearest measure boundary - global time sig need to be set by here
-	protected void setGlobalTimeSigValIndiv(int tsnum, int tsdenom, durType _beatNoteType, float time){		
+	protected void setGlobalTimeSigValIndiv(int tsnum, int tsdenom, noteDurType _beatNoteType, float time){		
 		//NOTE ! global time sig need to be set by here		
 		if(pa.score != null){
 			//pa.score.setCurrentTimeSig(time, glblTimeSig);
@@ -336,7 +334,7 @@ public class mySequencerWindow extends myDispWindow {
 	private boolean hndlPianoMseClkDrg(int[] mse, boolean isClick){
 		boolean mod = false;
 		myPoint tmpLoc = pa.P();
-		myNote newClickNote = dispPiano.checkClick(mse[0]-(int)rectDim[0], mse[1]-(int)rectDim[1], tmpLoc);
+		myNote newClickNote = dispPiano.checkClick(this, mse[0]-(int)rectDim[0], mse[1]-(int)rectDim[1], tmpLoc);
 		if(checkNote(newClickNote,isClick)){
 			clickNoteLoc  = tmpLoc;			
 			playKbdClickNote(newClickNote);
@@ -346,7 +344,7 @@ public class mySequencerWindow extends myDispWindow {
 	}
 	
 	//force the passed note to be in the key passed, using the direction given 
-	public void forceNoteToKey(myKeySig _key, ArrayList<nValType> keyAra, myNote note, boolean moveUp){
+	public void forceNoteToKey(myKeySig _key, ArrayList<noteValType> keyAra, myNote note, boolean moveUp){
 		//pa.outStr2Scr("force note to key : " + pa.getKeyNames(keyAra));
 		if(keyAra.contains(note.n.name)){return;}
 		note.moveNoteHalfStep(_key, keyAra, moveUp);//, false, bkModY);		
@@ -369,7 +367,7 @@ public class mySequencerWindow extends myDispWindow {
     public myNote getNoteFromPrlLoc(myPoint pt, int ticksPerDfltBeat, int stGridOff){
 		float[] noteRectDims = new float[4];
     	myNote newClickNote;
-		newClickNote = dispPiano.checkRollArea((int)pt.x-(int)rectDim[0], (int)pt.y-(int)rectDim[1], noteRectDims);
+		newClickNote = dispPiano.checkRollArea(this, (int)pt.x-(int)rectDim[0], (int)pt.y-(int)rectDim[1], noteRectDims);
 		if(newClickNote == null){ pa.outStr2Scr("getNoteFromPrlLoc: loc of null pt = " + pt.toStrBrf()); return null;}
 		newClickNote.setDurationPRL(1, ticksPerDfltBeat, false, false, 0);
 		newClickNote.gridDims = noteRectDims;	//includes displacement for piano key display on piano roll	
@@ -506,14 +504,14 @@ public class mySequencerWindow extends myDispWindow {
 	public int cnvrtGridXToStTime(float nrd0){
 		int numGridCellsFromEdge = (int)((nrd0 - vsblStLoc[curDrnTrajScrIDX])/gridX);
 		//pa.outStr2Scr("Convert grid to st time : # gridCells : " +numGridCellsFromEdge + " st loc : " +vsblStLoc[curDrnTrajScrIDX] + " defaultNoteLen : " + defaultNoteLength.getVal() + " : grid x " + gridX);
-		return seqVisStTime[prlTrajIDX] + (int)((nrd0-this.whiteKeyWidth)/ (gridX/(1.0f*defaultNoteLength.getVal())));				
+		return seqVisStTime[prlTrajIDX] + (int)((nrd0-myPianoObj.whiteKeyWidth)/ (gridX/(1.0f*defaultNoteLength.getVal())));				
 	}
 	//convert a note's start time to a grid x value
 	public float cnvrtStTimeToGridX(int stTime){
 		float denom = (gridX/(1.0f*defaultNoteLength.getVal()));
 		//stTime = seqVisStTime[prlTrajIDX] + (int)((nrd0-this.whiteKeyWidth)/ (gridX/(1.0f*defaultNoteLength.getVal())));
 		//+ (int)((nrd0-this.whiteKeyWidth)/ (gridX/(1.0f*tperBeat)));
-		float res = (stTime - seqVisStTime[prlTrajIDX] + (this.whiteKeyWidth/denom)) * denom;
+		float res = (stTime - seqVisStTime[prlTrajIDX] + (myPianoObj.whiteKeyWidth/denom)) * denom;
 		return res;
 	}
 	
@@ -611,7 +609,7 @@ public class mySequencerWindow extends myDispWindow {
 		pa.score.staffs.get(scoreStaffNames[curTrajAraIDX]).drawStaff();
 		pa.popStyle();pa.popMatrix();
 		//draw Staff corresponding to current trajectory
-		pa.translate(whiteKeyWidth, 0);
+		pa.translate(myPianoObj.whiteKeyWidth, 0);
 		pbe.drawMe();
 		pa.popStyle();pa.popMatrix();
 	}
@@ -619,7 +617,7 @@ public class mySequencerWindow extends myDispWindow {
 	private void drawScoreStuff(){
 		pa.score.drawScore();		
 		pa.pushMatrix();pa.pushStyle();
-		pa.translate(whiteKeyWidth, 0);
+		pa.translate(myPianoObj.whiteKeyWidth, 0);
 		pbe.drawMe();			//TODO need to modify position at the start of every measure
 		pa.popStyle();pa.popMatrix();		
 	}	
