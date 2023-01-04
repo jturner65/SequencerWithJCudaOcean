@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * chord type
- * @author 7strb
+ * @author John Turner
  *
  */
 public enum chordType {

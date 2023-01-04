@@ -18,7 +18,7 @@ import java.util.SortedMap;
 
 /**
  * fundamental container holding measures of notes and chords for a single instrument
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myStaff {

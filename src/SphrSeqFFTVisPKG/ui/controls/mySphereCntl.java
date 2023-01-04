@@ -23,7 +23,7 @@ import processing.core.PShape;
 
 /**
  * object representing the spherical UI control to input control data for an instrument's notes
- * @author 7strb
+ * @author John Turner
  *
  */
 public class mySphereCntl {

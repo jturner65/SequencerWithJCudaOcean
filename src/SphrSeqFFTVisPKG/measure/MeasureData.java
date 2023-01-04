@@ -7,7 +7,7 @@ import SphrSeqFFTVisPKG.staff.myTimeSig;
 
 /**
  * convenience class to hold the important info for a measure (time sig, key sig, clef, c4 disp location, etc.
- * @author 7strb
+ * @author John Turner
  *
  */
 public class MeasureData implements Comparable<MeasureData>{//comparison by measure seq #

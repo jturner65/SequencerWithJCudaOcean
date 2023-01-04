@@ -9,7 +9,7 @@ import SphrSeqFFTVisPKG.note.enums.noteDurType;
  * provides a measure of current playback location from start of song.  window needs 
  * to manage this - this should provide time in ticks from beginning of song, window 
  * should translate to pixels per update displacement
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myPlaybackEngine {

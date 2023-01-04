@@ -7,7 +7,7 @@ import ddf.minim.analysis.WindowFunction;
 
 /**
  * handles an mp3 song, along with transport control
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myMP3SongHandler{

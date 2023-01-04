@@ -8,7 +8,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 /**
  * class holds trajectory and 4 macro cntl points, and the handling for them
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myDrawnSmplTraj {

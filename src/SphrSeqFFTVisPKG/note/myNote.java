@@ -14,7 +14,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 /**
  * fundamental class to hold and process a single note played by a single instrument
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myNote {

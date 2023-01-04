@@ -18,7 +18,7 @@ import processing.core.PApplet;
 
 /**
  * class to hold a measure of notes for a single instrument - collected into a staff
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myMeasure {

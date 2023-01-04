@@ -7,7 +7,7 @@ import processing.core.PApplet;
 
 /**
  * oscilitory component of an instrument - 1 per harmonic series component - sum together via summer
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myInstrCmp {

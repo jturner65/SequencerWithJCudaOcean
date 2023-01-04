@@ -5,7 +5,7 @@ import base_Math_Objects.vectorObjs.doubles.myVector;
 
 /**
  * use to denote control points for drawn strokes
- * @author 7strb
+ * @author John Turner
  *
  */
 public class cntlPt extends myPoint {

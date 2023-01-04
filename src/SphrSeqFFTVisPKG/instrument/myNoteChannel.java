@@ -7,7 +7,7 @@ import ddf.minim.ugens.Wavetable;
 
 /**
  * a set of oscil components, to represent 1 note channel at a time - # of these represents size of polyphony for instrument
- * @author 7strb
+ * @author John Turner
  *
  */
 public class myNoteChannel {
