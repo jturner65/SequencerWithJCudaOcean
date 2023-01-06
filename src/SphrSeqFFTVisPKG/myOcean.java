@@ -5,7 +5,6 @@ import static jcuda.driver.JCudaDriver.*;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
@@ -16,12 +15,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -52,7 +50,8 @@ public class myOcean implements GLEventListener{
 	
 	public int meshSize = 1024, 
 			meshSzSq = meshSize * meshSize, 
-			spectrumW = meshSize + 4, spectrumH = meshSize + 1, 
+			spectrumW = meshSize + 4, 
+			spectrumH = meshSize + 1, 
 			vBufNumInts = ((meshSize*2)+2)*(meshSize-1),
 			freqsInLen, 
 			isNoteData;		//1 if note data, 0 if audio data
@@ -82,7 +81,17 @@ public class myOcean implements GLEventListener{
 	public int shaderProgramID;
 
 	//OpenGL & Cuda variables
-	public int posVertexBuffer, heightVertexBuffer, slopeVertexBuffer, indexBuffer;	
+	private static final int 
+		heightVertBufIDX 	= 0,
+		slopeVertBufIDX		= 1,
+		posVertBufIDX 		= 2,
+		indexBufIDX			= 3; 
+
+	private static final int numBuffers = 4;
+	//gl vertex buffers for height, slope, position, index
+	private int[] vertBufs;
+
+	//map buffers to cuda graphics resources
 	public CUgraphicsResource cuda_heightVB_resource, cuda_slopeVB_resource;
 	
 	private String oceanKernel = "oceanMusic";//extensions added in loading function
@@ -117,27 +126,32 @@ public class myOcean implements GLEventListener{
 	public myOcean(SeqVisFFTOcean _p,mySimWindow _win) {//, GLCapabilities capabilities) {
 		pa=_p;
 		win = _win;
-//		PJOGL pgl = (PJOGL) pa.beginPGL();  
-//		GL2 tmpGL = pgl.gl.getGL2();
-//		pa.endPGL();
-		
-		GLCapabilities capabilities = new GLCapabilities(GLProfile.get(GLProfile.GL2)); 
-		GLCanvas glComponent = new GLCanvas(capabilities);
-		glComponent.setFocusable(true);
-		glComponent.addGLEventListener(this);
-		initShaderUnis();
-		freqsInLen = 0;
-		MouseControl mouseControl = new MouseControl();
-		glComponent.addMouseMotionListener(mouseControl);
-		glComponent.addMouseWheelListener(mouseControl);
 		
 		tmpSimVals = new ConcurrentSkipListMap<String,Float>();
 		setTmpSimVals();
 		initFlags();
-		setFlags(forceRecomp,win.privFlags[mySimWindow.forceCudaRecompIDX]);			//whether or not 
+		setFlags(forceRecomp,win.privFlags[mySimWindow.forceCudaRecompIDX]);			//whether or not cuda kernel should be recompiled
 		setFlags(performInvFFT, !win.privFlags[mySimWindow.showFreqDomainIDX]);
 		setFlags(newSimVals, false);
 		
+		vertBufs = new int[numBuffers];
+		
+//		PJOGL pgl = (PJOGL) pa.beginPGL();  
+//		GL2 tmpGL = pgl.gl.getGL2();
+//		pa.endPGL();
+		
+		initShaderUnis();
+		freqsInLen = 0;
+		
+		GLCapabilities capabilities = new GLCapabilities(GLProfile.get(GLProfile.GL2)); 
+		GLCanvas glComponent = new GLCanvas(capabilities);
+		glComponent.setFocusable(true);
+		glComponent.addGLEventListener(this);		
+		
+		MouseControl mouseControl = new MouseControl();
+		glComponent.addMouseMotionListener(mouseControl);
+		glComponent.addMouseWheelListener(mouseControl);
+
 		
 		frame = new JFrame("WaterSurface");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -241,9 +255,7 @@ public class myOcean implements GLEventListener{
 			cuMemFree(d_freqInRPtr);
 			cuMemFree(d_freqInCPtr);
 			JCufft.cufftDestroy(fftPlan);
-			gl.glDeleteBuffers(1, IntBuffer.wrap(new int[] {posVertexBuffer}));
-			gl.glDeleteBuffers(1, IntBuffer.wrap(new int[] {heightVertexBuffer}));
-			gl.glDeleteBuffers(1, IntBuffer.wrap(new int[] {slopeVertexBuffer}));
+			for (int i=0; i<vertBufs.length;++i) {gl.glDeleteBuffers(1, IntBuffer.wrap(new int[] {vertBufs[i]}));}
 			
 		} catch (Exception e1){
 			pa.outStr2Scr("error when closing frame");
@@ -313,75 +325,71 @@ public class myOcean implements GLEventListener{
 		setFlags(newSimVals, false);
 	}//initJCuda
 	
-	//initialize vertex buffer object
-	private void initVBO(GL2 gl) {		
+	private void buildVertexBuffer(GL2 gl, int _size, int _vertBufIDX) {
 		int[] buffer = new int[1];
-		int size = meshSzSq*Sizeof.FLOAT;
 		gl.glGenBuffers(1, IntBuffer.wrap(buffer));
-		heightVertexBuffer = buffer[0];
-		gl.glBindBuffer(gl2BufArg, heightVertexBuffer);
-		gl.glBufferData(gl2BufArg, size, (Buffer) null, GL2.GL_DYNAMIC_DRAW);
+		vertBufs[_vertBufIDX] = buffer[0];
+		gl.glBindBuffer(gl2BufArg, vertBufs[_vertBufIDX]);
+		gl.glBufferData(gl2BufArg, _size, null, GL2.GL_DYNAMIC_DRAW);
 		gl.glBindBuffer(gl2BufArg, 0);
-		cuda_heightVB_resource = new CUgraphicsResource();
-		cuGraphicsGLRegisterBuffer(cuda_heightVB_resource, heightVertexBuffer, CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD);
+	}
 		
-		buffer = new int[1];
-		size = meshSzSq*Sizeof.FLOAT*2;
-		gl.glGenBuffers(1, IntBuffer.wrap(buffer));
-		slopeVertexBuffer = buffer[0];
-		gl.glBindBuffer(gl2BufArg, slopeVertexBuffer);
-		gl.glBufferData(gl2BufArg, size, (Buffer) null, GL2.GL_DYNAMIC_DRAW);
-		gl.glBindBuffer(gl2BufArg, 0);
-		cuda_slopeVB_resource = new CUgraphicsResource();
-		cuGraphicsGLRegisterBuffer(cuda_slopeVB_resource, slopeVertexBuffer, CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD);
+	/**
+	 * initialize vertex buffer object
+	 * @param gl
+	 */
+	private void initVBO(GL2 gl) {		
+		buildVertexBuffer(gl, meshSzSq*Sizeof.FLOAT, heightVertBufIDX);
+		cuda_heightVB_resource = new CUgraphicsResource();
+		cuGraphicsGLRegisterBuffer(cuda_heightVB_resource, vertBufs[heightVertBufIDX], CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD);
 
-		buffer = new int[1];
-		size = meshSzSq*Sizeof.FLOAT*4;
-		gl.glGenBuffers(1, IntBuffer.wrap(buffer));
-		posVertexBuffer = buffer[0];
-		gl.glBindBuffer(gl2BufArg, posVertexBuffer);
-		gl.glBufferData(gl2BufArg, size, (Buffer) null, GL2.GL_DYNAMIC_DRAW);
-		gl.glBindBuffer(gl2BufArg, 0);
-		gl.glBindBuffer(gl2BufArg, posVertexBuffer);
+		buildVertexBuffer(gl, meshSzSq*Sizeof.FLOAT*2, slopeVertBufIDX);
+		cuda_slopeVB_resource = new CUgraphicsResource();
+		cuGraphicsGLRegisterBuffer(cuda_slopeVB_resource, vertBufs[slopeVertBufIDX], CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD);
+
+		buildVertexBuffer(gl, meshSzSq*Sizeof.FLOAT*4, posVertBufIDX);
+		gl.glBindBuffer(gl2BufArg, vertBufs[posVertBufIDX]);
+
+		//Build uv coords
 		ByteBuffer byteBuffer = gl.glMapBuffer(gl2BufArg, GL2.GL_WRITE_ONLY);
 		if (byteBuffer != null){
-			FloatBuffer put = byteBuffer.asFloatBuffer();
+			FloatBuffer fBuf = byteBuffer.asFloatBuffer();
 			int index = 0;
 			float denom = (float) (meshSize - 1);
-			for (int y = 0; y < meshSize; y++) {
+			for (int y = 0; y < meshSize; ++y) {
 				float v = y / denom;
-				for (int x = 0; x < meshSize; x++) {
+				for (int x = 0; x < meshSize; ++x) {
 					float u = x / denom;
-					put.put(index++, u * 2.0f - 1.0f);
-					put.put(index++, 0.0f);
-					put.put(index++, v * 2.0f - 1.0f);
-					put.put(index++, 1.0f);
+					fBuf.put(index++, u * 2.0f - 1.0f);
+					fBuf.put(index++, 0.0f);
+					fBuf.put(index++, v * 2.0f - 1.0f);
+					fBuf.put(index++, 1.0f);
 				}
 			}
 		}
 		gl.glUnmapBuffer(gl2BufArg);
+		
 		gl.glBindBuffer(gl2BufArg, 0);
 
-		size = vBufNumInts*Sizeof.INT;
-		buffer = new int[1];
+		int size = vBufNumInts*Sizeof.INT;
+		int[] buffer = new int[1];
 		gl.glGenBuffers(1, IntBuffer.wrap(buffer));
-		indexBuffer = buffer[0];
-		gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-		gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, size, (Buffer) null, GL2.GL_STATIC_DRAW);
+		
+		vertBufs[indexBufIDX] = buffer[0];
+		gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, vertBufs[indexBufIDX]);
+		gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, size, null, GL2.GL_STATIC_DRAW);
 		
 		byteBuffer = gl.glMapBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, GL2.GL_WRITE_ONLY);
 		if (byteBuffer != null){
 			IntBuffer indices = byteBuffer.asIntBuffer();
 			int index = 0;
-			for(int y=0; y<meshSize-1; y++) {
-		        for(int x=0; x<meshSize; x++) {
-		        	indices.put(index, y*meshSize+x);
-		        	indices.put(index+1, (y+1)*meshSize+x);
-		        	index +=2;
+			for(int y=0; y<meshSize-1; ++y) {
+		        for(int x=0; x<meshSize; ++x) {
+		        	indices.put(index++, y*meshSize+x);
+		        	indices.put(index++, (y+1)*meshSize+x);
 		        }
-		        indices.put(index, (y+1)*meshSize+(meshSize-1));
-		        indices.put(index+1, (y+1)*meshSize);
-		        index += 2;
+		        indices.put(index++, (y+1)*meshSize+(meshSize-1));
+		        indices.put(index++, (y+1)*meshSize);
 		    }
 		}
 		gl.glUnmapBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER);
@@ -429,16 +437,16 @@ public class myOcean implements GLEventListener{
 		gl.glRotatef(rotateX, 1.0f, 0.0f, 0.0f);
 		gl.glRotatef(rotateY, 0.0f, 1.0f, 0.0f);
 
-		gl.glBindBuffer(gl2BufArg, posVertexBuffer);
+		gl.glBindBuffer(gl2BufArg, vertBufs[posVertBufIDX]);
 		gl.glVertexPointer(4, GL2.GL_FLOAT, 0, 0);
 		gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 
-		gl.glBindBuffer(gl2BufArg, heightVertexBuffer);
+		gl.glBindBuffer(gl2BufArg, vertBufs[heightVertBufIDX]);
 		gl.glClientActiveTexture(GL2.GL_TEXTURE0);
 		gl.glTexCoordPointer(1, GL2.GL_FLOAT, 0, 0);
 		gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
 
-		gl.glBindBuffer(gl2BufArg, slopeVertexBuffer);
+		gl.glBindBuffer(gl2BufArg, vertBufs[slopeVertBufIDX]);
 		gl.glClientActiveTexture(GL2.GL_TEXTURE1);
 		gl.glTexCoordPointer(2, GL2.GL_FLOAT, 0, 0);
 		gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
@@ -447,7 +455,7 @@ public class myOcean implements GLEventListener{
 		setUnisInShdr();
 		
 		gl.glColor3f(1.0f, 1.0f, 1.0f);
-		gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+		gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, vertBufs[indexBufIDX]);
 		gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
 		gl.glDrawElements(GL2.GL_TRIANGLE_STRIP, vBufNumInts, GL2.GL_UNSIGNED_INT, 0);
 		gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
@@ -640,12 +648,18 @@ public class myOcean implements GLEventListener{
 		return shader;
 	}
 	
-	// Phillips noise spectrum
-	// (Kx, Ky) - normalized wave vector
-	// Vdir - wind angle in radians
-	// V - wind speed
-	// A - constant
-	public double phillips(float Kx, float Ky, float Vdir, float V, float A, float dir_depend, float Lsq) {
+	/**
+	 * Phillips noise spectrum @param (Kx, Ky) - normalized wave vector
+	 * @param Kx normalized wave vector x
+	 * @param Ky normalized wave vector y
+	 * @param Vdir wind angle in radians
+	 * @param V wind speed
+	 * @param A constant
+	 * @param dir_depend
+	 * @param Lsq
+	 * @return
+	 */
+	public float phillipsNoise(float Kx, float Ky, float Vdir, float V, float A, float dir_depend, float Lsq) {
 		double k_squared = Kx*Kx + Ky*Ky;
 		
 		if (k_squared == 0.0f){	return 0.0f;}
@@ -655,30 +669,37 @@ public class myOcean implements GLEventListener{
 		k_y = (Ky / kSqrt),
 		w_dot_k = (k_x*Math.cos(Vdir) + k_y*Math.sin(Vdir)),
 		//L = V*V/g,		
-		res = (A*Math.exp(-1/(k_squared*Lsq))/(k_squared * k_squared) * w_dot_k*w_dot_k);
+		res = A*w_dot_k*w_dot_k*Math.exp(-1/(k_squared*Lsq))/(k_squared * k_squared);
 		
 		// filter out waves moving opposite to wind
 		if (w_dot_k < 0.0f){	res *= dir_depend;	}
-		return res;
+		return (float) (Math.sqrt(res));
 	}
 	
 	//initial setup of ocean
 	public float[] generate_h0(float[] h0) {
 		float kMult = (PConstants.TWO_PI / patchSize);
 		int nMshHalf = -meshSize/2; 
-		float kx,ky,P,Er,Ei,h0_re,h0_im, L = (windSpeed*windSpeed/g), lsq = (L*L);
+		float kx,ky,
+			P,
+			Er,Ei,h0_re,h0_im, L = (windSpeed*windSpeed/g), lsq = (L*L);
 		//Min kx : -42.89321Max kx : 42.89321Min ky : -42.89321Max ky : 42.89321
-		Random rnd = new Random();
-		for (int y = 0; y <= meshSize; y++) {
+		ThreadLocalRandom rnd = ThreadLocalRandom.current(); 
+		for (int y = 0; y <= meshSize; ++y) {
 			ky = (nMshHalf + y) * kMult;
-			for (int x = 0; x <= meshSize; x++) {
+			for (int x = 0; x <= meshSize; ++x) {
 				kx = (nMshHalf + x) * kMult;
-				if (kx == 0.0f && ky == 0.0f){	P = 0.0f;}
-				else {P = (float) (Math.sqrt(phillips(kx, ky, windDir, windSpeed, wScl, dirDepend,lsq)));	}
 				Er = (float) rnd.nextGaussian();
 				Ei = (float) rnd.nextGaussian();
-				h0_re = (Er*P * pa.SQRT2);
-				h0_im = (Ei*P * pa.SQRT2);
+				if (kx == 0.0f && ky == 0.0f){	
+					P = 0.0f;
+					h0_re = 0;
+					h0_im = 0;
+				} else {
+					P = phillipsNoise(kx, ky, windDir, windSpeed, wScl, dirDepend, lsq);	
+					h0_re = (Er*P * pa.SQRT2);
+					h0_im = (Ei*P * pa.SQRT2);
+				}
 
 				int i2 = 2* (y * spectrumW + x);
 				h0[i2] = h0_re;
@@ -689,12 +710,15 @@ public class myOcean implements GLEventListener{
 	}
 	
 	class MouseControl implements MouseMotionListener, MouseWheelListener {
-		public Point previousMousePosition = new Point();
+		protected int prevMseX = 0;
+		protected int prevMseY = 0;
+		
+		//public Point previousMousePosition = new Point();
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			int dx = e.getX() - previousMousePosition.x;
-			int dy = e.getY() - previousMousePosition.y;
+			int dx = e.getX() - prevMseX;
+			int dy = e.getY() - prevMseY;
 
 			if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) == MouseEvent.BUTTON3_DOWN_MASK) {
 				translateX += dx / 100.0f;
@@ -703,21 +727,33 @@ public class myOcean implements GLEventListener{
 				rotateX += dy;
 				rotateY += dx;
 			}
-			previousMousePosition = e.getPoint();
+			setPrevMseLoc(e);
 		}
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			previousMousePosition = e.getPoint();
+			setPrevMseLoc(e);
 		}
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			translateZ -= e.getWheelRotation() * 0.25f;
-			previousMousePosition = e.getPoint();
+			setPrevMseLoc(e);
+		}
+		
+		private void setPrevMseLoc(MouseEvent e) {
+			var pt = e.getPoint();
+			prevMseX = pt.x;
+			prevMseY = pt.y;			
 		}
 	}
-	//compiles Ptx file from file in passed file name -> cuFileName needs to have format "xxxxx.cu"
+	
+	/**
+	 * compiles Ptx file from file in passed file name -> cuFileName needs to have format "xxxxx.cu"
+	 * @param krnFileName
+	 * @param ptxFileName
+	 * @throws IOException
+	 */
 	public void compilePtxFile(String krnFileName, String ptxFileName) throws IOException {
 	//NOTE : using new version of CUDA (as of 8/7/18) w/vs2015 compiles this incorrectly/makes it hang. TODO need to investigate this
 		File cuFile = new File(krnFileName);
