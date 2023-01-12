@@ -264,6 +264,7 @@ public class myOcean implements GLEventListener{
 		//System.exit(0);
 		win.delOcean();	
 	}
+	
 	private void initJCuda(){
 		setExceptionsEnabled(true);
 		cuInit(0);
@@ -298,7 +299,7 @@ public class myOcean implements GLEventListener{
 		int spectrumSize = spectrumW * spectrumH * 2;
 		h_h0 = new float[spectrumSize];
 		int spectrumFloatSize = spectrumSize*Sizeof.FLOAT;
-		h_h0 = generate_h0(h_h0);
+		h_h0 = generateH0(h_h0);
 		d_h0Ptr = new CUdeviceptr();
 		cuMemAlloc(d_h0Ptr, spectrumFloatSize);
 		cuMemcpyHtoD(d_h0Ptr, Pointer.to(h_h0), spectrumFloatSize);
@@ -395,6 +396,7 @@ public class myOcean implements GLEventListener{
 		gl.glUnmapBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER);
 		gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+	
 	/**
 	 * set uniform variables in shader
 	 */
@@ -513,7 +515,6 @@ public class myOcean implements GLEventListener{
 	
 	private void runCuda() {
 		Pointer kernelParameters = null;
-		//pa.outStr2Scr("run cuda : freqres1 : " + freqRes1.length);
 		if(getFlags(newFreqVals)){
 			cuMemcpyHtoD(d_freqInRPtr, Pointer.to(audFreqRealRes), audFreqRealRes.length*Sizeof.FLOAT);
 			cuMemcpyHtoD(d_freqInCPtr, Pointer.to(audFreqImagRes), audFreqImagRes.length*Sizeof.FLOAT);
@@ -676,8 +677,12 @@ public class myOcean implements GLEventListener{
 		return (float) (Math.sqrt(res));
 	}
 	
-	//initial setup of ocean
-	public float[] generate_h0(float[] h0) {
+	/**
+	 * initial setup of ocean
+	 * @param h0
+	 * @return
+	 */
+	public float[] generateH0(float[] h0) {
 		float kMult = (PConstants.TWO_PI / patchSize);
 		int nMshHalf = -meshSize/2; 
 		float kx,ky,
@@ -707,14 +712,12 @@ public class myOcean implements GLEventListener{
 			}
 		}
 		return h0;
-	}
+	}//generateH0
 	
 	class MouseControl implements MouseMotionListener, MouseWheelListener {
 		protected int prevMseX = 0;
 		protected int prevMseY = 0;
 		
-		//public Point previousMousePosition = new Point();
-
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			int dx = e.getX() - prevMseX;
