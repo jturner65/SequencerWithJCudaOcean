@@ -34,9 +34,7 @@ public class myDrawnSmplTraj {
 	//public myPoint[] pathBetweenPts;				//Array that stores all the path Points, once they are scaled
 	
 	public int fillClrCnst, strkClrCnst;
-	
-	public TreeMap<Integer,myNote> drawnNotesMap;		//all the notes that this trajectory is responsible for
-	
+
 	public boolean[] trajFlags;
 	public static final int 
 				flatPtIDX = 0,						//whether this should draw plat circles or spheres for its points
@@ -65,9 +63,6 @@ public class myDrawnSmplTraj {
 		maxTmplOff = 400;		
 		drawnTrajPickedIdx = -1;
 		editEndPt = -1;
-		
-		drawnNotesMap = new TreeMap<Integer,myNote>();
-
 		edtCrvEndPts = new myPoint[4];
 		//pathBetweenPts = new myPoint[0];
 		edtCrvEndPts[0] = new myPoint(win.rectDim[0] + .25 * win.rectDim[2], .5 * (2*win.rectDim[1] + win.rectDim[3]),0);

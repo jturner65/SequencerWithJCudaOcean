@@ -440,8 +440,7 @@ public class mySequencerWindow extends Base_DispWindow {
 			//pa.outStr2Scr(" stGridOff offset for rept " + repts + " : " + stGridOff + " first grid time : " + firstGridTime);
 		}//for rpts
 		if(!onlyNulls){
-			drawnNoteTraj.drawnNotesMap = tmpdrawnPRollNotes;
-			addDrawnNotesToScore(curTrajAraIDX,pa.flags[pa.clearStaffNewTraj],drawnNoteTraj.drawnNotesMap);
+			addDrawnNotesToScore(curTrajAraIDX,pa.flags[pa.clearStaffNewTraj],tmpdrawnPRollNotes);
 		}		
 	}
 	
@@ -493,8 +492,7 @@ public class mySequencerWindow extends Base_DispWindow {
 				}				
 			}
 			if(!onlyNulls){
-				drawnNoteTraj.drawnNotesMap = tmpdrawnStaffNotes;
-				addDrawnNotesToScore(curTrajAraIDX,pa.flags[pa.clearStaffNewTraj],drawnNoteTraj.drawnNotesMap);
+				addDrawnNotesToScore(curTrajAraIDX,pa.flags[pa.clearStaffNewTraj],tmpdrawnStaffNotes);
 			}
 		}//for
 	}	
