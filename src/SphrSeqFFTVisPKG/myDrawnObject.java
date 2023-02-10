@@ -23,7 +23,7 @@ public abstract class myDrawnObject {
 	protected float[] dpts;						//array holding distance to each point from beginning
 	
 	//beautiful pts
-	public cntlPt[] cntlPts;						//control points describing object, if used	
+	public myCntlPt[] cntlPts;						//control points describing object, if used	
 	
 	protected float[] d_cntlPts;
 	protected float cntl_len;
@@ -194,13 +194,13 @@ public abstract class myDrawnObject {
 	}//buildCntlFrameVecAras
 		
 	//sets required info for points array - points and dist between pts, length, etc
-	protected void setCPts(ArrayList<cntlPt> tmp){
-		cntlPts = tmp.toArray(new cntlPt[0]);
+	protected void setCPts(ArrayList<myCntlPt> tmp){
+		cntlPts = tmp.toArray(new myCntlPt[0]);
 		d_cntlPts = getPtDist(cntlPts, false);	
 		cntl_len=length(cntlPts, false);
 	}//setPts	
 	//make a new point interpolated between either 2 or 3 points in pts ara, described by # of idxs
-	public cntlPt makeNewPoint(cntlPt[] pts, int[] idxs, float s){	return _Interp(pts[idxs[0]], s, (idxs.length == 2 ? pts[idxs[1]] : _Interp(pts[idxs[1]],.5f,pts[idxs[2]], lnI_Typ)),lnI_Typ );	}
+	public myCntlPt makeNewPoint(myCntlPt[] pts, int[] idxs, float s){	return _Interp(pts[idxs[0]], s, (idxs.length == 2 ? pts[idxs[1]] : _Interp(pts[idxs[1]],.5f,pts[idxs[2]], lnI_Typ)),lnI_Typ );	}
 	/**
 	 * process all points using passed algorithm on passed array of points - not all args are used by all algs.
 	 * @param _typ type of point processing
@@ -210,8 +210,8 @@ public abstract class myDrawnObject {
 	 * @param wrap whether the point list wraps around or not
 	 * @return arraylist of processed points
 	 */	
-	public ArrayList<cntlPt> procCntlPt(int _typ, cntlPt[] pts, float val, float _len){
-		ArrayList<cntlPt> tmp = new ArrayList<cntlPt>(); // temporary array
+	public ArrayList<myCntlPt> procCntlPt(int _typ, myCntlPt[] pts, float val, float _len){
+		ArrayList<myCntlPt> tmp = new ArrayList<myCntlPt>(); // temporary array
 		switch(_typ){
 			case _subdivide	:{
 			    for(int i = 0; i < pts.length-1; ++i){tmp.add(pts[i]); for(int j=1;j<val;++j){tmp.add(makeNewPoint(pts,new int[]{i,i+1}, (j/(val))));}}
@@ -293,8 +293,8 @@ public abstract class myDrawnObject {
 		return pts[0];
 	}//at	
 	
-	public cntlPt at_C(float t, cntlPt[] pts){float[] _dpts = this.getPtDist(pts, false);float _len = this.length(pts, false);return at_C(t,new float[1], _len, pts, _dpts);}//put interpolant between adjacent axis points in s ara if needed
-	public cntlPt at_C(float t, float[] s, float _len, cntlPt[] pts, float[] _dpts){//call directly if wanting interpolant between adj axis points too
+	public myCntlPt at_C(float t, myCntlPt[] pts){float[] _dpts = this.getPtDist(pts, false);float _len = this.length(pts, false);return at_C(t,new float[1], _len, pts, _dpts);}//put interpolant between adjacent axis points in s ara if needed
+	public myCntlPt at_C(float t, float[] s, float _len, myCntlPt[] pts, float[] _dpts){//call directly if wanting interpolant between adj axis points too
 		if(t<0){PApplet.println("In at : t="+t+" needs to be [0,1]");return pts[0];} else if (t>1){PApplet.println("In at : t="+t+" needs to be [0,1]");return pts[pts.length-1];}
 		float dist = t * _len;
 		for(int i=0; i<_dpts.length-1; ++i){										//built off dpts so that it will get wrap for closed curve
@@ -303,7 +303,7 @@ public abstract class myDrawnObject {
 				return makeNewPoint(pts,new int[]{i,((i+1)%pts.length)}, s[0]);		//put interpolant between adjacent axis points in s ara if needed		
 			}			
 		}		
-		return new cntlPt(pa);
+		return new myCntlPt();
 	}//at_C	
 	
 	/**
@@ -337,11 +337,11 @@ public abstract class myDrawnObject {
 			default : {	return (1-s)*A + (s*B);}			//defaults to linear
 		}	
 	}//_Interp
-	protected cntlPt _Interp(cntlPt A, float s, cntlPt B, int _typ){
+	protected myCntlPt _Interp(myCntlPt A, float s, myCntlPt B, int _typ){
 		switch (_typ){
-			case linear_int : {	return cntlPt.L(A, s, B);}
+			case linear_int : {	return myCntlPt.L(A, s, B);}
 			//add more cases for different interpolation		
-			default : {	return cntlPt.L(A, s, B);}			//defaults to linear
+			default : {	return myCntlPt.L(A, s, B);}			//defaults to linear
 		}	
 	}//_Interp	
 
@@ -359,12 +359,12 @@ public abstract class myDrawnObject {
 	//makes a copy of the points in order
 	public myPoint[] cpyPoints(myPoint[] pts){myPoint[] tmp = new myPoint[pts.length]; for(int i=0; i<pts.length; ++i){	tmp[i]=pa.P(pts[i]);}	return tmp;}//cpyPoints
 	//makes a copy of the points in order
-	public cntlPt[] cpyPoints(cntlPt[] pts){cntlPt[] tmp = new cntlPt[pts.length]; for(int i=0; i<pts.length; ++i){	tmp[i]=new cntlPt(pts[i]);}	return tmp;}//cpyPoints
+	public myCntlPt[] cpyPoints(myCntlPt[] pts){myCntlPt[] tmp = new myCntlPt[pts.length]; for(int i=0; i<pts.length; ++i){	tmp[i]=new myCntlPt(pts[i]);}	return tmp;}//cpyPoints
 
 	//move points by the passed myVectortor 
 	public myPoint[] movePoints(myVector move, myPoint[] pts){for(int i =0; i<pts.length; ++i){	pts[i]._add(move);	}	return pts;}	
 	//move points by the passed myVectortor 
-	public cntlPt[] movePoints(myVector move, cntlPt[] pts){for(int i =0; i<pts.length; ++i){	pts[i]._add(move);	}	return pts;}	
+	public myCntlPt[] movePoints(myVector move, myCntlPt[] pts){for(int i =0; i<pts.length; ++i){	pts[i]._add(move);	}	return pts;}	
 	//flip the passed points and move them based on the displacement from the passed movement myVectortor
 //	public myPoint[] flipPtsAndMove(myDrawnObject _obj, myPoint[] pts, myVector move,  myVector covAxis){
 //		myPoint[] tmp = movePoints(move, cpyPoints(pts));
@@ -376,7 +376,7 @@ public abstract class myDrawnObject {
 //		return tmp;
 //	}//flipPtsAndMove
 	//set this object's points to be passed points, for copying
-	public void setPtsToArrayList(cntlPt[] pts){ArrayList<cntlPt> tmp = new ArrayList<cntlPt>(Arrays.asList(pts));setCPts(tmp);}	
+	public void setPtsToArrayList(myCntlPt[] pts){ArrayList<myCntlPt> tmp = new ArrayList<myCntlPt>(Arrays.asList(pts));setCPts(tmp);}	
 	//set this object's points to be passed points, for copying
 	public void setPtsToArrayList(myPoint[] pts){ArrayList<myPoint> tmp = new ArrayList<myPoint>(Arrays.asList(pts));setPts(tmp);}	
 
@@ -390,10 +390,10 @@ public abstract class myDrawnObject {
 	}//	
 	//rotate points around axis that is xprod of canvas norm and the lstroke cov to the rstroke cov myVector at stroke cov.
 	//should make mirror image of pts
-	public cntlPt[] rotPtsAroundCOV(cntlPt[] pts, float angle, myPoint cov, myVector _canvasNorm, myVector _covNorm){//need to pass canvas norm since it cannot be static
-		ArrayList<cntlPt> tmp = new ArrayList<cntlPt>();//				res.get(sl)[i] = pa.R(old, sliceA, canvasNorm, bv, myPointOnAxis);
+	public myCntlPt[] rotPtsAroundCOV(myCntlPt[] pts, float angle, myPoint cov, myVector _canvasNorm, myVector _covNorm){//need to pass canvas norm since it cannot be static
+		ArrayList<myCntlPt> tmp = new ArrayList<myCntlPt>();//				res.get(sl)[i] = pa.R(old, sliceA, canvasNorm, bv, myPointOnAxis);
 		for(int i=0; i<pts.length; ++i){tmp.add(pa.R(pts[i], angle, pa.V(_canvasNorm), _covNorm, cov));}
-		return tmp.toArray(new cntlPt[0]);			
+		return tmp.toArray(new myCntlPt[0]);			
 	}//	
 	//finds index of point with largest projection on passed myVectortor in passed myPoint ara
 	protected int findLargestProjection(myVector v, myPoint c, myPoint[] pts){
@@ -454,10 +454,10 @@ public abstract class myDrawnObject {
 	}//	
 	//rotate points around axis that is xprod of canvas norm and the lstroke cov to the rstroke cov vec at stroke cov.
 	//should make mirror image of pts
-	public cntlPt[] rotPtsAroundCOV(cntlPt[] _pts, double angle, myPoint cov, myVector _canvasNorm, myVector _covNorm){//need to pass canvas norm since it cannot be static
-		ArrayList<cntlPt> tmp = new ArrayList<cntlPt>();//				res.get(sl)[i] = pa.R(old, sliceA, canvasNorm, bv, ptOnAxis);
+	public myCntlPt[] rotPtsAroundCOV(myCntlPt[] _pts, double angle, myPoint cov, myVector _canvasNorm, myVector _covNorm){//need to pass canvas norm since it cannot be static
+		ArrayList<myCntlPt> tmp = new ArrayList<myCntlPt>();//				res.get(sl)[i] = pa.R(old, sliceA, canvasNorm, bv, ptOnAxis);
 		for(int i=0; i<_pts.length; ++i){tmp.add(pa.R(_pts[i], angle, pa.V(_canvasNorm), _covNorm, cov));}
-		return tmp.toArray(new cntlPt[0]);			
+		return tmp.toArray(new myCntlPt[0]);			
 	}//		
 	
 	//returns array of distances to each point from beginning - needs to retain dist from last vert to first if closed

@@ -13,7 +13,7 @@ public class myVariStroke extends myDrawnObject {
 	protected final int numVerts = 200;							
 
 	public int offsetType;						//1:Q-bspline w/normal offset, 2:Q-bspline w/ball offset, 3:Q-bspline w/radial offset
-	public myOffset _offset;					//offset used by this stroke to calculate poly loop
+	public Base_Offset _offset;					//offset used by this stroke to calculate poly loop
 	public final int numIntCntlPts = 200, numCntlPts = 6;			//# of control points to use to draw line
 	private boolean ptsDerived;					//whether or not the points making up the loop of this stroke have been derived yet
 
@@ -35,9 +35,9 @@ public class myVariStroke extends myDrawnObject {
 		fillClr = fillClrCnst;
 		strkClr= strkClrCnst;
 		flags[drawCntlRad] = true;
-	    cntlPts = new cntlPt[0];
+	    cntlPts = new myCntlPt[0];
 	    interpCntlPts = new myPoint[0];
-		_offset = new myNormOffset(_pa);
+		_offset = new Normal_Offset();
 		flags[usesCntlPts] = true;
 		flags[interpStroke] = true;
 		ptsDerived = false;
@@ -46,10 +46,10 @@ public class myVariStroke extends myDrawnObject {
 
 	//as drawing, add points to -cntlPoints-, not pts array.
 	public void addPt(myPoint p){
-		ArrayList<cntlPt> tmp = new ArrayList<cntlPt>(Arrays.asList(cntlPts));
+		ArrayList<myCntlPt> tmp = new ArrayList<myCntlPt>(Arrays.asList(cntlPts));
 		int i = tmp.size()-1;
 		if(i > 0 ){tmp.get(i).w = calcCntlWeight(p,tmp.get(i),tmp.get(i-1));}//previous point's weight 
-		cntlPt tmpPt = new cntlPt(pa, p);
+		myCntlPt tmpPt = new myCntlPt(p);
 		tmp.add(tmpPt);
 		setCPts(tmp);
 	}//
@@ -70,7 +70,7 @@ public class myVariStroke extends myDrawnObject {
 	public void buildPointsUsingOffset(boolean procPts, int repCnt){
 		if(procPts){
 		    finalizeCntlW();
-		    for(int i=0;i<cntlPts.length;++i){cntlPts[i].calcRadFromWeight(cntl_len/cntlPts.length, flags[cntlWInvRad]);}           //sets all radii based on weights
+		    for(int i=0;i<cntlPts.length;++i){cntlPts[i].calcRadFromWeight(cntl_len/cntlPts.length, flags[cntlWInvRad], pa.wScale);}           //sets all radii based on weights
 		    processCntlPts(flags[interpStroke] ? numIntCntlPts : numCntlPts, repCnt);
 	    }
 		buildCntlFrameVecAras();
@@ -85,7 +85,7 @@ public class myVariStroke extends myDrawnObject {
 		interpCntlPts = new myPoint[numIntCntlPts];
 		drawnCntlPts = new myPoint[numIntCntlPts];
 		float sumWts = 0;
-		for(int i=0;i<cntlPts.length;++i){sumWts += cntlPts[i].w;cmyPointInterps[i] = cntlPts[i].w;cntlPtIntrps[i]=sumWts;}
+		for(int i=0;i<cntlPts.length;++i){sumWts += cntlPts[i].w;cmyPointInterps[i] = (float) cntlPts[i].w;cntlPtIntrps[i]=sumWts;}
 		//for(int i=0;i<cntlPts.length;++i){sumWts += cntlPts[i].w;cntlPtIntrps[i]=cntlPts[i].w;}
 		//System.out.println("total weight = " + sumWts);
 		for(int i=0;i<cntlPts.length;++i){cntlPtIntrps[i]/=sumWts;cmyPointInterps[i]/=sumWts;}
@@ -179,7 +179,7 @@ public class myVariStroke extends myDrawnObject {
 //			//pa.outStr2Scr("NaN pts size at start of scalePointsAboveAxis",true);
 //			numPoints--;										//toss last NaN Point
 //		}
-		myPoint[] newPts = new myPoint[numPoints];
+		//myPoint[] newPts = new myPoint[numPoints];
 		double dist;
 		//pa.outStr2Scr("cntlPts size at scalePointsAboveAxis : " + pts.length,true);
 		for(int i =0; i<numPoints; ++i){
@@ -304,19 +304,19 @@ public class myVariStroke extends myDrawnObject {
 			pa.setColorValStroke(strkClr, 255);
 			pa.strokeWeight(1);
         	if(useDrawnVels){
-        		int clrInt = 0;
+        		//int clrInt = 0;
     			for(int i = 0; i < interpCntlPts.length; ++i){
-    	        	clrInt = (int)(i/(1.0f * interpCntlPts.length) * 255.0f);
+    	        	//clrInt = (int)(i/(1.0f * interpCntlPts.length) * 255.0f);
     	            //pa.fill(clrInt,255,(255 - clrInt),255);  
     	            //pa.stroke(clrInt,255,(255 - clrInt),255); 
     				pa.show(interpCntlPts[i],trajPtRad,-1,-1, flat);
-    				if(flags[drawCntlRad]){pa.circle(this.interpCntlPts[i], this.cntlPts[i].r,this.c_bAra[i], this.c_tAra[i],20);}
+    				if(flags[drawCntlRad]){pa.circle(this.interpCntlPts[i], (float) this.cntlPts[i].r,this.c_bAra[i], this.c_tAra[i],20);}
     			}
         	} else {			
 				for(int i = 0; i < cntlPts.length; ++i){
 					pa.show(cntlPts[i],trajPtRad,fillClr,strkClr, flat);
 				}
-				if(flags[drawCntlRad]){this._offset.drawCntlPts(this.cntlPts, this.c_bAra, this.c_tAra, ptsDerived);}
+				if(flags[drawCntlRad]){this._offset.drawCntlPts(pa, this.cntlPts, this.c_bAra, this.c_tAra, ptsDerived);}
         	}
 		pa.popStyle();			
 		pa.popMatrix();		
@@ -385,7 +385,7 @@ public class myVariStroke extends myDrawnObject {
 		return destCurve;
 	}//
 		
-	public cntlPt[] moveCntlCurveToEndPoints(myPoint startPt,myPoint endPt, boolean flip){
+	public myCntlPt[] moveCntlCurveToEndPoints(myPoint startPt,myPoint endPt, boolean flip){
 		int numPoints = cntlPts.length;
 //		if((Double.isNaN(cntlPts[cntlPts.length-1].x)) || 
 //				(Double.isNaN(cntlPts[cntlPts.length-1].y)) ||
@@ -393,7 +393,7 @@ public class myVariStroke extends myDrawnObject {
 //			//pa.outStr2Scr("NaN cntlPts size at start ",true);
 //			numPoints--;										//toss last NaN Point
 //		}
-		cntlPt[] destCurve = new cntlPt[numPoints];
+		myCntlPt[] destCurve = new myCntlPt[numPoints];
 		//pa.outStr2Scr("cntlPts size at start : " + cntlPts.length,true);
 		//pa.outStr2Scr("first and last cntlPoint : " + cntlPts[0].toStrBrf() + " | " + cntlPts[numPoints-1].toStrBrf() );
 		//drawn curve params
@@ -443,7 +443,7 @@ public class myVariStroke extends myDrawnObject {
 	}//
 	
 	//move points by the passed myVectortor 
-	public cntlPt[] movePoints(myVector move, cntlPt[] _pts){for(int i =0; i<_pts.length; ++i){	_pts[i]._add(move);	}	return _pts;}
+	public myCntlPt[] movePoints(myVector move, myCntlPt[] _pts){for(int i =0; i<_pts.length; ++i){	_pts[i]._add(move);	}	return _pts;}
 	
 	//calculate the weight of each point by determining the distance from its two neighbors - radius is inversely proportional to weight
 	public float calcCntlWeight(myPoint a, myPoint p, myPoint b){	return (float)(myPoint._dist(a,p) + myPoint._dist(p,b));}

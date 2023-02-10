@@ -1304,11 +1304,11 @@ import ddf.minim.ugens.*;
 		double iXVal = x*c-x-y*s, jYVal= x*s+y*c-y;			
 		return myPoint._add(P,iXVal,I,jYVal,J); }; 
 		
-	public cntlPt R(cntlPt P, double a, myVector I, myVector J, myPoint G) {
+	public myCntlPt R(myCntlPt P, double a, myVector I, myVector J, myPoint G) {
 		double x= myVector._dot(new myVector(G,P),U(I)), y=myVector._dot(new myVector(G,P),U(J)); 
 		double c=Math.cos(a), s=Math.sin(a); 
 		double iXVal = x*c-x-y*s, jYVal= x*s+y*c-y;		
-		return new cntlPt(this, P(P,iXVal,I,jYVal,J), P.r, P.w); }; 
+		return new myCntlPt(P(P,iXVal,I,jYVal,J), P.r, P.w); }; 
 
 		
 	public myPoint PtOnSpiral(myPoint A, myPoint B, myPoint C, double t) {

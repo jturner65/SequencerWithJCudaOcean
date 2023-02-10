@@ -412,7 +412,7 @@ public abstract class Base_DispWindow {
 	//build myGUIObj objects for interaction - call from setupMenuClkRegions of window, 
 	//uiClkCoords needs to be derived before this is called by child class - maxY val(for vertical stack) or maxX val(for horizontal stack) will be derived here
 	protected void buildGUIObjs(String[] guiObjNames, double[] guiStVals, double[][] guiMinMaxModVals, boolean[][] guiBoolVals, double[] off){
-		myGUIObj tmp; 
+		//myGUIObj tmp; 
 //		if(dispFlags[uiObjsAreVert]){		//vertical stack of UI components - clickable region x is unchanged, y changes with # of objects
 			double stClkY = uiClkCoords[1];
 			for(int i =0; i< guiStVals.length; ++i){
