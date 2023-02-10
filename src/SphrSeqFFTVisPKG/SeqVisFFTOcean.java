@@ -312,7 +312,7 @@ import ddf.minim.ugens.*;
 
 	public void buildCanvas(boolean is3DDraw){
 		canvas.buildCanvas();
-		canvas.drawMseEdge();
+		//canvas.drawMseEdge(dispWinFrames[curFocusWin], is3DDraw);
 	}
 	
 	//if should show problem # i
