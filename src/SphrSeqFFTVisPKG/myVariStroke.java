@@ -3,8 +3,11 @@ package SphrSeqFFTVisPKG;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import base_Math_Objects.vectorObjs.doubles.myCntlPt;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnTrajectories.offsets.Normal_Offset;
+import base_UI_Objects.windowUI.drawnTrajectories.offsets.base.Base_Offset;
 import processing.core.PApplet;
 import processing.core.PConstants;
 

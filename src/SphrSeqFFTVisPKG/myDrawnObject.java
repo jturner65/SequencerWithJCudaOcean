@@ -4,6 +4,7 @@ package SphrSeqFFTVisPKG;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import base_Math_Objects.vectorObjs.doubles.myCntlPt;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PApplet;

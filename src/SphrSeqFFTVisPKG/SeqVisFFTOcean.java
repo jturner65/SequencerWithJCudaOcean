@@ -24,6 +24,7 @@ import SphrSeqFFTVisPKG.ui.mySimWindow;
 import SphrSeqFFTVisPKG.ui.mySphereWindow;
 import base_Render_Interface.IRenderInterface;
 import base_Math_Objects.MyMathUtils;
+import base_Math_Objects.vectorObjs.doubles.myCntlPt;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import base_Math_Objects.vectorObjs.floats.myPointf;
@@ -252,7 +253,7 @@ import ddf.minim.ugens.*;
 	public void draw(){	
 		animCntr = (animCntr + (baseAnimSpd )*animModMult) % maxAnimCntr;						//set animcntr - used only to animate visuals		
 		//cyclModCmp = (drawCount % ((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].valAsInt() == 0);
-		pushMatrix();pushStyle();
+		pushMatState();
 		drawSetup();																//initialize camera, lights and scene orientation and set up eye movement
 		//if ((!cyclModCmp) || (flags[playMusic])) {drawCount++;}						//needed to stop draw update so that pausing sim retains animation positions			
 		if ((flags[playMusic])) {drawCount++;}											//needed to stop draw update so that pausing sim retains animation positions			
@@ -261,10 +262,13 @@ import ddf.minim.ugens.*;
 		glblLastPlayTime = millis();
 		if(flags[playMusic] ){movePBEReticle(modAmtSec);}		//play in current window
 		translate(focusTar.x,focusTar.y,focusTar.z);								//focus location center of screen					
-		if((curFocusWin == -1) || (dispWinIs3D[curFocusWin])){		draw3D_solve3D();} 
-		//else {														draw3D_solve2D();}
-		buildCanvas();		
-		popStyle();popMatrix(); 
+		if((curFocusWin == -1) || (dispWinIs3D[curFocusWin])){		
+			draw3D_solve3D(); 
+			buildCanvas(true);
+		} else {
+			buildCanvas(false);
+		}///														draw3D_solve2D();}
+		popMatState();
 		drawUI();																	//draw UI overlay on top of rendered results			
 		if (flags[saveAnim]) {	savePic();}
 		consoleStrings.clear();
@@ -287,10 +291,10 @@ import ddf.minim.ugens.*;
 	public void draw3D_solve3D(){
 	//	if (cyclModCmp) {															//if drawing this frame, draw results of calculations								
 			background(bground[0],bground[1],bground[2],bground[3]);				//if refreshing screen, this clears screen, sets background
-			pushMatrix();pushStyle();
+			pushMatState();
 			translateSceneCtr();				//move to center of 3d volume to start drawing	
 			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
-			popStyle();popMatrix();
+			popMatState();
 			drawAxes(100,3, new myPoint(-canvas.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
 	//	}
 		if(canShow3DBox[this.curFocusWin]) {drawBoxBnds();}
@@ -299,14 +303,14 @@ import ddf.minim.ugens.*;
 //		public void draw3D_solve2D(){
 //			if (cyclModCmp) {															//if drawing this frame, draw results of calculations								
 //				background(bground[0],bground[1],bground[2],bground[3]);				//if refreshing screen, this clears screen, sets background
-//				pushMatrix();pushStyle();
+//				pushMatState();
 //				translateSceneCtr();				//move to center of 3d volume to start drawing	
-//				popStyle();popMatrix();
+//				popMatState();
 //				drawAxes(100,3, new myPoint(-c.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
 //			}
 //		}		
 
-	public void buildCanvas(){
+	public void buildCanvas(boolean is3DDraw){
 		canvas.buildCanvas();
 		canvas.drawMseEdge();
 	}
@@ -1111,25 +1115,23 @@ import ddf.minim.ugens.*;
 	}
 	public void setInfoStr(int idx, String str){DebugInfoAra.set(idx,str);	}
 	public void drawInfoStr(float sc){//draw text on main part of screen
-		pushMatrix();		pushStyle();
+		pushMatState();
 		fill(0,0,0,100);
 		translate((menuWidth),0);
 		scale(sc,sc);
 		for(int i = 0; i < DebugInfoAra.size(); ++i){		text((flags[debugMode]?(i<10?"0":"")+i+":     " : "") +"     "+DebugInfoAra.get(i)+"\n\n",0,(10+(12*i)));	}
-		popStyle();	popMatrix();
+		popMatState();
 	}		
 	//vector and point functions to be compatible with earlier code from jarek's class or previous projects	
 	//draw bounding box for 3d
 	public void drawBoxBnds(){
-		pushMatrix();
-		pushStyle();
+		pushMatState();
 		strokeWeight(3f);
 		noFill();
 		setColorValStroke(gui_TransGray,255);
 		
 		box(gridDimX,gridDimY,gridDimZ);
-		popStyle();		
-		popMatrix();
+		popMatState();
 	}		
 	//drawsInitial setup for each draw
 	public void drawSetup(){			
@@ -1152,32 +1154,32 @@ import ddf.minim.ugens.*;
 	public void setCamOrient(){rotateX(rx);rotateY(ry); rotateX(PI/(2.0f));		}//sets the rx, ry, pi/2 orientation of the camera eye	
 	public void unSetCamOrient(){rotateX(-PI/(2.0f)); rotateY(-ry);   rotateX(-rx); }//reverses the rx,ry,pi/2 orientation of the camera eye - paints on screen and is unaffected by camera movement
 	public void drawAxes(double len, float stW, myPoint ctr, int alpha, boolean centered){//axes using current global orientation
-		pushMatrix();pushStyle();
+		pushMatState();
 			strokeWeight(stW);
 			stroke(255,0,0,alpha);
 			if(centered){line(ctr.x-len*.5f,ctr.y,ctr.z,ctr.x+len*.5f,ctr.y,ctr.z);stroke(0,255,0,alpha);line(ctr.x,ctr.y-len*.5f,ctr.z,ctr.x,ctr.y+len*.5f,ctr.z);stroke(0,0,255,alpha);line(ctr.x,ctr.y,ctr.z-len*.5f,ctr.x,ctr.y,ctr.z+len*.5f);} 
 			else {		line(ctr.x,ctr.y,ctr.z,ctr.x+len,ctr.y,ctr.z);stroke(0,255,0,alpha);line(ctr.x,ctr.y,ctr.z,ctr.x,ctr.y+len,ctr.z);stroke(0,0,255,alpha);line(ctr.x,ctr.y,ctr.z,ctr.x,ctr.y,ctr.z+len);}
-		popStyle();	popMatrix();	
+		popMatState();	
 	}//	drawAxes
 	public void drawAxes(double len, float stW, myPoint ctr, myVector[] _axis, int alpha, boolean drawVerts){//RGB -> XYZ axes
-		pushMatrix();pushStyle();
+		pushMatState();
 		if(drawVerts){
 			show(ctr,3,gui_Black,gui_Black, false);
 			for(int i=0;i<_axis.length;++i){show(myPoint._add(ctr, myVector._mult(_axis[i],len)),3,rgbClrs[i],rgbClrs[i], false);}
 		}
 		strokeWeight(stW);
 		for(int i =0; i<3;++i){	setColorValStroke(rgbClrs[i],255);	showVec(ctr,len, _axis[i]);	}
-		popStyle();	popMatrix();	
+		popMatState();	
 	}//	drawAxes
 	public void drawAxes(double len, float stW, myPoint ctr, myVector[] _axis, int[] clr, boolean drawVerts){//all axes same color
-		pushMatrix();pushStyle();
+		pushMatState();
 			if(drawVerts){
 				show(ctr,2,gui_Black,gui_Black, false);
 				for(int i=0;i<_axis.length;++i){show(myPoint._add(ctr, myVector._mult(_axis[i],len)),2,rgbClrs[i],rgbClrs[i], false);}
 			}
 			strokeWeight(stW);stroke(clr[0],clr[1],clr[2],clr[3]);
 			for(int i =0; i<3;++i){	showVec(ctr,len, _axis[i]);	}
-		popStyle();	popMatrix();	
+		popMatState();	
 	}//	drawAxes
 
 	public void drawText(String str, double x, double y, double z, int clr){
@@ -1187,14 +1189,14 @@ import ddf.minim.ugens.*;
 			unSetCamOrient();
 			translate((float)x,(float)y,(float)z);
 			text(str,0,0,0);		
-		popStyle();	popMatrix();	
+		popMatState();	
 	}//drawText	
 	public void savePic(){		save(animPath + animFileName + ((animCounter < 10) ? "000" : ((animCounter < 100) ? "00" : ((animCounter < 1000) ? "0" : ""))) + animCounter + ".jpg");		animCounter++;		}
 	public void line(double x1, double y1, double z1, double x2, double y2, double z2){line((float)x1,(float)y1,(float)z1,(float)x2,(float)y2,(float)z2 );}
 	public void line(myPoint p1, myPoint p2){line((float)p1.x,(float)p1.y,(float)p1.z,(float)p2.x,(float)p2.y,(float)p2.z);}
 	public void drawOnScreenData(){
 		if(flags[debugMode]){
-			pushMatrix();pushStyle();			
+			pushMatState();			
 			reInitInfoStr();
 			addInfoStr(0,"mse loc on screen : " + new myPoint(mouseX, mouseY,0) + " mse loc in world :"+canvas.mseLoc +"  Eye loc in world :"+ canvas.eyeInWorld); 
 			String[] res = ((mySideBarMenu)dispWinFrames[dispMenuIDX]).getDebugData();		//get debug data for each UI object
@@ -1202,10 +1204,10 @@ import ddf.minim.ugens.*;
 			int numToPrint = min(res.length,80);
 			for(int s=0;s<numToPrint;++s) {	addInfoStr(res[s]);}				//add info to string to be displayed for debug
 			drawInfoStr(1.0f); 	
-			popStyle();	popMatrix();		
+			popMatState();		
 		}
 		else if(showInfo){
-			pushMatrix();pushStyle();			
+			pushMatState();			
 			reInitInfoStr();	
 			if(showInfo){
 //			      addInfoStr(0,"Click the light green box to the left to toggle showing this message.");
@@ -1216,7 +1218,7 @@ import ddf.minim.ugens.*;
 			int dispNum = min(res.length, 80);
 			for(int i=0;i<dispNum;++i){addInfoStr(res[i]);}
 			drawInfoStr(1.1f); 
-			popStyle();	popMatrix();	
+			popMatState();	
 		}
 	}
 	//print out multiple-line text to screen
@@ -1272,13 +1274,13 @@ import ddf.minim.ugens.*;
 		//myPoint[]  projOnPlanes = new myPoint[6];
 		myPoint prjOnPlane;
 		//public myPoint intersectPl(myPoint E, myVector T, myPoint A, myPoint B, myPoint C) { // if ray from E along T intersects triangle (A,B,C), return true and set proposal to the intersection point
-		pushMatrix();
+		pushMatState();
 		translate(-p.x,-p.y,-p.z);
 		for(int i  = 0; i< 6; ++i){				
 			prjOnPlane = bndChkInCntrdBox3D(intersectPl(p, boxNorms[i], boxWallPts[i][0],boxWallPts[i][1],boxWallPts[i][2]));				
 			show(prjOnPlane,5,rgbClrs[i/2],rgbClrs[i/2], false);				
 		}
-		popMatrix();
+		popMatState();
 	}//drawProjOnBox
 	
 	public myPoint bndChkInBox2D(myPoint p){p.set(Math.max(0,Math.min(p.x,grid2D_X)),Math.max(0,Math.min(p.y,grid2D_Y)),0);return p;}
@@ -1389,7 +1391,7 @@ import ddf.minim.ugens.*;
 	void makePts(myPoint[] C) {for(int i=0; i<C.length; i++) C[i]=P();}
 
 	//draw a circle - JT
-	public void circle(myPoint P, float r, myVector I, myVector J, int n) {myPoint[] pts = new myPoint[n];pts[0] = P(P,r,U(I));float a = (2*PI)/(1.0f*n);for(int i=1;i<n;++i){pts[i] = R(pts[i-1],a,J,I,P);}pushMatrix(); pushStyle();noFill(); show(pts);popStyle();popMatrix();}; // render sphere of radius r and center P
+	public void circle(myPoint P, float r, myVector I, myVector J, int n) {myPoint[] pts = new myPoint[n];pts[0] = P(P,r,U(I));float a = (2*PI)/(1.0f*n);for(int i=1;i<n;++i){pts[i] = R(pts[i-1],a,J,I,P);}pushMatState();noFill(); show(pts);popMatState();}; // render sphere of radius r and center P
 	
 	public void circle(myPoint p, float r){ellipse((float)p.x, (float)p.y, r, r);}
 	void circle(float x, float y, float r1, float r2){ellipse(x,y, r1, r2);}
@@ -1474,7 +1476,7 @@ import ddf.minim.ugens.*;
 	public void gl_normal(myVector V) {normal((float)V.x,(float)V.y,(float)V.z);}                                          // changes normal for smooth shading
 	public void gl_vertex(myPoint P) {vertex((float)P.x,(float)P.y,(float)P.z);}                                           // vertex for shading or drawing
 	public void show(myPoint P, double r,int fclr, int sclr, boolean flat) {//TODO make flat circles for points if flat
-		pushMatrix(); pushStyle(); 
+		pushMatState(); 
 		if((fclr!= -1) && (sclr!= -1)){setColorValFill(fclr, 255); setColorValStroke(sclr, 255);}
 		if(!flat){
 			translate((float)P.x,(float)P.y,(float)P.z); 
@@ -1484,7 +1486,7 @@ import ddf.minim.ugens.*;
 			translate((float)P.x,(float)P.y,0); 
 			this.circle(0,0,(float)r,(float)r);				
 		}
-		popStyle(); popMatrix();} // render sphere of radius r and center P)
+		popMatState();} // render sphere of radius r and center P)
 	public void show(myPoint P, double r){show(P,r, gui_Black, gui_Black, false);}
 	public void show(myPoint P, String s) {text(s, (float)P.x, (float)P.y, (float)P.z); } // prints string s in 3D at P
 
@@ -1500,7 +1502,7 @@ import ddf.minim.ugens.*;
 	//flags : 0 : isDotted, 1 : isTuple, 2 : isRest, 3 : isChord, 4 : drawStemUp,   5 : isConnected, 6 :showDisplacement msg (8va, etc), 7 : isInStaff, 8 : isFlipped(part of chord and close to prev note, put note on other side of stem),
 	//grpPos : 0 first in group of stem-tied notes, 1 : last in group of stemTied notes, otherwise neither 
 	public void drawNote(float noteW, myVector nextNoteLoc, int noteTypIdx, int grpPos, boolean[] flags, float numLedgerLines){
-		pushMatrix(); pushStyle(); 
+		pushMatState(); 
 		//draw body
 		//noteIdx : -2,-1, 0, 1, 2, 3
 		rotate(QUARTER_PI,0,0,1);
@@ -1544,22 +1546,22 @@ import ddf.minim.ugens.*;
 			} else {
 				line(-noteW,.5f*noteW,noteW,.5f*noteW);			
 			}
-			pushMatrix(); pushStyle(); 
+			pushMatState(); 
 			if(abs(numLedgerLines) - (int)(abs(numLedgerLines)) != 0){translate(0,.5f*noteW);}
 			for(int i =0;i<abs(numLedgerLines);++i){
 				translate(0,mult*noteW);
 				line(-noteW,0,noteW,0);
 			}
-			popStyle(); popMatrix();
+			popMatState();
 			
 		}
-		popStyle(); popMatrix();
+		popMatState();
 	}//draw a note head
 
 	//flags : 0 : isDotted, 1 : drawUp, 2 : isFlipped(part of chord)
 	//durType vals : Whole(256),Half(128),Quarter(64),Eighth(32),Sixteenth(16),Thirtisecond(8); 
 	public void drawRest(float restW, int restIdx, boolean isDotted){
-		pushMatrix(); pushStyle(); 
+		pushMatState(); 
 		//draw rest
 		//restIdx : -2,-1, 0, 1, 2, 3
 		if(restIdx > -1){//draw image
@@ -1570,7 +1572,7 @@ import ddf.minim.ugens.*;
 			if(restIdx == -2){	translate(0,-.5f * restW,0);}//whole rest is above half rest
 			rect(-.5f * restW, 0, restW,.5f * restW);				
 		}
-		popStyle(); popMatrix();
+		popMatState();
 	}
 	
 	
