@@ -6,17 +6,13 @@ import SphrSeqFFTVisPKG.myGUIObj;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 
 public class myGUIProgressBar extends myGUIObj{
-	public final float[] barDims;// = new float[] {.8f * pa.menuWidth, 10.0f};
+	public final float[] barDims;
 
 	public myGUIProgressBar(SeqVisFFTOcean _p, Base_DispWindow _win, int _winID, String _name, myVector _start, myVector _end, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _off) {
 		super(_p, _win, _winID, _name, _start, _end,  _minMaxMod, _initVal, _flags, _off);
 		barDims = new float[] {.8f * p.menuWidth, (float)(.5*yOff)};		
 	}
 	
-	public myGUIProgressBar(SeqVisFFTOcean _p, Base_DispWindow _win, int _winID, String _name, double _xst, double _yst, double _xend, double _yend, double[] _minMaxMod, double _initVal, boolean[] _flags, double[] _Off) {
-		this(_p,_win, _winID,_name,new myVector(_xst,_yst,0), new myVector(_xend,_yend,0), _minMaxMod, _initVal, _flags, _Off);	
-	}
-
 	@Override
 	public void draw(){
 //		p.pushMatrix();p.pushStyle();
@@ -45,4 +41,4 @@ public class myGUIProgressBar extends myGUIObj{
 	}
 
 
-}
+}//class myGUIProgressBar
