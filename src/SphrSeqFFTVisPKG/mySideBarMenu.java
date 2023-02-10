@@ -8,6 +8,7 @@ import SphrSeqFFTVisPKG.note.enums.noteDurType;
 import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import base_Render_Interface.IRenderInterface;
+import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
 import processing.core.PApplet;
@@ -494,7 +495,7 @@ public class mySideBarMenu extends Base_DispWindow{
 	protected void setLocalTempoValIndiv(float tempo, float time){}
 	//no trajectory here
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnTraj){}	
+	protected void processTrajIndiv(DrawnSimpleTraj drawnTraj){}	
 	@Override
 	protected void setScoreInstrValsIndiv(){}
 	//init any extra ui objs

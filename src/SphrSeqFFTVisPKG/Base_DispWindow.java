@@ -13,6 +13,7 @@ import SphrSeqFFTVisPKG.staff.myKeySig;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
 import SphrSeqFFTVisPKG.ui.controls.myPlaybackEngine;
 import base_Render_Interface.IRenderInterface;
+import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
@@ -111,10 +112,10 @@ public abstract class Base_DispWindow {
 	public float[] vsblStLoc;							//pxl location of first visisble note on the left of the screen - idx0 for piano
 	public int[] seqVisStTime;							//seq time of first note visible in sequence window
 	//drawn trajectory
-	public myDrawnSmplTraj tmpDrawnTraj;						//currently drawn curve and all handling code - send to instanced owning screen
+	public DrawnSimpleTraj tmpDrawnTraj;						//currently drawn curve and all handling code - send to instanced owning screen
 
 	//all trajectories in this particular display window - String key is unique identifier - like staff name or instrument name
-	public TreeMap<Integer,TreeMap<String,ArrayList<myDrawnSmplTraj>>> drwnTrajMap;				
+	public TreeMap<Integer,TreeMap<String,ArrayList<DrawnSimpleTraj>>> drwnTrajMap;				
 	
 	public int numSubScrInWin = 2;									//# of subscreens in a window.  will generally be 1, but with sequencer will have at least 2 (piano roll and score view)
 	public int[] numTrajInSubScr;									//# of trajectories available for each sub screen
@@ -170,7 +171,7 @@ public abstract class Base_DispWindow {
 //		vsblStLoc = new float[numSubScrInWin];
 //		seqVisStTime = new int[numSubScrInWin];
 		//drawnTrajAra[curDrnTrajScrIDX][curDrnTrajStaffIDX] init 2 and 10
-		tmpDrawnTraj= new myDrawnSmplTraj(pa,this,topOffY,trajFillClrCnst, trajStrkClrCnst, _trajIsFlat, !_trajIsFlat);
+		tmpDrawnTraj= new DrawnSimpleTraj(pa,this,topOffY,trajFillClrCnst, trajStrkClrCnst, _trajIsFlat, !_trajIsFlat);
 		curDrnTrajScrIDX = 0;
 //		for(int i =0;i<numSubScrInWin;++i){//
 //			vsblStLoc[i] = 0;
@@ -179,12 +180,12 @@ public abstract class Base_DispWindow {
 	}	
 	//initialize traj-specific stuff for this window - only should be called once a song has been made, to have the # of trajectories available
 	protected void initTrajStructs(){
-		drwnTrajMap = new TreeMap<Integer,TreeMap<String,ArrayList<myDrawnSmplTraj>>>();
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTrajMap;
+		drwnTrajMap = new TreeMap<Integer,TreeMap<String,ArrayList<DrawnSimpleTraj>>>();
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTrajMap;
 		for(int scr =0;scr<numSubScrInWin; ++scr){
-			tmpTrajMap = new TreeMap<String,ArrayList<myDrawnSmplTraj>>();
+			tmpTrajMap = new TreeMap<String,ArrayList<DrawnSimpleTraj>>();
 			for(int traj =0; traj<numTrajInSubScr[scr]; ++traj){
-				tmpTrajMap.put(getTrajAraKeyStr(traj), new ArrayList<myDrawnSmplTraj>());			
+				tmpTrajMap.put(getTrajAraKeyStr(traj), new ArrayList<DrawnSimpleTraj>());			
 			}	
 			drwnTrajMap.put(scr, tmpTrajMap);
 		}		
@@ -349,28 +350,28 @@ public abstract class Base_DispWindow {
 		int modMthd = -1;
 		if(del){//delete a screen's worth of traj arrays, or a single traj array from a screen 
 			if((trajAraKey == null) || (trajAraKey == "") ){		//delete screen map				
-				TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTrajMap = drwnTrajMap.remove(scrKey);
+				TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTrajMap = drwnTrajMap.remove(scrKey);
 				if(null != tmpTrajMap){			pa.outStr2Scr("Screen trajectory map removed for scr : " + scrKey);				modMthd = 0;}
 				else {							pa.outStr2Scr("Error : Screen trajectory map not found for scr : " + scrKey); 	modMthd = -1; }
 			} else {												//delete a submap within a screen
 				modMthd = 2;					//modifying existing map at this location
-				TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTrajMap = drwnTrajMap.get(scrKey);
+				TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTrajMap = drwnTrajMap.get(scrKey);
 				if(null == tmpTrajMap){pa.outStr2Scr("Error : Screen trajectory map not found for scr : " + scrKey + " when trying to remove arraylist : "+trajAraKey); modMthd = -1;}
 				else { 
-					ArrayList<myDrawnSmplTraj> tmpTrajAra = drwnTrajMap.get(scrKey).remove(trajAraKey);modMthd = 2;
+					ArrayList<DrawnSimpleTraj> tmpTrajAra = drwnTrajMap.get(scrKey).remove(trajAraKey);modMthd = 2;
 					if(null == tmpTrajAra){pa.outStr2Scr("Error : attempting to remove a trajectory array from a screen but trajAra not found. scr : " + scrKey + " | trajAraKey : "+trajAraKey);modMthd = -1; }
 				}
 			}			 
 		} else {													//add
-			TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTrajMap = drwnTrajMap.get(scrKey);
+			TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTrajMap = drwnTrajMap.get(scrKey);
 			if((trajAraKey == null) || (trajAraKey == "") ){		//add map of maps - added a new screen				
 				if(null != tmpTrajMap){pa.outStr2Scr("Error : attempting to add a new drwnTrajMap where one exists. scr : " + scrKey);modMthd = -1; }
-				else {tmpTrajMap = new TreeMap<String,ArrayList<myDrawnSmplTraj>>();	drwnTrajMap.put(scrKey, tmpTrajMap);modMthd = 1;}
+				else {tmpTrajMap = new TreeMap<String,ArrayList<DrawnSimpleTraj>>();	drwnTrajMap.put(scrKey, tmpTrajMap);modMthd = 1;}
 			} else {												//add new map of trajs to existing screen's map
-				ArrayList<myDrawnSmplTraj> tmpTrajAra = drwnTrajMap.get(scrKey).get(trajAraKey);	
+				ArrayList<DrawnSimpleTraj> tmpTrajAra = drwnTrajMap.get(scrKey).get(trajAraKey);	
 				if(null == tmpTrajMap){pa.outStr2Scr("Error : attempting to add a new trajectory array to a screen that doesn't exist. scr : " + scrKey + " | trajAraKey : "+trajAraKey); modMthd = -1; }
 				else if(null != tmpTrajAra){pa.outStr2Scr("Error : attempting to add a new trajectory array to a screen where one already exists. scr : " + scrKey + " | trajAraKey : "+trajAraKey);modMthd = -1; }
-				else {	tmpTrajAra = new ArrayList<myDrawnSmplTraj>();			tmpTrajMap.put(trajAraKey, tmpTrajAra);	drwnTrajMap.put(scrKey, tmpTrajMap);modMthd = 2;}
+				else {	tmpTrajAra = new ArrayList<DrawnSimpleTraj>();			tmpTrajMap.put(trajAraKey, tmpTrajAra);	drwnTrajMap.put(scrKey, tmpTrajMap);modMthd = 2;}
 			}			
 		}//if del else add
 		//rebuild arrays of start loc
@@ -385,10 +386,10 @@ public abstract class Base_DispWindow {
 		rectDimClosed[3] = height;
 		float scale  = height/oldVal;			//scale of modification - rescale the size and location of all components of this window by this
 		//resize drawn all trajectories
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
 		if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 			for(int i =0; i<tmpTreeMap.size(); ++i){
-				ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
+				ArrayList<DrawnSimpleTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
 				if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){		tmpAra.get(j).reCalcCntlPoints(scale);	}	}
 			}	
 		}
@@ -571,12 +572,12 @@ public abstract class Base_DispWindow {
 	
 	protected void drawTraj(float animTimeMod){
 		pa.pushMatrix();pa.pushStyle();	
-		if(null != tmpDrawnTraj){tmpDrawnTraj.drawMe(animTimeMod);}
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
+		if(null != tmpDrawnTraj){tmpDrawnTraj.drawMe(pa, animTimeMod);}
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
 		if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 			for(int i =0; i<tmpTreeMap.size(); ++i){
-				ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
-				if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){tmpAra.get(j).drawMe(animTimeMod);}}
+				ArrayList<DrawnSimpleTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
+				if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){tmpAra.get(j).drawMe(pa, animTimeMod);}}
 			}	
 		}
 		pa.popStyle();pa.popMatrix();		
@@ -762,11 +763,11 @@ public abstract class Base_DispWindow {
 		return mod;
 	}//
 	
-	public myDrawnSmplTraj findTraj(myPoint mse){
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
+	public DrawnSimpleTraj findTraj(myPoint mse){
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
 		if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 			for(int i =0; i<tmpTreeMap.size(); ++i){
-				ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
+				ArrayList<DrawnSimpleTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
 				if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){	if(tmpAra.get(j).clickedMe(mse)){return tmpAra.get(j);}}}
 			}	
 		}
@@ -922,7 +923,7 @@ public abstract class Base_DispWindow {
 	public void startBuildDrawObj(){
 		pa.flags[pa.drawing] = true;
 		//drawnTrajAra[curDrnTrajScrIDX][curDrnTrajStaffIDX].startBuildTraj();
-		tmpDrawnTraj= new myDrawnSmplTraj(pa,this,topOffY,trajFillClrCnst, trajStrkClrCnst, dispFlags[trajPointsAreFlat], !dispFlags[trajPointsAreFlat]);
+		tmpDrawnTraj= new DrawnSimpleTraj(pa,this,topOffY,trajFillClrCnst, trajStrkClrCnst, dispFlags[trajPointsAreFlat], !dispFlags[trajPointsAreFlat]);
 		tmpDrawnTraj.startBuildTraj();
 		dispFlags[drawingTraj] = true;
 	}
@@ -943,10 +944,10 @@ public abstract class Base_DispWindow {
 	}
 	
 	public void rebuildAllDrawnTrajs(){
-		for(TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap : drwnTrajMap.values()){
+		for(TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap : drwnTrajMap.values()){
 			if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 				for(int i =0; i<tmpTreeMap.size(); ++i){
-					ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
+					ArrayList<DrawnSimpleTraj> tmpAra = tmpTreeMap.get(getTrajAraKeyStr(i));			
 					if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){	tmpAra.get(j).rebuildDrawnTraj();}}
 				}
 			}	
@@ -1043,20 +1044,20 @@ public abstract class Base_DispWindow {
 	protected int getTrajAraIDXVal(String str){for(int i=0; i<scoreStaffNames.length;++i){if(scoreStaffNames[i].equals(str)){return i;}}return -1; }
 
 	//add trajectory to appropriately keyed current trajectory ara in treemap	
-	protected void processTrajectory(myDrawnSmplTraj drawnNoteTraj){
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
-		ArrayList<myDrawnSmplTraj> tmpAra;
+	protected void processTrajectory(DrawnSimpleTraj drawnNoteTraj){
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
+		ArrayList<DrawnSimpleTraj> tmpAra;
 		if(curTrajAraIDX != -1){		//make sure some trajectory/staff has been selected
 			if((tmpTreeMap != null) && (tmpTreeMap.size() != 0) ) {
 				tmpAra = tmpTreeMap.get(getTrajAraKeyStr(curTrajAraIDX));			
-				if((null==tmpAra) || (pa.flags[pa.clearStaffNewTraj])){		tmpAra = new ArrayList<myDrawnSmplTraj>();}
+				if((null==tmpAra) || (pa.flags[pa.clearStaffNewTraj])){		tmpAra = new ArrayList<DrawnSimpleTraj>();}
 				//lastTrajIDX = tmpAra.size();
 				tmpAra.add(drawnNoteTraj); 				
 			} else {//empty or null tmpTreeMap - tmpAra doesn't exist
-				tmpAra = new ArrayList<myDrawnSmplTraj>();
+				tmpAra = new ArrayList<DrawnSimpleTraj>();
 				tmpAra.add(drawnNoteTraj);
 				//lastTrajIDX = tmpAra.size();
-				if(tmpTreeMap == null) {tmpTreeMap = new TreeMap<String,ArrayList<myDrawnSmplTraj>>();} 
+				if(tmpTreeMap == null) {tmpTreeMap = new TreeMap<String,ArrayList<DrawnSimpleTraj>>();} 
 			}
 			tmpTreeMap.put(getTrajAraKeyStr(curTrajAraIDX), tmpAra);
 			processTrajIndiv(drawnNoteTraj);
@@ -1065,11 +1066,11 @@ public abstract class Base_DispWindow {
 	}
 	
 	public void clearAllTrajectories(){//int instrIdx){
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
-		ArrayList<myDrawnSmplTraj> tmpAra;
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap = drwnTrajMap.get(this.curDrnTrajScrIDX);
+		ArrayList<DrawnSimpleTraj> tmpAra;
 		if(curTrajAraIDX != -1){		//make sure some trajectory/staff has been selected
 			if((tmpTreeMap != null) && (tmpTreeMap.size() != 0) ) {
-				tmpTreeMap.put(getTrajAraKeyStr(curTrajAraIDX), new ArrayList<myDrawnSmplTraj>());
+				tmpTreeMap.put(getTrajAraKeyStr(curTrajAraIDX), new ArrayList<DrawnSimpleTraj>());
 			}
 		}	
 	}//clearAllTrajectories
@@ -1124,7 +1125,7 @@ public abstract class Base_DispWindow {
 	protected abstract void setupGUIObjsAras();	
 	protected abstract void setUIWinVals(int UIidx);
 	protected abstract String getUIListValStr(int UIidx, int validx);
-	protected abstract void processTrajIndiv(myDrawnSmplTraj drawnTraj);
+	protected abstract void processTrajIndiv(DrawnSimpleTraj drawnTraj);
 	
 	public abstract void clickDebug(int btnNum);
 	

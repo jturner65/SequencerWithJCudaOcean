@@ -4,7 +4,6 @@ import java.util.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.Base_DispWindow;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myNote;
@@ -15,6 +14,7 @@ import SphrSeqFFTVisPKG.ui.controls.mySphereCntl;
 import base_Math_Objects.MyMathUtils;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import processing.core.PApplet;
 
 public class mySphereWindow extends Base_DispWindow {
@@ -253,10 +253,10 @@ public class mySphereWindow extends Base_DispWindow {
 		mySphereCntl tmp = sphereCntls.get(curSelSphere);
 		if(null != tmpDrawnTraj){tmp.drawTrajPts(tmpDrawnTraj, animTimeMod);}
 		if(privFlags[showTrajIDX]){
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
 			if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 				//pa.outStr2Scr("MATCh : cur sel : " + curSelSphere + " cur instr : " + instrs.get(getTrajAraKeyStr(i)).instrName + " key : " + getTrajAraKeyStr(i));
-				ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
+				ArrayList<DrawnSimpleTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
 				if(null!=tmpAra){	
 					for(int j =0; j<tmpAra.size();++j){tmp.drawTrajPts(tmpAra.get(j),animTimeMod);}
 				}	
@@ -389,10 +389,10 @@ public class mySphereWindow extends Base_DispWindow {
 	//print out all trajectories for current sphere
 	public void dbgShowTrajLocs(){
 		if(null != tmpDrawnTraj){	tmpDrawnTraj.dbgPrintAllPoints();}
-		TreeMap<String,ArrayList<myDrawnSmplTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
+		TreeMap<String,ArrayList<DrawnSimpleTraj>> tmpTreeMap = drwnTrajMap.get(curDrnTrajScrIDX);
 		if((tmpTreeMap != null) && (tmpTreeMap.size() != 0)) {
 			pa.outStr2Scr("cur sel sphere: " + curSelSphere);
-			ArrayList<myDrawnSmplTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
+			ArrayList<DrawnSimpleTraj> tmpAra = tmpTreeMap.get(curSelSphere);			
 			if(null!=tmpAra){	for(int j =0; j<tmpAra.size();++j){tmpAra.get(j).dbgPrintAllPoints();}	}	
 		}		
 	}
@@ -425,7 +425,7 @@ public class mySphereWindow extends Base_DispWindow {
 		}		
 	}
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
+	protected void processTrajIndiv(DrawnSimpleTraj drawnNoteTraj){
 		pa.outStr2Scr("Process traj in sphere ui");
 		sphereCntls.get(curSelSphere).processTrajIndiv(drawnNoteTraj);
 		//traj processing

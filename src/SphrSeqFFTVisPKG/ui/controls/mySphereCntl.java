@@ -6,8 +6,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
-import SphrSeqFFTVisPKG.myVariStroke;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.note.myChord;
 import SphrSeqFFTVisPKG.note.myNote;
@@ -15,6 +13,8 @@ import SphrSeqFFTVisPKG.note.enums.noteDurType;
 import SphrSeqFFTVisPKG.ui.mySphereWindow;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
+import base_UI_Objects.windowUI.drawnTrajectories.VariableTraj;
 import ddf.minim.AudioOutput;
 import processing.core.PApplet;
 import processing.core.PConstants;
@@ -386,8 +386,8 @@ public class mySphereCntl {
 		return res;
 	}
 			
-	private void convTrajToDrumBeats(myDrawnSmplTraj drawnNoteTraj){
-		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
+	private void convTrajToDrumBeats(DrawnSimpleTraj drawnNoteTraj){
+		myPoint[] pts = ((VariableTraj)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		ArrayList<myNote> tmpDrawnSphereNotes = new ArrayList<myNote>();										//new trajectory of notes to play
 		myNote newDrumNote,lastDrumNote = null;
 		boolean checkedFirstNote = false;		
@@ -411,8 +411,8 @@ public class mySphereCntl {
 		}//for each point
 		addDrawnNotesToStruct(pa.flags[pa.clearStaffNewTraj],tmpDrawnSphereNotes);
 	}
-	private void convTrajToNotes(myDrawnSmplTraj drawnNoteTraj){
-		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
+	private void convTrajToNotes(DrawnSimpleTraj drawnNoteTraj){
+		myPoint[] pts = ((VariableTraj)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		//TreeMap<Integer,myNote> tmpdrawnStaffNotes = new TreeMap<Integer,myNote>();		
 		ArrayList<myNote> tmpDrawnSphereNotes = new ArrayList<myNote>();										//new trajectory of notes to play
 		myNote newClickNote,lastNewNote = null;
@@ -440,7 +440,7 @@ public class mySphereCntl {
 	}//convTrajToNotes	
 	
 	//convert points in drawnNoteTraj to notes : convert traj notes to actual notes on sphere 
-	public void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){	
+	public void processTrajIndiv(DrawnSimpleTraj drawnNoteTraj){	
 		if(getFlag(isDrumKitIDX)){	convTrajToDrumBeats(drawnNoteTraj);	} 
 		else {				convTrajToNotes(drawnNoteTraj);}
 	}
@@ -578,11 +578,11 @@ public class mySphereCntl {
 		pa.popStyle();pa.popMatrix();	
 	}
 	
-	public void drawTrajPts(myDrawnSmplTraj traj, float animTimeMod){
+	public void drawTrajPts(DrawnSimpleTraj traj, float animTimeMod){
 		pa.pushMatrix();pa.pushStyle();
 			pa.translate(drawCtr);		//either ctr or displaced position		
 			pa.translate(ntRngDispVec.x,ntRngDispVec.y,ntRngDispVec.z-1.0f);
-			traj.drawMe( animTimeMod);
+			traj.drawMe(pa, animTimeMod);
 		pa.popStyle();pa.popMatrix();	
 	}
 	

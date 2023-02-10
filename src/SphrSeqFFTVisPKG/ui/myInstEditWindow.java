@@ -3,15 +3,14 @@ import java.util.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.Base_DispWindow;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
-import SphrSeqFFTVisPKG.note.NoteData;
 import SphrSeqFFTVisPKG.note.myNote;
 import SphrSeqFFTVisPKG.note.enums.noteDurType;
 import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 
@@ -191,7 +190,7 @@ public class myInstEditWindow extends Base_DispWindow {
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc){}//not a snap-to window
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
+	protected void processTrajIndiv(DrawnSimpleTraj drawnNoteTraj){
 		
 		//traj processing
 	}

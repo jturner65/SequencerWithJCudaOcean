@@ -5,9 +5,7 @@ import java.util.Map.Entry;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.Base_DispWindow;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
-import SphrSeqFFTVisPKG.myVariStroke;
 import SphrSeqFFTVisPKG.clef.enums.clefVal;
 import SphrSeqFFTVisPKG.instrument.myInstrument;
 import SphrSeqFFTVisPKG.measure.myMeasure;
@@ -19,6 +17,8 @@ import SphrSeqFFTVisPKG.staff.myStaff;
 import SphrSeqFFTVisPKG.staff.myTimeSig;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
+import base_UI_Objects.windowUI.drawnTrajectories.VariableTraj;
 import ddf.minim.ugens.Waves;
 
 public class mySequencerWindow extends Base_DispWindow {
@@ -396,8 +396,8 @@ public class mySequencerWindow extends Base_DispWindow {
     } 
     
 	//get notes to display on piano roll from trajectory and put in staff
-	public void calcPRLNotesFromTraj(myDrawnSmplTraj drawnNoteTraj){
-		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
+	public void calcPRLNotesFromTraj(DrawnSimpleTraj drawnNoteTraj){
+		myPoint[] pts = ((VariableTraj)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		TreeMap<Integer,myNote> tmpdrawnPRollNotes = new TreeMap<Integer,myNote>();										//new trajectory of notes to play
 		int ticksPerDfltBeat =  defaultNoteLength.getVal();
 		myNote newClickNote,lastNewNote = null;
@@ -453,8 +453,8 @@ public class mySequencerWindow extends Base_DispWindow {
 		}
 	}	
 	
-	public void calcStaffNotesFromTraj(myDrawnSmplTraj drawnNoteTraj){			//TODO
-		myPoint[] pts = ((myVariStroke)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
+	public void calcStaffNotesFromTraj(DrawnSimpleTraj drawnNoteTraj){			//TODO
+		myPoint[] pts = ((VariableTraj)drawnNoteTraj.drawnTraj).getDrawnPtAra(false);
 		TreeMap<Integer,myNote> tmpdrawnStaffNotes = new TreeMap<Integer,myNote>();										//new trajectory of notes to play		
 		int ticksPerDfltBeat =  defaultNoteLength.getVal();
 		myNote newClickNote,lastNewNote = null;
@@ -520,7 +520,7 @@ public class mySequencerWindow extends Base_DispWindow {
 	}	
 
 	@Override  //
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){
+	protected void processTrajIndiv(DrawnSimpleTraj drawnNoteTraj){
 		if(privFlags[prlShowPianoIDX]){
 			calcPRLNotesFromTraj(drawnNoteTraj);
 		} else {

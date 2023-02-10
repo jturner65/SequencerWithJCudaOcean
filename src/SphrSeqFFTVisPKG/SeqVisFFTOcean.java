@@ -295,7 +295,7 @@ import ddf.minim.ugens.*;
 			translateSceneCtr();				//move to center of 3d volume to start drawing	
 			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
 			popMatState();
-			drawAxes(100,3, new myPoint(-canvas.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
+			drawAxes(100,3, new myPoint(-width/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
 	//	}
 		if(canShow3DBox[this.curFocusWin]) {drawBoxBnds();}
 	}
@@ -312,7 +312,7 @@ import ddf.minim.ugens.*;
 
 	public void buildCanvas(boolean is3DDraw){
 		canvas.buildCanvas();
-		//canvas.drawMseEdge(dispWinFrames[curFocusWin], is3DDraw);
+		canvas.drawMseEdge(is3DDraw);
 	}
 	
 	//if should show problem # i
@@ -942,7 +942,7 @@ import ddf.minim.ugens.*;
 	public final float maxAnimCntr = PI*1000.0f, baseAnimSpd = 1.0f;
 	
 
-	my3DCanvas canvas;												//3d interaction stuff and mouse tracking
+	Disp3DCanvas canvas;												//3d interaction stuff and mouse tracking
 	
 	public float[] camVals;		
 	public String dateStr, timeStr;								//used to build directory and file names for screencaps
@@ -985,7 +985,7 @@ import ddf.minim.ugens.*;
 		menuWidth = width * menuWidthMult;						//grid2D_X of menu region	
 		hideWinWidth = width * hideWinWidthMult;				//dims for hidden windows
 		hidWinHeight = height * hideWinHeightMult;
-		canvas = new my3DCanvas(this);			
+		canvas = new Disp3DCanvas(this, width, height);			
 		winRectDimOpen = new float[numDispWins][];
 		winRectDimClose = new float[numDispWins][];
 		winRectDimOpen[0] =  new float[]{0,0, menuWidth, height};
@@ -1182,9 +1182,18 @@ import ddf.minim.ugens.*;
 		popMatState();	
 	}//	drawAxes
 
+	public final void drawText(String str, float x, float y, float z, int[] clr){
+		pushMatState();
+			setFill(clr,clr[3]);
+			unSetCamOrient();
+			translate(x,y,z);
+			showText(str,0,0,0);		
+		popMatState();	
+	}//drawText
+	
 	public void drawText(String str, double x, double y, double z, int clr){
 		int[] c = getClr(clr,255);
-		pushMatrix();	pushStyle();
+		pushMatState();
 			fill(c[0],c[1],c[2],c[3]);
 			unSetCamOrient();
 			translate((float)x,(float)y,(float)z);
@@ -1198,7 +1207,7 @@ import ddf.minim.ugens.*;
 		if(flags[debugMode]){
 			pushMatState();			
 			reInitInfoStr();
-			addInfoStr(0,"mse loc on screen : " + new myPoint(mouseX, mouseY,0) + " mse loc in world :"+canvas.mseLoc +"  Eye loc in world :"+ canvas.eyeInWorld); 
+			addInfoStr(0,"mse loc on screen : " + new myPoint(mouseX, mouseY,0) + " mse loc in world :"+canvas.getMseLocInWorld() +"  Eye loc in world :"+ canvas.getEyeInWorld()); 
 			String[] res = ((mySideBarMenu)dispWinFrames[dispMenuIDX]).getDebugData();		//get debug data for each UI object
 			//for(int s=0;s<res.length;++s) {	addInfoStr(res[s]);}				//add info to string to be displayed for debug
 			int numToPrint = min(res.length,80);
@@ -1251,7 +1260,7 @@ import ddf.minim.ugens.*;
 	
 	public myPoint getMseLoc(){			return canvas.getMseLoc();}
 	public myPoint getMseLoc(myPoint glbTrans){			return canvas.getMseLoc(glbTrans);}
-	public myPoint getEyeLoc(){			return canvas.getEyeLoc();	}
+	public myPoint getEyeInWorld(){			return canvas.getEyeInWorld();	}
 	public myPoint getOldMseLoc(){		return canvas.getOldMseLoc();	}	
 	public myVector getMseDragVec(){	return canvas.getMseDragVec();}
 
@@ -1362,7 +1371,7 @@ import ddf.minim.ugens.*;
 	public void cylinder(myPoint A, myPoint B, float r, int c1, int c2) {
 		myPoint P = A;
 		myVector V = V(A,B);
-		myVector I = canvas.drawSNorm;//U(Normal(V));
+		myVector I = canvas.getDrawSNorm();//U(Normal(V));
 		myVector J = U(N(I,V));
 		float da = TWO_PI/36;
 		beginShape(QUAD_STRIP);
@@ -1653,12 +1662,6 @@ import ddf.minim.ugens.*;
 	public int getRndClrInt(){return (int)random(0,23);}		//return a random color flag value from below
 	public int[] getRndClr(){return getRndClr(255);	}		
 	public Integer[] getClrMorph(int a, int b, double t){return getClrMorph(getClr(a, 255), getClr(b, 255), t);}    
-
-
-	
-	
-	
-	
 	
 	
 	@Override

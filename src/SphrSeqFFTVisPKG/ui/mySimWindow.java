@@ -6,7 +6,6 @@ import javax.swing.*;
 
 import SphrSeqFFTVisPKG.SeqVisFFTOcean;
 import SphrSeqFFTVisPKG.Base_DispWindow;
-import SphrSeqFFTVisPKG.myDrawnSmplTraj;
 import SphrSeqFFTVisPKG.myGUIObj;
 import SphrSeqFFTVisPKG.myOcean;
 import SphrSeqFFTVisPKG.musicPlayer.myMP3SongHandler;
@@ -16,6 +15,7 @@ import SphrSeqFFTVisPKG.note.enums.noteValType;
 import SphrSeqFFTVisPKG.staff.myKeySig;
 import base_Math_Objects.vectorObjs.doubles.myPoint;
 import base_Math_Objects.vectorObjs.doubles.myVector;
+import base_UI_Objects.windowUI.drawnTrajectories.DrawnSimpleTraj;
 //import com.jogamp.opengl.*;
 //import processing.opengl.PJOGL;
 //import processing.opengl.PShader;
@@ -489,7 +489,7 @@ public class mySimWindow extends Base_DispWindow {
 	@Override
 	protected void snapMouseLocs(int oldMouseX, int oldMouseY, int[] newMouseLoc) {}	
 	@Override
-	protected void processTrajIndiv(myDrawnSmplTraj drawnNoteTraj){}
+	protected void processTrajIndiv(DrawnSimpleTraj drawnNoteTraj){}
 	@Override
 	protected boolean hndlMouseMoveIndiv(int mouseX, int mouseY, myPoint mseClckInWorld){	return false;}
 	@Override
