@@ -253,7 +253,7 @@ public class myInstrument {
 //			_nc = getAvailNtChan(_n.ID);		
 //			if(_nc == null){return -1;}
 //			_nc.setCurNoteAndPlay(_n);
-//			numNotesPlaying++;
+//			++numNotesPlaying;
 		}
 		return 1;
 	}//addTrajNoteToPlay
@@ -279,7 +279,7 @@ public class myInstrument {
 //				_nc = relPlayingNtChan(note.ID);
 //				if(_nc == null){retCode = -1; continue;}
 //				_nc.clearCurNoteAndStop(note);
-//				numNotesPlaying--;
+//				--numNotesPlaying;
 			}
 		}//for every note in stop notes map	
 		if(numNotesPlaying <= 0){this.unPatchMstrOut();numNotesPlaying =0;}

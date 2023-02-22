@@ -34,13 +34,17 @@ import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 
 import SphrSeqFFTVisPKG.ui.mySimWindow;
+import base_Math_Objects.MyMathUtils;
 import jcuda.Pointer;
 import jcuda.Sizeof;
 import jcuda.driver.*;
 import jcuda.jcufft.*;
-import processing.core.PConstants;
 
-//class implementing external window for fft ocean surface, based on cuda example.
+/**
+ * class implementing external window for fft ocean surface, based on cuda example.
+ * @author John Turner
+ *
+ */
 public class myOcean implements GLEventListener{
 	public SeqVisFFTOcean pa;
 	public mySimWindow win;
@@ -48,12 +52,13 @@ public class myOcean implements GLEventListener{
 	public Animator animator;
 	public GL2 gl;	
 	
-	public int meshSize = 1024, 
+	public final int meshSize = 1024, 
 			meshSzSq = meshSize * meshSize, 
 			spectrumW = meshSize + 4, 
 			spectrumH = meshSize + 1, 
-			vBufNumInts = ((meshSize*2)+2)*(meshSize-1),
-			freqsInLen, 
+			vBufNumInts = ((meshSize*2)+2)*(meshSize-1);
+			 
+	public int freqsInLen,
 			isNoteData;		//1 if note data, 0 if audio data
 	
 	// simulation parameters
@@ -68,7 +73,7 @@ public class myOcean implements GLEventListener{
 			//UI mod variables
 			patchSize = 75.0f,
 			windSpeed = 50.0f,
-			windDir = (float) (Math.PI / 3.0f),
+			windDir = MyMathUtils.PI_F / 3.0f,
 			dirDepend = 0.07f,
 			heightScale = 0.5f,
 			freqMix = 0,						//amount of frequency data to mix into simulation
@@ -242,7 +247,7 @@ public class myOcean implements GLEventListener{
 		deepColor = new float[]{0.0f, 0.1f, 0.4f, 1.0f};
 		shallowColor = new float[]{0.1f, 0.3f, 0.3f, 1.0f};
 		skyColor = new float[]{.8f, .9f, 1.0f, 1.0f};
-		lightDir = new float[]{ 0.0f, 1.0f, 0.0f};
+		lightDir = new float[]{0.0f, 1.0f, 0.0f};
 	}
 	
 	public void delMe(){
@@ -255,7 +260,7 @@ public class myOcean implements GLEventListener{
 			cuMemFree(d_freqInRPtr);
 			cuMemFree(d_freqInCPtr);
 			JCufft.cufftDestroy(fftPlan);
-			for (int i=0; i<vertBufs.length;++i) {gl.glDeleteBuffers(1, IntBuffer.wrap(new int[] {vertBufs[i]}));}
+			for (int i=0; i<vertBufs.length;++i) {gl.glDeleteBuffers(1, IntBuffer.wrap(new int[]{vertBufs[i]}));}
 			
 		} catch (Exception e1){
 			pa.outStr2Scr("error when closing frame");
@@ -533,12 +538,12 @@ public class myOcean implements GLEventListener{
 					Pointer.to(d_freqPtr),
 					Pointer.to(d_freqInRPtr),
 					Pointer.to(d_freqInCPtr),
-					Pointer.to(new int[] { freqsInLen }),
-					Pointer.to(new int[] { spectrumW }),//meshSize }), 
-					Pointer.to(new int[] { spectrumH }),//meshSize }),
-					Pointer.to(new int[] { isNoteData }),
-					//Pointer.to(new float[] { thresh }),
-					Pointer.to(new float[] { animTime })					
+					Pointer.to(new int[]{freqsInLen}),
+					Pointer.to(new int[]{spectrumW}),//meshSize}), 
+					Pointer.to(new int[]{spectrumH}),//meshSize}),
+					Pointer.to(new int[]{isNoteData}),
+					//Pointer.to(new float[]{thresh}),
+					Pointer.to(new float[]{animTime })					
 					);
 		
 			cuLaunchKernel(kFuncs[win.getFreqKFunc()],//kFuncs[bldFreqIDX], 				//recalc phillips spectrum value for each time step
@@ -562,12 +567,12 @@ public class myOcean implements GLEventListener{
 				Pointer.to(d_h0Ptr),
 				Pointer.to(d_htPtr),
 				Pointer.to(d_freqPtr),
-				Pointer.to(new int[] { spectrumW }),
-				Pointer.to(new int[] { meshSize }),
-				Pointer.to(new int[] { meshSize }),
-				Pointer.to(new float[] { animTime }),  
-				Pointer.to(new float[] { freqMix }),   
-				Pointer.to(new float[] { patchSize }));
+				Pointer.to(new int[]{spectrumW}),
+				Pointer.to(new int[]{meshSize}),
+				Pointer.to(new int[]{meshSize}),
+				Pointer.to(new float[]{animTime}),  
+				Pointer.to(new float[]{freqMix}),   
+				Pointer.to(new float[]{patchSize }));
 		
 		//convert back from frequency domain to spatial domain
 		if(getFlags(performInvFFT)) {
@@ -595,7 +600,7 @@ public class myOcean implements GLEventListener{
 		kernelParameters = Pointer.to(
 				Pointer.to(g_hptr),
 				Pointer.to(d_htPtr),
-				Pointer.to(new int[] { meshSize }));
+				Pointer.to(new int[]{meshSize}));
 
 		cuLaunchKernel(kFuncs[updHMapIDX],  
 				gridX, gridY, 1, // Grid dimension
@@ -612,8 +617,8 @@ public class myOcean implements GLEventListener{
 		kernelParameters = Pointer.to(
 				Pointer.to(g_hptr),
 				Pointer.to(g_sptr),
-				Pointer.to(new int[] { meshSize }),
-				Pointer.to(new int[] { meshSize }));
+				Pointer.to(new int[]{meshSize}),
+				Pointer.to(new int[]{meshSize}));
 
 		cuLaunchKernel(kFuncs[calcSlopeIDX],  
 				gridX, gridY, 1, // Grid dimension
@@ -622,7 +627,7 @@ public class myOcean implements GLEventListener{
 				kernelParameters, null // Kernel- and extra parameters
 		);
 		cuCtxSynchronize();
-		cuGraphicsUnmapResources(1, new CUgraphicsResource[]{ cuda_slopeVB_resource}, null);
+		cuGraphicsUnmapResources(1, new CUgraphicsResource[]{cuda_slopeVB_resource}, null);
 		//pa.outStr2Scr("done cuda");
 	}
 	
@@ -640,7 +645,7 @@ public class myOcean implements GLEventListener{
 	private int attachShader(GL2 gl, int type, String shaderSource){
 		int shader = 0; 
 		shader = gl.glCreateShader(type);
-		gl.glShaderSource(shader, 1, new String[] { shaderSource }, null);
+		gl.glShaderSource(shader, 1, new String[]{shaderSource}, null);
 		gl.glCompileShader(shader);
 		int[] buffer = new int[1];
 		gl.glGetShaderiv(shader, GL2.GL_COMPILE_STATUS, IntBuffer.wrap(buffer));
@@ -683,32 +688,29 @@ public class myOcean implements GLEventListener{
 	 * @return
 	 */
 	public float[] generateH0(float[] h0) {
-		float kMult = (PConstants.TWO_PI / patchSize);
+		float kMult = (MyMathUtils.TWO_PI_F / patchSize);
 		int nMshHalf = -meshSize/2; 
 		float kx,ky,
 			P,
-			Er,Ei,h0_re,h0_im, L = (windSpeed*windSpeed/g), lsq = (L*L);
+			Er,Ei,L = (windSpeed*windSpeed/g), lsq = (L*L);
 		//Min kx : -42.89321Max kx : 42.89321Min ky : -42.89321Max ky : 42.89321
 		ThreadLocalRandom rnd = ThreadLocalRandom.current(); 
 		for (int y = 0; y <= meshSize; ++y) {
 			ky = (nMshHalf + y) * kMult;
 			for (int x = 0; x <= meshSize; ++x) {
 				kx = (nMshHalf + x) * kMult;
-				Er = (float) rnd.nextGaussian();
-				Ei = (float) rnd.nextGaussian();
+				int i2 = 2* (y * spectrumW + x);
 				if (kx == 0.0f && ky == 0.0f){	
 					P = 0.0f;
-					h0_re = 0;
-					h0_im = 0;
+					h0[i2] = 0;
+					h0[i2+1] = 0;
 				} else {
-					P = phillipsNoise(kx, ky, windDir, windSpeed, wScl, dirDepend, lsq);	
-					h0_re = (Er*P * pa.SQRT2);
-					h0_im = (Ei*P * pa.SQRT2);
+					P = phillipsNoise(kx, ky, windDir, windSpeed, wScl, dirDepend, lsq);
+					Er = (float) rnd.nextGaussian();
+					Ei = (float) rnd.nextGaussian();
+					h0[i2] = (Er*P * pa.SQRT2);
+					h0[i2+1] = (Ei*P * pa.SQRT2);
 				}
-
-				int i2 = 2* (y * spectrumW + x);
-				h0[i2] = h0_re;
-				h0[i2+1] = h0_im;
 			}
 		}
 		return h0;
