@@ -150,17 +150,6 @@ import ddf.minim.ugens.*;
 				PApplet.main(appletArgs);
 			}
 	}//main
-	@Override
-	public void setRenderBackground(int r, int g, int b, int alpha) {
-		// GET RID OF THIS WHEN CONVERTED TO USING GUI_APPMANAGER
-		
-	}
-	@Override
-	public void setBkgndSphere() {
-		// GET RID OF THIS WHEN CONVERTED TO USING GUI_APPMANAGER
-		
-	}
-	
 	
 	private final float maxWinRatio =  1.77777778f;
 	public void settings(){	
@@ -251,6 +240,24 @@ import ddf.minim.ugens.*;
 		initVisProg();				//always first
 		drawCount = 0;
 	}//initProgram
+	
+	
+	@Override
+	public void setRenderBackground(int winIdx, int r, int g, int b, int alpha) {
+		// GET RID OF THIS WHEN MOVING TO GUI_APPMANAGER		
+	}
+	@Override
+	public void drawRenderBackground(int winIdx) {
+		// GET RID OF THIS WHEN MOVING TO GUI_APPMANAGER		
+	}
+	@Override
+	public void loadBkgndSphere(int winIdx, String filename) {
+		// GET RID OF THIS WHEN MOVING TO GUI_APPMANAGER		
+	}
+	@Override
+	public void drawBkgndSphere(int winIdx) {
+		// GET RID OF THIS WHEN MOVING TO GUI_APPMANAGER		
+	}
 
 	//build audio specific constructs
 	public void initAudio(){		
@@ -1665,12 +1672,7 @@ import ddf.minim.ugens.*;
 	public int[] getRndClr(){return getRndClr(255);	}		
 	public Integer[] getClrMorph(int a, int b, double t){return getClrMorph(getClr(a, 255), getClr(b, 255), t);}    
 
-	@Override
-	public void loadBkgndSphere(String filename) {
-		// TODO Auto-generated method stub
-		
-	}
-	
+
 	@Override
 	public void initRenderInterface() {
 		//initialize constants
@@ -2959,6 +2961,4 @@ import ddf.minim.ugens.*;
 		if(t==0){return new Integer[]{a[0],a[1],a[2],a[3]};} else if(t==1){return new Integer[]{b[0],b[1],b[2],b[3]};}
 		return new Integer[]{(int)(((1.0f-t)*a[0])+t*b[0]),(int)(((1.0f-t)*a[1])+t*b[1]),(int)(((1.0f-t)*a[2])+t*b[2]),(int)(((1.0f-t)*a[3])+t*b[3])};
 	}
-
-
 }
