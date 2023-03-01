@@ -270,7 +270,7 @@ import ddf.minim.ugens.*;
 
 	public void draw(){	
 		animCntr = (animCntr + (baseAnimSpd )*animModMult) % maxAnimCntr;						//set animcntr - used only to animate visuals		
-		//cyclModCmp = (drawCount % ((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].valAsInt() == 0);
+		//cyclModCmp = (drawCount % ((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs_Numeric[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].valAsInt() == 0);
 		pushMatState();
 		drawSetup();																//initialize camera, lights and scene orientation and set up eye movement
 		//if ((!cyclModCmp) || (flags[playMusic])) {drawCount++;}						//needed to stop draw update so that pausing sim retains animation positions			
@@ -478,9 +478,9 @@ import ddf.minim.ugens.*;
 			case 's' :
 			case 'S' : {save(sketchPath() + "\\"+prjNmLong+dateStr+"\\"+prjNmShrt+"_img"+timeStr + ".jpg");break;}//save picture of current image			
 //				case ';' :
-//				case ':' : {((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].modVal(-1); break;}//decrease the number of cycles between each draw, to some lower bound
+//				case ':' : {((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs_Numeric[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].modVal(-1); break;}//decrease the number of cycles between each draw, to some lower bound
 //				case '\'' :
-//				case '"' : {((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].modVal(1); break;}//increase the number of cycles between each draw to some upper bound		
+//				case '"' : {((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs_Numeric[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].modVal(1); break;}//increase the number of cycles between each draw to some upper bound		
 			default : {	}
 		}//switch	
 		
@@ -706,7 +706,7 @@ import ddf.minim.ugens.*;
 	
 	public void initDispWins(){
 		float InstEditWinHeight = InstEditWinYMult * height;		//how high is the InstEdit window when shown
-		//instanced window dimensions when open and closed - only showing 1 open at a time
+		//instanced window dims when open and closed - only showing 1 open at a time - and init cam vals
 		winRectDimOpen[dispPianoRollIDX] =  new float[]{menuWidth, 0,width-menuWidth,height-hidWinHeight};			
 		winRectDimOpen[dispSphereUIIDX] =  new float[]{menuWidth+hideWinWidth, 0,width-menuWidth-hideWinWidth,height-hidWinHeight};			
 		winRectDimOpen[dispSimIDX] =  new float[]{menuWidth+hideWinWidth, 0,width-menuWidth-hideWinWidth,height-hidWinHeight};			
@@ -745,7 +745,7 @@ import ddf.minim.ugens.*;
 	//needs to happen here, and then be propagated out to all windows
 	public void initNewScore(){//uses default values originally called in mySequencer constructor
 		//outStr2Scr("Build score with default instrument list");
-		initNewScore("TempSong", InstrList, winRectDimOpen[dispPianoRollIDX][0] + winRectDimOpen[dispPianoRollIDX][2],winRectDimOpen[dispPianoRollIDX][1]+winRectDimOpen[dispPianoRollIDX][3]-4*Base_DispWindow.yOff);
+		initNewScore("TempSong", InstrList, winRectDimOpen[dispPianoRollIDX][0] + winRectDimOpen[dispPianoRollIDX][2],winRectDimOpen[dispPianoRollIDX][1]+winRectDimOpen[dispPianoRollIDX][3]-4*Base_DispWindow.txtHeightOff);
 	}
 	public void initNewScore(String scrName, myInstrument[] _instrs, float scoreWidth, float scoreHeight){
 		float [] scoreRect = new float[]{0, Base_DispWindow.topOffY, scoreWidth, scoreHeight};
@@ -1095,6 +1095,8 @@ import ddf.minim.ugens.*;
 			}
 		}
 	}//setWinFlagsXOR
+	
+	
 	
 //	//handles toggling between windows.  
 //	public int[] winFlagsXOR = new int[]{showSequence,showSphereUI};
@@ -1732,11 +1734,11 @@ import ddf.minim.ugens.*;
 	 * @param canvas3D
 	 */
 	@Override
-	public void drawCanvas(myVector eyeToMse, myPointf[] canvas3D){
+	public void drawCanvas(myVector eyeToMse, myPointf[] canvas3D, int[] color){
 		disableLights();
 		pushMatState();
 		gl_beginShape(GL_PrimStyle.GL_LINE_LOOP);
-		setFill(255,255,255,80);
+		setFill(color,80);
 		setNoStroke();
 		gl_normal(eyeToMse);
         for(int i =canvas3D.length-1;i>=0;--i){		//build invisible canvas to draw upon
@@ -1747,7 +1749,6 @@ import ddf.minim.ugens.*;
      	popMatState();
      	enableLights();
 	}//drawCanvas
-
 
 	/**
 	 * set perspective matrix based on frustum for camera
@@ -2961,4 +2962,5 @@ import ddf.minim.ugens.*;
 		if(t==0){return new Integer[]{a[0],a[1],a[2],a[3]};} else if(t==1){return new Integer[]{b[0],b[1],b[2],b[3]};}
 		return new Integer[]{(int)(((1.0f-t)*a[0])+t*b[0]),(int)(((1.0f-t)*a[1])+t*b[1]),(int)(((1.0f-t)*a[2])+t*b[2]),(int)(((1.0f-t)*a[3])+t*b[3])};
 	}
+
 }

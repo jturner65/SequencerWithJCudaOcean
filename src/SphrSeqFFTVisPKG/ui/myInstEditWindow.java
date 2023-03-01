@@ -29,7 +29,7 @@ public class myInstEditWindow extends Base_DispWindow {
 	
 	public myInstEditWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed, String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;		
+		float stY = rectDim[1]+rectDim[3]-4*txtHeightOff,stYFlags = stY + 2*txtHeightOff;		
 		
 		
 		super.initThisWin(_canDrawTraj, false);
@@ -92,9 +92,9 @@ public class myInstEditWindow extends Base_DispWindow {
 		};						//per-object  list of boolean flags
 		
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
+		guiObjs_Numeric = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,txtHeightOff});			//builds a horizontal list of UI comps
 		}
 	}
 
@@ -110,7 +110,7 @@ public class myInstEditWindow extends Base_DispWindow {
 	@Override
 	public void setUIWinVals(int UIidx) {
 		switch(UIidx){
-			case instToEditIDX : {curTrajAraIDX = (int)guiObjs[UIidx].getVal(); break;}
+			case instToEditIDX : {curTrajAraIDX = (int)guiObjs_Numeric[UIidx].getVal(); break;}
 		}
 	}
 	@Override

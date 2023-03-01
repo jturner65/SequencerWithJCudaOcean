@@ -220,17 +220,17 @@ public class mySideBarMenu extends Base_DispWindow{
 				//new boolean[]{true, false, false}		//gIDX_cycModDraw = 4;
 		};
 		
-		minBtnClkY = (pa.numFlagsToShow+3) * yOff + clkFlgsStY;										//start of buttons from under boolean flags	
-		initUIClickCoords(rectDim[0] + .1 * rectDim[2],minBtnClkY + (guiBtnRowNames.length * 2) * yOff,rectDim[0] + .99f * rectDim[2],0);//last val over-written by actual value in buildGuiObjs
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
+		minBtnClkY = (pa.numFlagsToShow+3) * txtHeightOff + clkFlgsStY;										//start of buttons from under boolean flags	
+		initUIClickCoords(rectDim[0] + .1 * rectDim[2],minBtnClkY + (guiBtnRowNames.length * 2) * txtHeightOff,rectDim[0] + .99f * rectDim[2],0);//last val over-written by actual value in buildGuiObjs
+		guiObjs_Numeric = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(0!=numGUIObjs){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals, new double[]{xOff,yOff});
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals, new double[]{xOff,txtHeightOff});
 		}
 	}
 	
 	//check if buttons clicked
 	private boolean checkButtons(int mseX, int mseY){
-		double stY = minBtnClkY + rowStYOff, endY = stY+yOff, stX = 0, endX, widthX; //btnLblYOff			
+		double stY = minBtnClkY + rowStYOff, endY = stY+txtHeightOff, stX = 0, endX, widthX; //btnLblYOff			
 		for(int row=0; row<guiBtnRowNames.length;++row){
 			widthX = rectDim[2]/(1.0f * guiBtnNames[row].length);
 			stX =0;	endX = widthX;
@@ -241,7 +241,7 @@ public class mySideBarMenu extends Base_DispWindow{
 				}					
 				stX += widthX;	endX += widthX; 
 			}
-			stY = endY + yOff+ rowStYOff;endY = stY + yOff;				
+			stY = endY + txtHeightOff+ rowStYOff;endY = stY + txtHeightOff;				
 		}
 		return false;
 	}//handleButtonClick	
@@ -279,19 +279,19 @@ public class mySideBarMenu extends Base_DispWindow{
 		switch(UIidx){
 		//set lcl/global vals
 		case gIDX_KeySig 		: {
-			int sel = (int)guiObjs[UIidx].getVal() % keySigs.length;			
+			int sel = (int)guiObjs_Numeric[UIidx].getVal() % keySigs.length;			
 			for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setLocalKeySigVal(sel);} pa.setFlags(pa.forceInKey,false);					
 			break;}
 		case gIDX_TimeSigNum 	: 
 		case gIDX_TimeSigDenom 	: {
-			int tsDenom = timeSigDenom[(int)guiObjs[gIDX_TimeSigDenom].getVal() %timeSigDenom.length],
-					tsNum = (int)guiObjs[gIDX_TimeSigNum].getVal();
+			int tsDenom = timeSigDenom[(int)guiObjs_Numeric[gIDX_TimeSigDenom].getVal() %timeSigDenom.length],
+					tsNum = (int)guiObjs_Numeric[gIDX_TimeSigNum].getVal();
 				noteDurType dType = pa.getDurTypeForNote(tsDenom);			
 			for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setLocalTimeSigVal(tsNum,tsDenom, dType);} 				
 			
 			break;}
 		case gIDX_Tempo			: {
-			float tmpTempo = (float)guiObjs[UIidx].getVal();
+			float tmpTempo = (float)guiObjs_Numeric[UIidx].getVal();
 			for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setLocalTempoVal(tmpTempo);}
 			break;}
 		}			
@@ -301,20 +301,20 @@ public class mySideBarMenu extends Base_DispWindow{
 		switch(UIidx){
 		//set lcl/global vals
 		case gIDX_KeySig 		: {
-			int sel = (int)guiObjs[UIidx].getVal() % keySigs.length;
+			int sel = (int)guiObjs_Numeric[UIidx].getVal() % keySigs.length;
 			if (sel != Base_DispWindow.glblKeySig.keyIdx){for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalKeySigVal(sel);} pa.setFlags(pa.forceInKey,false); }			
 			break;}
 		case gIDX_TimeSigNum 	: 
 		case gIDX_TimeSigDenom 	: {
-			int tsDenom = timeSigDenom[(int)guiObjs[gIDX_TimeSigDenom].getVal() %timeSigDenom.length],
-					tsNum = (int)guiObjs[gIDX_TimeSigNum].getVal();
+			int tsDenom = timeSigDenom[(int)guiObjs_Numeric[gIDX_TimeSigDenom].getVal() %timeSigDenom.length],
+					tsNum = (int)guiObjs_Numeric[gIDX_TimeSigNum].getVal();
 			noteDurType dType = pa.getDurTypeForNote(tsDenom);			
 			if((dType != glblBeatNote) || (glblTimeSig.beatPerMeas != tsNum) || (glblTimeSig.beatNote != tsDenom)){			
 				for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalTimeSigVal(tsNum,tsDenom, dType);} 
 			}
 			break;}
 		case gIDX_Tempo			: {
-			float tmpTempo = (float)guiObjs[UIidx].getVal();
+			float tmpTempo = (float)guiObjs_Numeric[UIidx].getVal();
 			if(PApplet.abs(tmpTempo - glblTempo) > pa.feps){for(int i=1; i<pa.dispWinFrames.length; ++i){pa.dispWinFrames[i].setGlobalTempoVal(tmpTempo);}}
 			break;}
 		}			
@@ -328,7 +328,7 @@ public class mySideBarMenu extends Base_DispWindow{
 	@Override
 	protected boolean hndlMouseClickIndiv(int mouseX, int mouseY, myPoint mseClckInWorld, int mseBtn) {	
 		if((!pa.ptInRange(mouseX, mouseY, rectDim[0], rectDim[1], rectDim[0]+rectDim[2], rectDim[1]+rectDim[3]))){return false;}//not in this window's bounds, quit asap for speedz
-		int i = (int)((mouseY-(yOff + yOff + clkFlgsStY))/(yOff));					//TODO Awful - needs to be recalced, dependent on menu being on left
+		int i = (int)((mouseY-(txtHeightOff + txtHeightOff + clkFlgsStY))/(txtHeightOff));					//TODO Awful - needs to be recalced, dependent on menu being on left
 		if((i>=0) && (i<pa.numFlagsToShow)){
 			pa.setFlags(pa.flagsToShow.get(i),!pa.flags[pa.flagsToShow.get(i)]);return true;	}
 		else if(pa.ptInRange(mouseX, mouseY, 0, minBtnClkY, uiClkCoords[2], uiClkCoords[1])){return checkButtons(mouseX, mouseY);}//in region where clickable buttons are - uiClkCoords[1] is bottom of buttons
@@ -346,9 +346,9 @@ public class mySideBarMenu extends Base_DispWindow{
 
 	private void drawSideBarBooleans(){
 		//draw booleans and their state
-		pa.translate(10,yOff*2);
+		pa.translate(10,txtHeightOff*2);
 		pa.setColorValFill(IRenderInterface.gui_Black,255);
-		pa.text("Boolean Flags",0,yOff*.20f);
+		pa.text("Boolean Flags",0,txtHeightOff*.20f);
 		pa.translate(0,clkFlgsStY);
 		for(int idx =0; idx<pa.numFlagsToShow; ++idx){
 			int i = pa.flagsToShow.get(idx);
@@ -373,9 +373,9 @@ public class mySideBarMenu extends Base_DispWindow{
 		pa.setFill(new int[]{0,0,0}, 255);
 		for(int row=0; row<guiBtnRowNames.length;++row){
 			if(row == mySideBarMenu.modValsRow){
-				pa.text(mySideBarMenu.guiBtnSetValsNames[(pa.flags[pa.setGlobalVals] ? 1:0)],0,-yOff*.15f);
+				pa.text(mySideBarMenu.guiBtnSetValsNames[(pa.flags[pa.setGlobalVals] ? 1:0)],0,-txtHeightOff*.15f);
 			} else {
-				pa.text(guiBtnRowNames[row],0,-yOff*.15f);
+				pa.text(guiBtnRowNames[row],0,-txtHeightOff*.15f);
 			}
 			pa.translate(0,rowStYOff);
 			float xWidthOffset = rectDim[2]/(1.0f * guiBtnNames[row].length), halfWay;
@@ -387,9 +387,9 @@ public class mySideBarMenu extends Base_DispWindow{
 			for(int col =0; col<guiBtnNames[row].length;++col){
 				halfWay = (xWidthOffset - pa.textWidth(guiBtnNames[row][col]))/2.0f;
 				pa.setColorValFill(guiBtnStFillClr[guiBtnSt[row][col]+1],255);
-				pa.rect(0,0,xWidthOffset, yOff);	
+				pa.rect(0,0,xWidthOffset, txtHeightOff);	
 				pa.setColorValFill(guiBtnStTxtClr[guiBtnSt[row][col]+1],255);
-				pa.text(guiBtnNames[row][col], halfWay, yOff*.75f);
+				pa.text(guiBtnNames[row][col], halfWay, txtHeightOff*.75f);
 				pa.translate(xWidthOffset, 0);
 			}
 			pa.popStyle();	pa.popMatrix();						

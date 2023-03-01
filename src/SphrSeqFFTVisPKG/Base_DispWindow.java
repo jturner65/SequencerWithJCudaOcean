@@ -42,7 +42,7 @@ public abstract class Base_DispWindow {
 	public float[] rectDim, closeBox, rectDimClosed, mseClickCrnr;	
 	public static final float gridYMult = 1.0f/67.0f, gridXMult = .5625f * gridYMult;
 	//public static final float xOff = 20 , yOff = 20, btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
-	public static final float xOff = 20 , yOff = 20.0f * (IRenderInterface.txtSz/12.0f), btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
+	public static final float xOff = 20 , txtHeightOff = 20.0f * (IRenderInterface.txtSz/12.0f), btnLblYOff = 2 * txtHeightOff, rowStYOff = txtHeightOff*.15f;
 	public static final int topOffY = 40;			//offset values to render boolean menu on side of screen - offset at top before drawing
 	public static final float clkBxDim = 10;//size of interaction/close window box in pxls
 
@@ -97,7 +97,7 @@ public abstract class Base_DispWindow {
 	
 	//UI objects in this window
 	//GUI Objects
-	public myGUIObj[] guiObjs;	
+	public myGUIObj[] guiObjs_Numeric;	
 	public int msClkObj, msOvrObj;												//myGUIObj object that was clicked on  - for modification, object mouse moved over
 	public double[] uiClkCoords;												//subregion of window where UI objects may be found
 	public static final double uiWidthMult = 9;							//multipler of size of label for width of UI components, when aligning components horizontally
@@ -230,7 +230,7 @@ public abstract class Base_DispWindow {
 		float maxBtnLen = .95f * pa.menuWidth, halfBtnLen = .5f*maxBtnLen;
 		//pa.pr("maxBtnLen : " + maxBtnLen);
 		privFlagBtns = new float[numBtns][];
-		this.uiClkCoords[3] += yOff;
+		this.uiClkCoords[3] += txtHeightOff;
 		float oldBtnLen = 0;
 		boolean lastBtnHalfStLine = false, startNewLine = true;
 		for(int i=0; i<numBtns; ++i){						//clickable button regions - as rect,so x,y,w,h - need to be in terms of sidebar menu 
@@ -241,22 +241,22 @@ public abstract class Base_DispWindow {
 				btnLen = maxBtnLen;
 				if(lastBtnHalfStLine){//make last button full size, and make button this button on another line
 					privFlagBtns[i-1][2] = maxBtnLen;
-					this.uiClkCoords[3] += yOff;
+					this.uiClkCoords[3] += txtHeightOff;
 				}
-				privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };				
-				this.uiClkCoords[3] += yOff;
+				privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, txtHeightOff };				
+				this.uiClkCoords[3] += txtHeightOff;
 				startNewLine = true;
 				lastBtnHalfStLine = false;
 			} else {//button len should be half width unless this button started a new line
 				btnLen = halfBtnLen;
 				if(startNewLine){//button is starting new line
 					lastBtnHalfStLine = true;
-					privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, yOff };
+					privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff), (float) uiClkCoords[3], btnLen, txtHeightOff };
 					startNewLine = false;
 				} else {//should only get here if 2nd of two <1/2 width buttons in a row
 					lastBtnHalfStLine = false;
-					privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff)+oldBtnLen, (float) uiClkCoords[3], btnLen, yOff };
-					this.uiClkCoords[3] += yOff;
+					privFlagBtns[i]= new float[] {(float)(uiClkCoords[0]-xOff)+oldBtnLen, (float) uiClkCoords[3], btnLen, txtHeightOff };
+					this.uiClkCoords[3] += txtHeightOff;
 					startNewLine = true;					
 				}
 			}			
@@ -265,7 +265,7 @@ public abstract class Base_DispWindow {
 		if(lastBtnHalfStLine){//set last button full length if starting new line
 			privFlagBtns[numBtns-1][2] = maxBtnLen;			
 		}
-		this.uiClkCoords[3] += yOff;
+		this.uiClkCoords[3] += txtHeightOff;
 		initPrivFlagColors();
 	}//initPrivBtnRects
 //	//pa.outStr2Scr("initPrivBtnRects in :"+ name + "st value for uiClkCoords[3]");
@@ -399,7 +399,7 @@ public abstract class Base_DispWindow {
 //	public void resizeUIRegion(float scaleY, int numGUIObjs){
 //		//re-size where UI objects should be drawn - vertical scale only currently
 //		double [] curUIVals = new double[this.guiStVals.length];
-//		for(int i=0;i<curUIVals.length;++i){	curUIVals[i] = guiObjs[i].getVal();	}
+//		for(int i=0;i<curUIVals.length;++i){	curUIVals[i] = guiObjs_Numeric[i].getVal();	}
 //		
 //		uiClkCoords[1]=calcDBLOffsetScale(uiClkCoords[1],scaleY,topOffY);
 //		uiClkCoords[3]=calcDBLOffsetScale(uiClkCoords[3],scaleY,topOffY);
@@ -416,16 +416,16 @@ public abstract class Base_DispWindow {
 //		if(dispFlags[uiObjsAreVert]){		//vertical stack of UI components - clickable region x is unchanged, y changes with # of objects
 			double stClkY = uiClkCoords[1];
 			for(int i =0; i< guiStVals.length; ++i){
-				guiObjs[i] = buildGUIObj(i,guiObjNames[i],guiStVals[i], guiMinMaxModVals[i], guiBoolVals[i], new double[]{uiClkCoords[0], stClkY, uiClkCoords[2], stClkY+yOff},off);
-				stClkY += yOff;
+				guiObjs_Numeric[i] = buildGUIObj(i,guiObjNames[i],guiStVals[i], guiMinMaxModVals[i], guiBoolVals[i], new double[]{uiClkCoords[0], stClkY, uiClkCoords[2], stClkY+txtHeightOff},off);
+				stClkY += txtHeightOff;
 			}
 			uiClkCoords[3] = stClkY;	
 //		} else {			//horizontal row of UI components - clickable region y is unchanged, x changes with # of objects
 //			double stClkX = uiClkCoords[0];
 //			double UICompWidth;
-//			for(int i =0; i< guiObjs.length; ++i){
+//			for(int i =0; i< guiObjs_Numeric.length; ++i){
 //				UICompWidth = (uiWidthMult + (guiBoolVals[i][1] ? 1 : 0)) * guiObjNames[i].length();
-//				guiObjs[i] = buildGUIObj(i,guiObjNames[i],guiStVals[i], guiMinMaxModVals[i], guiBoolVals[i], new double[]{stClkX, uiClkCoords[1], stClkX+UICompWidth , uiClkCoords[3]},off);
+//				guiObjs_Numeric[i] = buildGUIObj(i,guiObjNames[i],guiStVals[i], guiMinMaxModVals[i], guiBoolVals[i], new double[]{stClkX, uiClkCoords[1], stClkX+UICompWidth , uiClkCoords[3]},off);
 //				stClkX += UICompWidth;
 //			}
 //			uiClkCoords[2] = stClkX;	
@@ -539,11 +539,11 @@ public abstract class Base_DispWindow {
 	//draw a series of strings in a column
 	protected void dispMenuTxtLat(String txt, int[] clrAra, boolean showSphere){
 		pa.setFill(clrAra, 255); 
-		pa.translate(xOff*.5f,yOff*.5f);
+		pa.translate(xOff*.5f,txtHeightOff*.5f);
 		if(showSphere){pa.setStroke(clrAra, 255);		pa.sphere(5);	} 
 		else {	pa.noStroke();		}
-		pa.translate(-xOff*.5f,yOff*.5f);
-		pa.text(""+txt,xOff,-yOff*.25f);	
+		pa.translate(-xOff*.5f,txtHeightOff*.5f);
+		pa.text(""+txt,xOff,-txtHeightOff*.25f);	
 	}
 	protected void dispBoolStFlag(String txt, int[] clrAra, boolean state, float stMult){
 		if(state){
@@ -555,7 +555,7 @@ public abstract class Base_DispWindow {
 		}
 		pa.sphere(5);
 		//pa.text(""+txt,-xOff,yOff*.8f);	
-		pa.text(""+txt,stMult*txt.length(),yOff*.8f);	
+		pa.text(""+txt,stMult*txt.length(),txtHeightOff*.8f);	
 	}
 	
 	//draw a series of strings in a row
@@ -585,8 +585,8 @@ public abstract class Base_DispWindow {
 	//draw ui objects
 	public void drawGUIObjs(){	
 		pa.pushMatrix();pa.pushStyle();	
-		for(int i =0; i<guiObjs.length; ++i){guiObjs[i].draw();}
-		if(guiObjs.length > 0) {drawSepBar(this.uiClkCoords[3]);}
+		for(int i =0; i<guiObjs_Numeric.length; ++i){guiObjs_Numeric[i].draw();}
+		if(guiObjs_Numeric.length > 0) {drawSepBar(this.uiClkCoords[3]);}
 		pa.popStyle();pa.popMatrix();
 	}
 	
@@ -824,7 +824,7 @@ public abstract class Base_DispWindow {
 	public boolean handleMouseMove(int mouseX, int mouseY, myPoint mouseClickIn3D){
 		if(!dispFlags[showIDX]){return false;}
 		if((dispFlags[showIDX])&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
-			for(int j=0; j<guiObjs.length; ++j){if(guiObjs[j].checkIn(mouseX, mouseY)){	msOvrObj=j;return true;	}}
+			for(int j=0; j<guiObjs_Numeric.length; ++j){if(guiObjs_Numeric[j].checkIn(mouseX, mouseY)){	msOvrObj=j;return true;	}}
 		}			
 		msOvrObj = -1;
 		return false;
@@ -836,11 +836,11 @@ public abstract class Base_DispWindow {
 		boolean mod = false;
 		//pa.outStr2Scr("ID :" +ID +" loc : ("  +mouseX +", " + mouseY + ") before mouse click check mod : "+ mod);
 		if((dispFlags[showIDX])&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
-			for(int j=0; j<guiObjs.length; ++j){
-				if(guiObjs[j].checkIn(mouseX, mouseY)){	
+			for(int j=0; j<guiObjs_Numeric.length; ++j){
+				if(guiObjs_Numeric[j].checkIn(mouseX, mouseY)){	
 					if(pa.flags[pa.shiftKeyPressed]){//allows for click-mod
 						int mult = mseBtn * -2 + 1;	//+1 for left, -1 for right btn						
-						guiObjs[j].modVal(mult * pa.clickValModMult());
+						guiObjs_Numeric[j].modVal(mult * pa.clickValModMult());
 						dispFlags[uiObjMod] = true;
 					} else {										//has drag mod
 						msClkObj=j;
@@ -865,7 +865,7 @@ public abstract class Base_DispWindow {
 		boolean mod = false;
 		if(!dispFlags[showIDX]){return mod;}
 		//any generic dragging stuff - need flag to determine if trajectory is being entered
-		if(msClkObj!=-1){	guiObjs[msClkObj].modVal((mouseX-pmouseX)+(mouseY-pmouseY)*-5.0f);dispFlags[uiObjMod] = true; return true;}		
+		if(msClkObj!=-1){	guiObjs_Numeric[msClkObj].modVal((mouseX-pmouseX)+(mouseY-pmouseY)*-5.0f);dispFlags[uiObjMod] = true; return true;}		
 		if(dispFlags[drawingTraj]){ 		//if drawing trajectory has started, then process it
 			//pa.outStr2Scr("drawing traj");
 			myPoint pt =  getMsePoint(mouseX, mouseY);
@@ -889,7 +889,7 @@ public abstract class Base_DispWindow {
 	public void handleMouseRelease(){
 		if(!dispFlags[showIDX]){return;}
 		if(dispFlags[uiObjMod]){//dispFlags[uiObjMod] = true;
-			for(int i=0;i<guiObjs.length;++i){if(guiObjs[i].getFlags(myGUIObj.usedByWinsIDX)){setUIWinVals(i);}}
+			for(int i=0;i<guiObjs_Numeric.length;++i){if(guiObjs_Numeric[i].getFlags(myGUIObj.usedByWinsIDX)){setUIWinVals(i);}}
 			dispFlags[uiObjMod] = false;
 			msClkObj = -1;	
 		}//some object was clicked - pass the values out to all windows
@@ -1032,7 +1032,7 @@ public abstract class Base_DispWindow {
 	public String[] getDebugData(){
 		ArrayList<String> res = new ArrayList<String>();
 		List<String>tmp;
-		for(int j = 0; j<guiObjs.length; j++){tmp = Arrays.asList(guiObjs[j].getStrData());res.addAll(tmp);}
+		for(int j = 0; j<guiObjs_Numeric.length; j++){tmp = Arrays.asList(guiObjs_Numeric[j].getStrData());res.addAll(tmp);}
 		return res.toArray(new String[0]);	
 	}
 	

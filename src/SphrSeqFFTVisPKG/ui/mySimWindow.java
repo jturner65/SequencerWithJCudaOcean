@@ -366,18 +366,18 @@ public class mySimWindow extends Base_DispWindow {
 			//{false, false, true},      //threshIDX  	
 		};						//per-object  list of boolean flags
 			
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
+		guiObjs_Numeric = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,txtHeightOff});			//builds a horizontal list of UI comps
 		}
 		setupGUI_XtraObjs();
 	}//setupGUIObjsAras
 	//setup UI object for song slider
 	private void setupGUI_XtraObjs() {
-		double stClkY = uiClkCoords[3], sizeClkY = 3*yOff;
-		guiObjs[songTransIDX] = new myGUIProgressBar(pa, this, songTransIDX, "MP3 Transport for ", 
+		double stClkY = uiClkCoords[3], sizeClkY = 3*txtHeightOff;
+		guiObjs_Numeric[songTransIDX] = new myGUIProgressBar(pa, this, songTransIDX, "MP3 Transport for ", 
 				new myVector(0, stClkY,0), new myVector(uiClkCoords[2], stClkY+sizeClkY,0),
-				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, false}, new double[]{xOff,yOff});	
+				new double[] {0.0, 1.0,0.1}, 0.0, new boolean[]{false, false, false}, new double[]{xOff,txtHeightOff});	
 		
 		//setup space for ui interaction with song bar
 		stClkY += sizeClkY;				
@@ -385,8 +385,8 @@ public class mySimWindow extends Base_DispWindow {
 	}
 	
 	private void setSongTransInfo() {
-		guiObjs[songTransIDX].setName("MP3 Transport for " + songs[songIDX].dispName);
-		guiObjs[songTransIDX].setVal(songs[songIDX].getPlayPosRatio());		
+		guiObjs_Numeric[songTransIDX].setName("MP3 Transport for " + songs[songIDX].dispName);
+		guiObjs_Numeric[songTransIDX].setVal(songs[songIDX].getPlayPosRatio());		
 	}
 	
 	public void sendUIValsToOcean(){for(int i=0;i<numGUIObjs; ++i){setUIWinVals(i);}}//send ui vals
@@ -444,18 +444,18 @@ public class mySimWindow extends Base_DispWindow {
 	@Override
 	protected void setUIWinVals(int UIidx) {
 		if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.getFlags(myOcean.doneInit))){return;}
-		float val =  (float)(guiObjs[UIidx].getVal());
+		float val =  (float)(guiObjs_Numeric[UIidx].getVal());
 		switch(UIidx){
-			case songSelIDX 	: {changeCurrentSong((int)(guiObjs[UIidx].getVal()));break;}
-			case winSelIDX		: {changeCurrentWindowfunc((int)(guiObjs[UIidx].getVal()));	break;}
+			case songSelIDX 	: {changeCurrentSong((int)(guiObjs_Numeric[UIidx].getVal()));break;}
+			case winSelIDX		: {changeCurrentWindowfunc((int)(guiObjs_Numeric[UIidx].getVal()));	break;}
 			case patchSizeIDX 	: {setOceanFFTVal("patchSizeIDX", val, fftOcean.patchSize);break;}//			patchSize 	: Phillips eq : 
 			case windSpeedIDX 	: {setOceanFFTVal("windSpeedIDX", val, fftOcean.windSpeed);break;}//			windSpeed 	: Phillips eq : 
 			case windDirIDX  	: {setOceanFFTVal("windDirIDX", val, fftOcean.windDir);break;}	//			windDir   	: Phillips eq : 
 			case dirDependIDX  	: {setOceanFFTVal("dirDependIDX", val, fftOcean.dirDepend);break;}//			dirDepend 	: Phillips eq : 
 			case heightScaleIDX : {setOceanFFTVal("heightScaleIDX", val, fftOcean.heightScale);break;}//			heightScale	:
-			case freqMixIDX  	: {setOceanFFTVal("freqMixIDX", (float)(guiObjs[UIidx].getVal()/100.0), fftOcean.freqMix);break;}	 	//			freqMix		: Mixture amount of pure phillips wave noise to song frequencies - 100 is all song, 0 is all phillips
+			case freqMixIDX  	: {setOceanFFTVal("freqMixIDX", (float)(guiObjs_Numeric[UIidx].getVal()/100.0), fftOcean.freqMix);break;}	 	//			freqMix		: Mixture amount of pure phillips wave noise to song frequencies - 100 is all song, 0 is all phillips
 			case chopinessIDX  	: {setOceanFFTVal("chopinessIDX", val, fftOcean.chopiness);break;}//			chopiness	: 	
-			//case threshIDX		: {setOceanFFTVal("threshIDX", (float)(guiObjs[UIidx].getVal()), fftOcean.thresh);break;}//			threshold	: 	
+			//case threshIDX		: {setOceanFFTVal("threshIDX", (float)(guiObjs_Numeric[UIidx].getVal()), fftOcean.thresh);break;}//			threshold	: 	
 			case songTransIDX	: {	songs[songIDX].modPlayLoc(val);    break;}
 		default : {break;}
 		}

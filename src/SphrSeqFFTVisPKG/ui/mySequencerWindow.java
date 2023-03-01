@@ -165,9 +165,9 @@ public class mySequencerWindow extends Base_DispWindow {
 			{true, false, true}
 		};						//per-object  list of boolean flags
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
+		guiObjs_Numeric = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,txtHeightOff});			//builds a horizontal list of UI comps
 		}
 	}//setupMenuClkRegions
 	
@@ -292,9 +292,9 @@ public class mySequencerWindow extends Base_DispWindow {
 	@Override
 	public void setUIWinVals(int UIidx){
 		switch(UIidx){
-		case guiTrajToDraw 		: { curTrajAraIDX = (int)guiObjs[UIidx].getVal(); break;}
-		case noteDfltLen 		: {	defaultNoteLength = noteValTypes[(int)guiObjs[UIidx].getVal() % noteValTypes.length];updateGridXandY(true);break;}
-		case trajRepeats		: { numTrajNoteRpts = (int)guiObjs[UIidx].getVal(); break;}
+		case guiTrajToDraw 		: { curTrajAraIDX = (int)guiObjs_Numeric[UIidx].getVal(); break;}
+		case noteDfltLen 		: {	defaultNoteLength = noteValTypes[(int)guiObjs_Numeric[UIidx].getVal() % noteValTypes.length];updateGridXandY(true);break;}
+		case trajRepeats		: { numTrajNoteRpts = (int)guiObjs_Numeric[UIidx].getVal(); break;}
 		}		
 	}//setUIWinVals
 	//handle the display of UI objects backed by a list

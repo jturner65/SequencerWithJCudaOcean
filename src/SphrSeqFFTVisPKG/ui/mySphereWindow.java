@@ -49,7 +49,7 @@ public class mySphereWindow extends Base_DispWindow {
 	
 	public mySphereWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
-		float stY = rectDim[1]+rectDim[3]-4*yOff,stYFlags = stY + 2*yOff;
+		float stY = rectDim[1]+rectDim[3]-4*txtHeightOff,stYFlags = stY + 2*txtHeightOff;
 		//initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
 		curSelSphere = "";	
 		trajFillClrCnst = SeqVisFFTOcean.gui_DarkCyan;		//override this in the ctor of the instancing window class
@@ -111,9 +111,9 @@ public class mySphereWindow extends Base_DispWindow {
 		guiBoolVals = new boolean [][]{{}};						//per-object  list of boolean flags
 		
 		//since horizontal row of UI comps, uiClkCoords[2] will be set in buildGUIObjs		
-		guiObjs = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
+		guiObjs_Numeric = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(numGUIObjs > 0){
-			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});			//builds a horizontal list of UI comps
+			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,txtHeightOff});			//builds a horizontal list of UI comps
 		}
 	}
 	@Override
