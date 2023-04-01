@@ -49,7 +49,7 @@ import ddf.minim.ugens.*;
  */
  public class SeqVisFFTOcean extends PApplet implements IRenderInterface{
 	//project-specific variables
-	public String prjNmLong = "Interactive Sequencer/Visualization with FFT Ocean", prjNmShrt = "SeqVisFFTOcean";
+	public final String prjNmLong = "Interactive Sequencer/Visualization with FFT Ocean", prjNmShrt = "SeqVisFFTOcean";
 	PImage jtFace; 
 	
 	public final int drawnTrajEditWidth = 10; //TODO make ui component			//width in cntl points of the amount of the drawn trajectory deformed by dragging
