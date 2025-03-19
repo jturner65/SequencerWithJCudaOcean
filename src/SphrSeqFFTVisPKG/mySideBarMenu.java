@@ -452,11 +452,11 @@ public class mySideBarMenu extends Base_DispWindow{
 	@Override
 	protected void initTrajStructs() {}
 	@Override
-	protected void endShiftKeyI() {}
+	protected void endShiftKey_Indiv() {}
 	@Override
-	protected void endAltKeyI() {}
+	protected void endAltKey_Indiv() {}
 	@Override
-	protected void endCntlKeyI() {}
+	protected void endCntlKey_Indiv() {}
 	@Override
 	protected void closeMe() {}
 	@Override

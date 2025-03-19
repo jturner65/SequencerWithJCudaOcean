@@ -213,7 +213,7 @@ public class mySphereCntl {
 			pa.outStr2Scr("hndlMouseClickIndiv sphere ID : " + ID + " clickLocInRings not null : sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   
 					+  " \tPick Res (clickLoc) : " + clickLocInRings.toStrBrf() 
 			+ "\n\tClick from ctr : " + clickLocInRings.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() + " Clicked ring : " + clickRing 
-			+ "\n\tVec from ring ctr to click : " +clickVec.toStrBrf() + " | mseClkDisp : "+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
+			+ "\n\tVec from ring ctr to click : " +clickVec.toStrBrf() + " | mseClkDisp : "+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 		} else { //outside of sweep circle, check if on controlls
 			myPoint clickLoc = getClickLoc(mouseX, mouseY);
 			myPoint	clickFromCtr = myPoint._sub(clickLoc,mseClkDisp);
@@ -225,13 +225,13 @@ public class mySphereCntl {
 ////						+  " \tPick Res (clickLoc) : " + clickLoc.toStrBrf() 
 ////				+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() 
 //				+ " Clicked ring :\t" + clickRing 
-//				+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
+//				+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 			}
 			
 			pa.outStr2Scr("hndlMouseClickIndiv outside note circles sphere ID : " + ID + " sphere ui getMouseLoc3D : " + mouseX + ","+mouseY   +  " \tclickVec : " + clickVec.toStrBrf()
 			+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ drawCtr.toStrBrf() + " Clicked ring :\t" + clickRing 
-			+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
-//			myVector curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);
+			+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf());// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
+//			myVector curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneOriginVals[pa.sceneIDX]);
 //			myVector noteCtr = new myVector(ctrOfNotes);
 			for(int i=0;i<3;++i){		//get rid of these once we have values being set via UI input
 				boolean hit = cntls[i].hitMeMini(new myVector(clickVec));
@@ -275,7 +275,7 @@ public class mySphereCntl {
 		+ "\n\tRing disp vec (ntRngDispVec) : " + ntRngDispVec.toStrBrf() + " Click ring : " + clickRing
 		+ "\n\tClick from ctr : " + clickFromCtr.toStrBrf()+ "  drawCtr : "+ mySphereWindow.fcsCtr.toStrBrf() 
 		+ "\n\tVec from ring ctr to click :\t" +clickVec.toStrBrf() + " | mseClkDisp :\t"+ mseClkDisp.toStrBrf()		
-		+"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
+		+"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar)).toStrBrf() );//" hasFocusVec : " + hasFocusVec.toStrBrf());// + " radar bar end pt : " +radarBarEndPt.toStrBrf()) ; 
 		return new myVector(ctrOfNotes,clickFromCtr);
 	}
 	
@@ -360,7 +360,7 @@ public class mySphereCntl {
 			return null;
 		}	
 		float alphaSt = (float)pa.angle(noteAlphaSt, ptDirCtrVec); 	//measure angles from straight up from center of sphere
-		//pa.outStr2Scr("getNoteFromSphereLoc sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
+		//pa.outStr2Scr("getNoteFromSphereLoc sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
 		myNote res = new myNote(pa, alphaSt, (alphaSt + noteAlphaWidth), clickRing, this);		
 		//pa.outStr2Scr("New sphere note : " + res.toString());
 		return res;
@@ -380,7 +380,7 @@ public class mySphereCntl {
 			return null;
 		}	
 		float alphaSt = (float)pa.angle(noteAlphaSt, ptDirCtrVec); 	//measure angles from straight up from center of sphere
-		//pa.outStr2Scr("getNoteFromSphereLoc sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
+		//pa.outStr2Scr("getNoteFromSphereLoc sphere ID : " + ID + " pt's ring loc :\t" + clickRing + "\tPoint in Traj :\t" +pt.toStrBrf() +"\n");// " disp to ctr of sphere " + myPoint._add(ctr,myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar)).toStrBrf() ); 
 		myNote res = new myNote(pa, alphaSt, (alphaSt + noteAlphaWidth), clickRing, this);		
 		//pa.outStr2Scr("New sphere note : " + res.toString());
 		return res;
@@ -483,9 +483,9 @@ public class mySphereCntl {
 		}
 //		radarBarEndPt = new myVector(0,-(50+(focusZoom * (radarBarLen-50))),0);			//sweeping radar bar showing notes that are playing
 		//drawCtr = myPoint._add(ctr, hasFocusVec._mult(curFcsZoom));	
-		//mseClkDisp = myPoint._add(myPoint._add(ntRngDispVec,drawCtr), pa.sceneCtrVals[pa.sceneIDX]);
-		mseClkDisp = myPoint._add(myPoint._add(ntRngDispVec,drawCtr), myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar));
-		//mseClkDisp = myPoint._add(ntRngDispVec,myPoint._add(pa.sceneCtrVals[pa.sceneIDX],pa.focusTar));
+		//mseClkDisp = myPoint._add(myPoint._add(ntRngDispVec,drawCtr), pa.sceneOriginVals[pa.sceneIDX]);
+		mseClkDisp = myPoint._add(myPoint._add(ntRngDispVec,drawCtr), myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar));
+		//mseClkDisp = myPoint._add(ntRngDispVec,myPoint._add(pa.sceneOriginVals[pa.sceneIDX],pa.focusTar));
 	}
 
 	public void sendNotesToPlayAndStop(){	

@@ -158,6 +158,7 @@ import ddf.minim.ugens.*;
 		size((int)(newWidth*.95f), (int)(displayHeight*.92f), P3D);
 	}
 	public void setup(){
+		setLocation((int)((displayWidth - width)*.5), 0);
 		//precalc cylinder cosine and sine vals
 		cylCosVals = new double[38];
 		cylSinVals = new double[38];
@@ -241,7 +242,11 @@ import ddf.minim.ugens.*;
 		drawCount = 0;
 	}//initProgram
 	
-	
+	@Override
+	public void setLocation(int x, int y) {
+		// GET RID OF THIS WHEN MOVING TO GUI_APPMANAGER	
+		surface.setLocation(x, y);		
+	}
 	@Override
 	public void setRenderBackground(int winIdx, int r, int g, int b, int alpha) {
 		// GET RID OF THIS WHEN MOVING TO GUI_APPMANAGER		
@@ -311,7 +316,7 @@ import ddf.minim.ugens.*;
 			background(bground[0],bground[1],bground[2],bground[3]);				//if refreshing screen, this clears screen, sets background
 			pushMatState();
 			translateSceneCtr();				//move to center of 3d volume to start drawing	
-			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneCtrVals[sceneIDX],focusTar));}}
+			for(int i =1; i<numDispWins; ++i){if((isShowingWindow(i)) && (dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(myPoint._add(sceneOriginVals[sceneIDX],focusTar));}}
 			popMatState();
 			drawAxes(100,3, new myPoint(-canvas.viewDimW/2.0f+40,0.0f,0.0f), 200, false); 		//for visualisation purposes and to show movement and location in otherwise empty scene
 	//	}
@@ -336,11 +341,11 @@ import ddf.minim.ugens.*;
 	//if should show problem # i
 	public boolean isShowingWindow(int i){return flags[(i+this.showUIMenu)];}//showUIMenu is first flag of window showing flags
 	public void drawUI(){					
-		for(int i =1; i<numDispWins; ++i){if ((isShowingWindow(i)) && !(dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(sceneCtrVals[sceneIDX]);}}
-		//dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
+		for(int i =1; i<numDispWins; ++i){if ((isShowingWindow(i)) && !(dispWinFrames[i].dispFlags[Base_DispWindow.is3DWin])){dispWinFrames[i].draw(sceneOriginVals[sceneIDX]);}}
+		//dispWinFrames[0].draw(sceneOriginVals[sceneIDX]);
 		for(int i =1; i<numDispWins; ++i){dispWinFrames[i].drawHeader();}
 		//menu
-		dispWinFrames[0].draw(sceneCtrVals[sceneIDX]);
+		dispWinFrames[0].draw(sceneOriginVals[sceneIDX]);
 		dispWinFrames[0].drawHeader();
 		drawOnScreenData();				//debug and on-screen data
 		hint(PConstants.DISABLE_DEPTH_TEST);
@@ -349,7 +354,7 @@ import ddf.minim.ugens.*;
 		lights();
 		hint(PConstants.ENABLE_DEPTH_TEST);
 	}//drawUI	
-	public void translateSceneCtr(){translate(sceneCtrVals[sceneIDX].x,sceneCtrVals[sceneIDX].y,sceneCtrVals[sceneIDX].z);}
+	public void translateSceneCtr(){translate(sceneOriginVals[sceneIDX].x,sceneOriginVals[sceneIDX].y,sceneOriginVals[sceneIDX].z);}
 	
 	public void setFocus(){
 		focusTar.set(sceneFcsVals[(sceneIDX+sceneFcsVals.length)%sceneFcsVals.length]);
@@ -513,19 +518,19 @@ import ddf.minim.ugens.*;
 		return ((flags[altKeyPressed] ? .1 : 1.0) * (flags[cntlKeyPressed] ? 10.0 : 1.0));			
 	}
 	
-	public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY,canvas.getMseLoc(sceneCtrVals[sceneIDX]))){return;}}}
+	public void mouseMoved(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseMove(mouseX, mouseY,canvas.getMseLoc(sceneOriginVals[sceneIDX]))){return;}}}
 	public void mousePressed() {
 		//verify left button if(mouseButton == LEFT)
 		setFlags(mouseClicked, true);
 		if(mouseButton == LEFT){			mouseClicked(0);} 
 		else if (mouseButton == RIGHT) {	mouseClicked(1);}
-		//for(int i =0; i<numDispWins; ++i){	if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]))){	return;}}
+		//for(int i =0; i<numDispWins; ++i){	if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneOriginVals[sceneIDX]))){	return;}}
 	}// mousepressed	
 
-	private void mouseClicked(int mseBtn){ for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,canvas.getMseLoc(sceneCtrVals[sceneIDX]),mseBtn)){return;}}}		
+	private void mouseClicked(int mseBtn){ for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,canvas.getMseLoc(sceneOriginVals[sceneIDX]),mseBtn)){return;}}}		
 	
-//	private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),0)){return;}}}		
-//	private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneCtrVals[sceneIDX]),1)){return;}}}		
+//	private void mouseLeftClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneOriginVals[sceneIDX]),0)){return;}}}		
+//	private void mouseRightClicked(){for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseClick(mouseX, mouseY,c.getMseLoc(sceneOriginVals[sceneIDX]),1)){return;}}}		
 	public void mouseDragged(){//pmouseX is previous mouse x
 		if((flags[shiftKeyPressed]) && (canMoveView[curFocusWin])){		//modifying view - always bypass HUD windows if doing this
 			flags[modView]=true;
@@ -539,13 +544,13 @@ import ddf.minim.ugens.*;
 	}//mouseDragged()
 	
 	private void mouseLeftDragged(){
-		myPoint msePt = canvas.getMseLoc(sceneCtrVals[sceneIDX]);
+		myPoint msePt = canvas.getMseLoc(sceneOriginVals[sceneIDX]);
 		myVector mseDiff = new myVector(canvas.getOldMseLoc(),canvas.getMseLoc());
 		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,msePt,mseDiff,0)) {return;}}		
 	}
 	
 	private void mouseRightDragged(){
-		myPoint msePt = canvas.getMseLoc(sceneCtrVals[sceneIDX]);
+		myPoint msePt = canvas.getMseLoc(sceneOriginVals[sceneIDX]);
 		myVector mseDiff = new myVector(canvas.getOldMseLoc(),canvas.getMseLoc());
 		for(int i =0; i<numDispWins; ++i){if (dispWinFrames[i].handleMouseDrag(mouseX, mouseY, pmouseX, pmouseY,msePt,mseDiff,1)) {return;}}		
 	}
@@ -804,7 +809,7 @@ import ddf.minim.ugens.*;
 			new myVector(0,0,0)
 	};
 	
-	public myPoint[] sceneCtrVals = new myPoint[]{						//set these values to be different display center translations -
+	public myPoint[] sceneOriginVals = new myPoint[]{						//set these values to be different display center translations -
 			new myPoint(0,0,0),										// to be used to calculate mouse offset in world for pick
 			new myPoint(-gridDimX/2.0,-gridDimY/2.0,-gridDimZ/2.0)
 	};
@@ -2962,5 +2967,6 @@ import ddf.minim.ugens.*;
 		if(t==0){return new Integer[]{a[0],a[1],a[2],a[3]};} else if(t==1){return new Integer[]{b[0],b[1],b[2],b[3]};}
 		return new Integer[]{(int)(((1.0f-t)*a[0])+t*b[0]),(int)(((1.0f-t)*a[1])+t*b[1]),(int)(((1.0f-t)*a[2])+t*b[2]),(int)(((1.0f-t)*a[3])+t*b[3])};
 	}
+
 
 }

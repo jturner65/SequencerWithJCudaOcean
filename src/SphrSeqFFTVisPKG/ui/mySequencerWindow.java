@@ -632,11 +632,11 @@ public class mySequencerWindow extends Base_DispWindow {
 		pa.popStyle();pa.popMatrix();
 	}	
 	@Override
-	protected void endShiftKeyI() {}
+	protected void endShiftKey_Indiv() {}
 	@Override
-	protected void endAltKeyI() {}
+	protected void endAltKey_Indiv() {}
 	@Override
-	protected void endCntlKeyI() {}
+	protected void endCntlKey_Indiv() {}
 	@Override
 	protected void addSScrToWinIndiv(int newWinKey){}
 	@Override

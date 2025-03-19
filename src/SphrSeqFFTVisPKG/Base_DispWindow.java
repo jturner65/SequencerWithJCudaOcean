@@ -903,19 +903,19 @@ public abstract class Base_DispWindow {
 	public void endShiftKey(){
 		if(!dispFlags[showIDX]){return;}
 		//
-		endShiftKeyI();
+		endShiftKey_Indiv();
 	}
 	public void endAltKey(){
 		if(!dispFlags[showIDX]){return;}
 		//if(dispFlags[drawingTraj]){drawnTrajAra[curDrnTrajScrIDX][curDrnTrajStaffIDX].endDrawObj();}	
 		if(dispFlags[drawingTraj]){this.tmpDrawnTraj.endDrawObj(getMsePoint(pa.Mouse()));}	
-		endAltKeyI();
+		endAltKey_Indiv();
 		this.tmpDrawnTraj = null;
 	}	
 	public void endCntlKey(){
 		if(!dispFlags[showIDX]){return;}
 		//
-		endCntlKeyI();
+		endCntlKey_Indiv();
 	}	
 	
 	//drawn trajectory stuff	
@@ -1116,9 +1116,9 @@ public abstract class Base_DispWindow {
 	
 	protected abstract void hndlMouseRelIndiv();
 	
-	protected abstract void endShiftKeyI();
-	protected abstract void endAltKeyI();
-	protected abstract void endCntlKeyI();
+	protected abstract void endShiftKey_Indiv();
+	protected abstract void endAltKey_Indiv();
+	protected abstract void endCntlKey_Indiv();
 	
 	//ui init routines
 	protected abstract void setupGUIObjsAras();	

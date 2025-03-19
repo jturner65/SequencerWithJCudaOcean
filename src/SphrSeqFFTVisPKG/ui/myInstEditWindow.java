@@ -216,13 +216,13 @@ public class myInstEditWindow extends Base_DispWindow {
 	//set time signature at time passed - for score, set it at nearest measure boundary
 	protected void setLocalTempoValIndiv(float tempo, float time){}
 	@Override
-	protected void endShiftKeyI() {}
+	protected void endShiftKey_Indiv() {}
 	@Override
-	protected void endAltKeyI() {
+	protected void endAltKey_Indiv() {
 		// TODO Auto-generated method stub	
 	}
 	@Override
-	protected void endCntlKeyI() {}
+	protected void endCntlKey_Indiv() {}
 	@Override
 	protected void addSScrToWinIndiv(int newWinKey){}
 	@Override

@@ -27,7 +27,7 @@ public class mySphereWindow extends Base_DispWindow {
 	
 	//to handle real-time update of locations of spheres
 	public myVector curMseLookVec;  //pa.c.getMse2DtoMse3DinWorld()
-	public myPoint curMseLoc3D;		//pa.c.getMseLoc(pa.sceneCtrVals[pa.sceneIDX])
+	public myPoint curMseLoc3D;		//pa.c.getMseLoc(pa.sceneOriginVals[pa.sceneIDX])
 
 	//private child-class flags
 	public static final int 
@@ -296,9 +296,9 @@ public class mySphereWindow extends Base_DispWindow {
 	protected void drawMe(float animTimeMod) {
 		pa.background(0,15,55,255);
 		drawTunnel();
-		curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneCtrVals[pa.sceneIDX]);			//needs to be here - used for determination of whether a sphere is hit or not
-		curMseLoc3D = pa.getMseLoc(pa.sceneCtrVals[pa.sceneIDX]);
-		//pa.outStr2Scr("Current mouse loc in 3D : " + curMseLoc3D.toStrBrf() + "| scenectrvals : " + pa.sceneCtrVals[pa.sceneIDX].toStrBrf() +"| current look-at vector from mouse point : " + curMseLookVec.toStrBrf());
+		curMseLookVec = pa.getMse2DtoMse3DinWorld(pa.sceneOriginVals[pa.sceneIDX]);			//needs to be here - used for determination of whether a sphere is hit or not
+		curMseLoc3D = pa.getMseLoc(pa.sceneOriginVals[pa.sceneIDX]);
+		//pa.outStr2Scr("Current mouse loc in 3D : " + curMseLoc3D.toStrBrf() + "| scenectrvals : " + pa.sceneOriginVals[pa.sceneIDX].toStrBrf() +"| current look-at vector from mouse point : " + curMseLookVec.toStrBrf());
 		pa.pushMatrix();pa.pushStyle();
 		pa.noLights();
 		setLights();
@@ -500,11 +500,11 @@ public class mySphereWindow extends Base_DispWindow {
 	@Override
 	protected void hndlMouseRelIndiv() {}
 	@Override
-	protected void endShiftKeyI() {}
+	protected void endShiftKey_Indiv() {}
 	@Override
-	protected void endAltKeyI() {}
+	protected void endAltKey_Indiv() {}
 	@Override
-	protected void endCntlKeyI() {}
+	protected void endCntlKey_Indiv() {}
 	@Override
 	protected void addSScrToWinIndiv(int newWinKey){}
 	@Override
