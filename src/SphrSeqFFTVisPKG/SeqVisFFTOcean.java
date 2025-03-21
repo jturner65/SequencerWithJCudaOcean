@@ -2614,21 +2614,6 @@ import ddf.minim.ugens.*;
 	
 	/////////////
 	// show functions using color idxs 
-	/**
-	 * display an array of text at a location on screen
-	 * @param d initial y location
-	 * @param tclr text color
- 	 * @param txtAra string array to display
-	 */
-	@Override
-	public void showOffsetTextAra(float d, int tclr, String[] txtAra){
-		setColorValFill(tclr, 255);setColorValStroke(tclr, 255);
-		float y = d;
-		for (String txt : txtAra) {
-			showText(txt, d, y, d);
-			y+=10;
-		}
-	}	
 
 	/**
 	 * show array displayed at specific point on screens
@@ -2639,13 +2624,13 @@ import ddf.minim.ugens.*;
 	 * @param txtAra
 	 */
 	@Override
-	public void showTxtAra(myPointf P, float rad, int det, int[] clrs, String[] txtAra) {//only call with set fclr and sclr - idx0 == fill, idx 1 == strk, idx2 == txtClr
+	public void showTextAra(myPointf P, float rad, int det, int[] clrs, String[] txtAra) {//only call with set fclr and sclr - idx0 == fill, idx 1 == strk, idx2 == txtClr
 		pushMatState(); 
 		setColorValFill(clrs[0],255); 
 		setColorValStroke(clrs[1],255);
 		drawSphere(P, rad, det);
 		translate(P.x,P.y,P.z); 
-		showOffsetTextAra(1.2f * rad, clrs[2], txtAra);
+		showTextAra(1.2f * rad, clrs[2], txtAra);
 		popMatState();
 	} // render sphere of radius r and center P)
 	
@@ -2659,7 +2644,7 @@ import ddf.minim.ugens.*;
 	 * @param rectDims
 	 */
 	@Override
-	public void showBoxTxtAra(myPointf P, float rad, int det, int[] clrs, String[] txtAra, float[] rectDims) {
+	public void showBoxTextAra(myPointf P, float rad, int det, int[] clrs, String[] txtAra, float[] rectDims) {
 		pushMatState();  		
 			setColorValFill(clrs[0],255); 
 			setColorValStroke(clrs[1],255);
@@ -2674,7 +2659,7 @@ import ddf.minim.ugens.*;
 				setStrokeWt(2.5f);
 				drawRect(rectDims);
 				translate(rectDims[0],0,0);
-				showOffsetTextAra(1.2f * rad, clrs[2], txtAra);
+				showTextAra(1.2f * rad, clrs[2], txtAra);
 			 popMatState();
 		 popMatState();
 	} // render sphere of radius r and center P)
@@ -2966,6 +2951,16 @@ import ddf.minim.ugens.*;
 	public final Integer[] getClrMorph(int[] a, int[] b, double t){
 		if(t==0){return new Integer[]{a[0],a[1],a[2],a[3]};} else if(t==1){return new Integer[]{b[0],b[1],b[2],b[3]};}
 		return new Integer[]{(int)(((1.0f-t)*a[0])+t*b[0]),(int)(((1.0f-t)*a[1])+t*b[1]),(int)(((1.0f-t)*a[2])+t*b[2]),(int)(((1.0f-t)*a[3])+t*b[3])};
+	}
+	@Override
+	public void showTextAra(float d, String[] txtAra) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void showTextAra(float d, int tclr, String[] txtAra) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

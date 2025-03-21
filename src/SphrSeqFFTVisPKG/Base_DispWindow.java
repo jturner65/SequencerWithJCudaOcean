@@ -42,7 +42,8 @@ public abstract class Base_DispWindow {
 	public float[] rectDim, closeBox, rectDimClosed, mseClickCrnr;	
 	public static final float gridYMult = 1.0f/67.0f, gridXMult = .5625f * gridYMult;
 	//public static final float xOff = 20 , yOff = 20, btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
-	public static final float xOff = 20 , txtHeightOff = 20.0f * (IRenderInterface.txtSz/12.0f), btnLblYOff = 2 * txtHeightOff, rowStYOff = txtHeightOff*.15f;
+	public static final float xOff = 20 , txtHeightOff = 13.0f,// * (IRenderInterface.txtSz/12.0f), 
+			btnLblYOff = 2 * txtHeightOff, rowStYOff = txtHeightOff*.15f;
 	public static final int topOffY = 40;			//offset values to render boolean menu on side of screen - offset at top before drawing
 	public static final float clkBxDim = 10;//size of interaction/close window box in pxls
 
@@ -308,7 +309,7 @@ public abstract class Base_DispWindow {
 		initMe();
 		setupGUIObjsAras();
 		//record final y value for UI Objects
-		initAllPrivBtns();
+		initAllUIButtons();
 		setClosedBox();
 		mseClickCrnr = new float[2];		//this is offset for click to check buttons in x and y - since buttons for all menus will be in menubar, this should be the upper left corner of menubar - upper left corner of rect 
 		mseClickCrnr[0] = 0;//pa.dispWinFrames[pa.dispMenuIDX].rectDim[0];
@@ -603,7 +604,7 @@ public abstract class Base_DispWindow {
 		pa.popStyle();pa.popMatrix();
 	}//drawClickableBooleans	
 	
-	public abstract void initAllPrivBtns();
+	public abstract void initAllUIButtons();
 	
 	//draw box to hide window
 	protected void drawMouseBox(){
@@ -823,7 +824,7 @@ public abstract class Base_DispWindow {
 	}
 	public boolean handleMouseMove(int mouseX, int mouseY, myPoint mouseClickIn3D){
 		if(!dispFlags[showIDX]){return false;}
-		if((dispFlags[showIDX])&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
+		if((dispFlags[showIDX])&& (msePtInUIClckCoords(mouseX, mouseY))){//in clickable region for UI interaction
 			for(int j=0; j<guiObjs_Numeric.length; ++j){if(guiObjs_Numeric[j].checkIn(mouseX, mouseY)){	msOvrObj=j;return true;	}}
 		}			
 		msOvrObj = -1;
@@ -831,11 +832,11 @@ public abstract class Base_DispWindow {
 	}//handleMouseClick
 	
 	public boolean msePtInRect(int x, int y, float[] r){return ((x > r[0])&&(x <= r[0]+r[2])&&(y > r[1])&&(y <= r[1]+r[3]));}	
-	public boolean msePtInUIRect(int x, int y){return ((x > uiClkCoords[0])&&(x <= uiClkCoords[2])&&(y > uiClkCoords[1])&&(y <= uiClkCoords[3]));}	
+	public boolean msePtInUIClckCoords(int x, int y){return ((x > uiClkCoords[0])&&(x <= uiClkCoords[2])&&(y > uiClkCoords[1])&&(y <= uiClkCoords[3]));}	
 	public boolean handleMouseClick(int mouseX, int mouseY, myPoint mouseClickIn3D, int mseBtn){
 		boolean mod = false;
 		//pa.outStr2Scr("ID :" +ID +" loc : ("  +mouseX +", " + mouseY + ") before mouse click check mod : "+ mod);
-		if((dispFlags[showIDX])&& (msePtInUIRect(mouseX, mouseY))){//in clickable region for UI interaction
+		if((dispFlags[showIDX])&& (msePtInUIClckCoords(mouseX, mouseY))){//in clickable region for UI interaction
 			for(int j=0; j<guiObjs_Numeric.length; ++j){
 				if(guiObjs_Numeric[j].checkIn(mouseX, mouseY)){	
 					if(pa.flags[pa.shiftKeyPressed]){//allows for click-mod
