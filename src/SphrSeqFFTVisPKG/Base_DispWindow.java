@@ -42,7 +42,8 @@ public abstract class Base_DispWindow {
 	public float[] rectDim, closeBox, rectDimClosed, mseClickCrnr;	
 	public static final float gridYMult = 1.0f/67.0f, gridXMult = .5625f * gridYMult;
 	//public static final float xOff = 20 , yOff = 20, btnLblYOff = 2 * yOff, rowStYOff = yOff*.15f;
-	public static final float xOff = 20 , txtHeightOff = 20.0f * (IRenderInterface.txtSz/12.0f), btnLblYOff = 2 * txtHeightOff, rowStYOff = txtHeightOff*.15f;
+	public static final float xOff = 20 , txtHeightOff = 13.0f,// * (IRenderInterface.txtSz/12.0f), 
+			btnLblYOff = 2 * txtHeightOff, rowStYOff = txtHeightOff*.15f;
 	public static final int topOffY = 40;			//offset values to render boolean menu on side of screen - offset at top before drawing
 	public static final float clkBxDim = 10;//size of interaction/close window box in pxls
 
@@ -308,7 +309,7 @@ public abstract class Base_DispWindow {
 		initMe();
 		setupGUIObjsAras();
 		//record final y value for UI Objects
-		initAllPrivBtns();
+		initAllUIButtons();
 		setClosedBox();
 		mseClickCrnr = new float[2];		//this is offset for click to check buttons in x and y - since buttons for all menus will be in menubar, this should be the upper left corner of menubar - upper left corner of rect 
 		mseClickCrnr[0] = 0;//pa.dispWinFrames[pa.dispMenuIDX].rectDim[0];
@@ -603,7 +604,7 @@ public abstract class Base_DispWindow {
 		pa.popStyle();pa.popMatrix();
 	}//drawClickableBooleans	
 	
-	public abstract void initAllPrivBtns();
+	public abstract void initAllUIButtons();
 	
 	//draw box to hide window
 	protected void drawMouseBox(){

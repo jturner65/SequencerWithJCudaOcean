@@ -73,7 +73,7 @@ public class mySequencerWindow extends Base_DispWindow {
 	}
 	@Override
 	//initialize all private-flag based UI buttons here - called by base class
-	public void initAllPrivBtns(){
+	public void initAllUIButtons(){
 		truePrivFlagNames = new String[]{								//needs to be in order of flags
 				"Hide Piano Roll"
 		};
