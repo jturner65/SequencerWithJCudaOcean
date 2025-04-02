@@ -275,7 +275,7 @@ import ddf.minim.ugens.*;
 
 	public void draw(){	
 		animCntr = (animCntr + (baseAnimSpd )*animModMult) % maxAnimCntr;						//set animcntr - used only to animate visuals		
-		//cyclModCmp = (drawCount % ((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs_Numeric[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].valAsInt() == 0);
+		//cyclModCmp = (drawCount % ((mySideBarMenu)dispWinFrames[dispMenuIDX]).guiObjs_Numeric[((mySideBarMenu)dispWinFrames[dispMenuIDX]).gIDX_cycModDraw].getValueAsInt() == 0);
 		pushMatState();
 		drawSetup();																//initialize camera, lights and scene orientation and set up eye movement
 		//if ((!cyclModCmp) || (flags[playMusic])) {drawCount++;}						//needed to stop draw update so that pausing sim retains animation positions			
