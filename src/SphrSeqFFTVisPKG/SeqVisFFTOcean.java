@@ -1728,9 +1728,9 @@ import ddf.minim.ugens.*;
 	 * Builds and sets window title
 	 */
 	@Override
-	public void setWindowTitle(String applicationTitle, String windowName) {
+	public void setWindowTitle(String title) {
 		//build window title
-		surface.setTitle(applicationTitle + " : " + (int)(frameRate) + " fps|cyc curFocusWin : " + windowName);		
+		surface.setTitle(title);		
 	}		
 	
 	/**
