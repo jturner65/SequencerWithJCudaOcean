@@ -143,7 +143,7 @@ import ddf.minim.ugens.*;
 		
 	//CODE STARTS
 	public static void main(String[] passedArgs) {		
-		String[] appletArgs = new String[] { "SphrSeqFFTVisPKG.SeqVisFFTOcean" };
+		String[] appletArgs = new String[]{"SphrSeqFFTVisPKG.SeqVisFFTOcean" };
 			if (passedArgs != null) {
 				PApplet.main(PApplet.concat(appletArgs, passedArgs));
 			} else {
@@ -726,7 +726,7 @@ import ddf.minim.ugens.*;
 		winTrajStrkClrs = new int []{gui_Black,gui_DarkGray,gui_DarkGray,gui_DarkGray,gui_White};		//set to color constants for each window			
 		
 		String[] winTitles = new String[]{"","Piano Roll/Score","Sphere UI","Sim Ocean Visualisation", "Instrument Edit"},
-				winDescr = new String[] {"","Piano/Score Editor Window - Draw In Here to enter or edit notes, and to see the resultant score","Control the various instruments using the spheres","Simulation Responds to Music", "Instrument Frequency Response Edit Window"};
+				winDescr = new String[]{"","Piano/Score Editor Window - Draw In Here to enter or edit notes, and to see the resultant score","Control the various instruments using the spheres","Simulation Responds to Music", "Instrument Frequency Response Edit Window"};
 //			//display window initialization	
 		int wIdx = dispPianoRollIDX, fIdx = showSequence;
 		dispWinFrames[wIdx] = new mySequencerWindow(this, winTitles[wIdx], fIdx, winFillClrs[wIdx], winStrkClrs[wIdx], winRectDimOpen[wIdx],winRectDimClose[wIdx],winDescr[wIdx],canDrawInWin[wIdx]);			

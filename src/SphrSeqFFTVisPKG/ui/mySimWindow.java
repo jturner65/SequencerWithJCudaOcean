@@ -255,7 +255,7 @@ public class mySimWindow extends Base_DispWindow {
 		//SwingUtilities.invokeLater(new Runnable() {	public void run() {fftOcean = new myOcean(pa, thisWin, capabilities);}});//launch in another thread	
 		SwingUtilities.invokeLater(new Runnable() {	public void run() {fftOcean = new myOcean(pa, thisWin);}});//launch in another thread	
 		//test
-		//PShader myShader = new PShader(pa, new String[] {vertexShaderSource}, new String[] {fragmentShaderSource});
+		//PShader myShader = new PShader(pa, new String[]{vertexShaderSource}, new String[]{fragmentShaderSource});
 
 		setPrivFlags(oceanMadeIDX, true);
 		setPrivFlags(playVisIDX, true);
