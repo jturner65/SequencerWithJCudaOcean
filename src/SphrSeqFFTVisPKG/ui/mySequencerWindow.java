@@ -67,7 +67,7 @@ public class mySequencerWindow extends Base_DispWindow {
 		float[] pianoDimsAra = new float[]{0, topOffY, myPianoObj.whiteKeyWidth,52 * gridY};
 		dispPiano = new myPianoObj(pa, gridX, gridY, pianoDimsAra, fillClr, rectDim);		//start with 52 white keys (full keyboard)
 		numTrajNoteRpts = 0;		
-//		initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
+//		setUIClkCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
 		//setup clickable regions for flag buttons - 1 per boolean flag
 		super.initThisWin(_canDrawTraj, false);
 	}

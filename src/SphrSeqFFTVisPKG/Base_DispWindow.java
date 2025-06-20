@@ -191,10 +191,10 @@ public abstract class Base_DispWindow {
 		}		
 	}	
 	//build UI clickable region
-	protected void initUIClickCoords(double x1, double y1, double x2, double y2){
-		//pa.outStr2Scr("initUIClickCoords 4 arg in :"+ name+ " ID : " + ID + ": (" + x1+","+y1+","+x2+","+y2 +")");
+	protected void setUIClkCoords(double x1, double y1, double x2, double y2){
+		//pa.outStr2Scr("setUIClkCoords 4 arg in :"+ name+ " ID : " + ID + ": (" + x1+","+y1+","+x2+","+y2 +")");
 		uiClkCoords[0] = x1;uiClkCoords[1] = y1;uiClkCoords[2] = x2; uiClkCoords[3] = y2;}
-	protected void initUIClickCoords(double[] cpy){	uiClkCoords[0] = cpy[0];uiClkCoords[1] = cpy[1];uiClkCoords[2] = cpy[2]; uiClkCoords[3] = cpy[3];}
+	protected void setUIClkCoords(double[] cpy){	uiClkCoords[0] = cpy[0];uiClkCoords[1] = cpy[1];uiClkCoords[2] = cpy[2]; uiClkCoords[3] = cpy[3];}
 
 	public void initFlags(){dispFlags = new boolean[numDispFlags];for(int i =0; i<numDispFlags;++i){dispFlags[i]=false;}}		
 	
@@ -210,7 +210,7 @@ public abstract class Base_DispWindow {
 	protected void initUIBox(){
 		//pa.outStr2Scr("initUIBox in :"+ name+ " ID : " + ID);		
 		double [] menuUIClkCoords = pa.getUIRectVals(ID); // pa.dispWinFrames[pa.dispMenuIDX].uiClkCoords;
-		initUIClickCoords(menuUIClkCoords[0],menuUIClkCoords[3],menuUIClkCoords[2],menuUIClkCoords[3]);				//final value will be modified when UI objects are made
+		setUIClkCoords(menuUIClkCoords[0],menuUIClkCoords[3],menuUIClkCoords[2],menuUIClkCoords[3]);				//final value will be modified when UI objects are made
 		//initialize beginning locations for playback reticle - override this in initMe, and modify it in code for scrollbars
 		vsblStLoc = new float[]{0,0};
 		seqVisStTime = new int[] {0,0};
@@ -295,7 +295,7 @@ public abstract class Base_DispWindow {
 	public void initThisWin(boolean _canDrawTraj, boolean _trajIsFlat){initThisWin(_canDrawTraj, _trajIsFlat, false);}
 	public void initThisWin(boolean _canDrawTraj, boolean _trajIsFlat, boolean _isMenu){
 //		float stY = rectDim[1]+ .85f*rectDim[3];
-//		initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);		//only for first window (sidebar menu) - all subsequent get over-written in iniUIBox
+//		setUIClkCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);		//only for first window (sidebar menu) - all subsequent get over-written in iniUIBox
 		initTmpTrajStuff(_trajIsFlat);	
 		initFlags();	
 		dispFlags[canDrawTraj] = _canDrawTraj;
@@ -404,7 +404,7 @@ public abstract class Base_DispWindow {
 //		
 //		uiClkCoords[1]=calcDBLOffsetScale(uiClkCoords[1],scaleY,topOffY);
 //		uiClkCoords[3]=calcDBLOffsetScale(uiClkCoords[3],scaleY,topOffY);
-//		//initUIClickCoords(uiClkCoords[0],uiClkCoords[1],uiClkCoords[2],uiClkCoords[3]);
+//		//setUIClkCoords(uiClkCoords[0],uiClkCoords[1],uiClkCoords[2],uiClkCoords[3]);
 //		if(0!=numGUIObjs){
 //			buildGUIObjs(guiObjNames,curUIVals,guiMinMaxModVals,guiBoolVals,new double[]{xOff,yOff});
 //		}

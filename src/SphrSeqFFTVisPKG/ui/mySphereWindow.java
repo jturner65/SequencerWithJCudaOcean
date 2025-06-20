@@ -50,7 +50,7 @@ public class mySphereWindow extends Base_DispWindow {
 	public mySphereWindow(SeqVisFFTOcean _p, String _n, int _flagIdx, int[] fc, int[] sc, float[] rd, float[] rdClosed,String _winTxt, boolean _canDrawTraj) {
 		super(_p, _n, _flagIdx, fc, sc, rd, rdClosed, _winTxt, _canDrawTraj);
 		float stY = rectDim[1]+rectDim[3]-4*txtHeightOff,stYFlags = stY + 2*txtHeightOff;
-		//initUIClickCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
+		//setUIClkCoords(rectDim[0] + .1 * rectDim[2],stY,rectDim[0] + rectDim[2],stY + yOff);
 		curSelSphere = "";	
 		trajFillClrCnst = SeqVisFFTOcean.gui_DarkCyan;		//override this in the ctor of the instancing window class
 		trajStrkClrCnst = SeqVisFFTOcean.gui_Cyan;

@@ -221,7 +221,7 @@ public class mySideBarMenu extends Base_DispWindow{
 		};
 		
 		minBtnClkY = (pa.numFlagsToShow+3) * txtHeightOff + clkFlgsStY;										//start of buttons from under boolean flags	
-		initUIClickCoords(rectDim[0] + .1 * rectDim[2],minBtnClkY + (guiBtnRowNames.length * 2) * txtHeightOff,rectDim[0] + .99f * rectDim[2],0);//last val over-written by actual value in buildGuiObjs
+		setUIClkCoords(rectDim[0] + .1 * rectDim[2],minBtnClkY + (guiBtnRowNames.length * 2) * txtHeightOff,rectDim[0] + .99f * rectDim[2],0);//last val over-written by actual value in buildGuiObjs
 		guiObjs_Numeric = new myGUIObj[numGUIObjs];			//list of modifiable gui objects
 		if(0!=numGUIObjs){
 			buildGUIObjs(guiObjNames,guiStVals,guiMinMaxModVals,guiBoolVals, new double[]{xOff,txtHeightOff});
