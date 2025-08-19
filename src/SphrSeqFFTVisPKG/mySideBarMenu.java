@@ -272,7 +272,7 @@ public class mySideBarMenu extends Base_DispWindow{
     }//dispUIListObj
     //uses passed time
     @Override //only send new values if actually new values
-    protected void setUIWinVals(int UIidx){
+    protected void updateOwnerWithUIVal(int UIidx){
         if(pa.flags[pa.setGlobalVals]){setGlblUIWinVals(UIidx); } else {setLclUIWinVals(UIidx);}
     }//setUIWinVals
     private void setLclUIWinVals(int UIidx){

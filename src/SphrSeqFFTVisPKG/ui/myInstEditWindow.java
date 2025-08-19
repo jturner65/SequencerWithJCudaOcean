@@ -108,7 +108,7 @@ public class myInstEditWindow extends Base_DispWindow {
         return "";
     }
     @Override
-    public void setUIWinVals(int UIidx) {
+    public void updateOwnerWithUIVal(int UIidx) {
         switch(UIidx){
             case instToEditIDX : {curTrajAraIDX = (int)guiObjs_Numeric[UIidx].getVal(); break;}
         }

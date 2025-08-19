@@ -890,7 +890,7 @@ public abstract class Base_DispWindow {
     public void handleMouseRelease(){
         if(!dispFlags[showIDX]){return;}
         if(dispFlags[uiObjMod]){//dispFlags[uiObjMod] = true;
-            for(int i=0;i<guiObjs_Numeric.length;++i){if(guiObjs_Numeric[i].getFlags(myGUIObj.usedByWinsIDX)){setUIWinVals(i);}}
+            for(int i=0;i<guiObjs_Numeric.length;++i){if(guiObjs_Numeric[i].getFlags(myGUIObj.usedByWinsIDX)){updateOwnerWithUIVal(i);}}
             dispFlags[uiObjMod] = false;
             msClkObj = -1;    
         }//some object was clicked - pass the values out to all windows
@@ -1123,7 +1123,7 @@ public abstract class Base_DispWindow {
     
     //ui init routines
     protected abstract void setupGUIObjsAras();    
-    protected abstract void setUIWinVals(int UIidx);
+    protected abstract void updateOwnerWithUIVal(int UIidx);
     protected abstract String getUIListValStr(int UIidx, int validx);
     protected abstract void processTrajIndiv(myDrawnSmplTraj drawnTraj);
     

@@ -389,7 +389,7 @@ public class mySimWindow extends Base_DispWindow {
         guiObjs_Numeric[songTransIDX].setVal(songs[songIDX].getPlayPosRatio());        
     }
     
-    public void sendUIValsToOcean(){for(int i=0;i<numGUIObjs; ++i){setUIWinVals(i);}}//send ui vals
+    public void sendUIValsToOcean(){for(int i=0;i<numGUIObjs; ++i){updateOwnerWithUIVal(i);}}//send ui vals
 
     @Override
     public void clickDebug(int btnNum){
@@ -442,7 +442,7 @@ public class mySimWindow extends Base_DispWindow {
     protected void setOceanFFTVal(String UIidx, float value, float oceanVal){if((oceanVal != value) && (fftOcean.tmpSimVals.get(UIidx) != value)){    fftOcean.setNewSimVal(UIidx, value);}}//setOceanFFTVal        
     //set appropriate values from UI
     @Override
-    protected void setUIWinVals(int UIidx) {
+    protected void updateOwnerWithUIVal(int UIidx) {
         if((!privFlags[oceanMadeIDX]) || (null == fftOcean) || (!fftOcean.getFlags(myOcean.doneInit))){return;}
         float val =  (float)(guiObjs_Numeric[UIidx].getVal());
         switch(UIidx){

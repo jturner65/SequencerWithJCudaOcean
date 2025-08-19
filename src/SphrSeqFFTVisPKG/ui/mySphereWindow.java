@@ -117,7 +117,7 @@ public class mySphereWindow extends Base_DispWindow {
         }
     }
     @Override
-    protected void setUIWinVals(int UIidx) {
+    protected void updateOwnerWithUIVal(int UIidx) {
         switch(UIidx){
         default : {break;}
         }

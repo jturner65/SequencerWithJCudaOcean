@@ -290,7 +290,7 @@ public class mySequencerWindow extends Base_DispWindow {
     }//hndlMouseDragIndiv
     //handle if mouse is released after modifying a UI object in this window (msClkObj is object #)
     @Override
-    public void setUIWinVals(int UIidx){
+    public void updateOwnerWithUIVal(int UIidx){
         switch(UIidx){
         case guiTrajToDraw         : { curTrajAraIDX = (int)guiObjs_Numeric[UIidx].getVal(); break;}
         case noteDfltLen         : {    defaultNoteLength = noteValTypes[(int)guiObjs_Numeric[UIidx].getVal() % noteValTypes.length];updateGridXandY(true);break;}
